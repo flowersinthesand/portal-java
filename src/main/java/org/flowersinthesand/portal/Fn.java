@@ -18,27 +18,27 @@ package org.flowersinthesand.portal;
 public abstract class Fn {
 
 	public static interface Callback {
-		void call() throws Throwable;
+		void call();
 	}
 
 	public static interface Callback1<A> {
-		void call(A arg1) throws Throwable;
+		void call(A arg1);
 	}
 
 	public static interface Callback2<A, B> {
-		void call(A arg1, B arg2) throws Throwable;
+		void call(A arg1, B arg2);
 	}
 
 	public static interface Feedback<R> {
-		R apply() throws Throwable;
+		R apply();
 	}
 
 	public static interface Feedback1<R, A> {
-		R apply(A arg1) throws Throwable;
+		R apply(A arg1);
 	}
 
 	public static interface Feedback2<R, A, B> {
-		R apply(A arg1, B arg2) throws Throwable;
+		R apply(A arg1, B arg2);
 	}
 
 }
