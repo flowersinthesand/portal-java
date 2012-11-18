@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import org.codehaus.jackson.map.ObjectMapper;
 import org.flowersinthesand.portal.Data;
 import org.flowersinthesand.portal.Fn;
 import org.flowersinthesand.portal.Reply;
@@ -102,14 +103,16 @@ public class Dispatcher {
 
 	static class StaticInvoker implements Invoker {
 
+		ObjectMapper mapper = new ObjectMapper();
+		Class<?> dataType;
+		Class<?> replyType;
+		
 		Object handler;
 		Method method;
 		int length;
 		int socketIndex = -1;
 		int dataIndex = -1;
 		int replyIndex = -1;
-		Class<?> dataType;
-		Class<?> replyType;
 
 		StaticInvoker(Object handler, Method method) {
 			this.handler = handler;
@@ -193,7 +196,9 @@ public class Dispatcher {
 				args[socketIndex] = socket;
 			}
 			if (dataIndex > -1) {
-				// TODO convert according to dataType
+				if (dataType != null) {
+					data = mapper.convertValue(data, dataType);
+				}
 				args[dataIndex] = data;
 			}
 			if (replyType != null && reply != null && replyIndex > -1) {
@@ -219,12 +224,14 @@ public class Dispatcher {
 
 	static class DynamicInvoker implements Invoker {
 
+		ObjectMapper mapper = new ObjectMapper();
+		Class<?> dataType;
+		Class<?> replyType;
+		
 		Socket socket;
 		Fn.Callback handler;
 		Fn.Callback1<?> handlerWithData;
 		Fn.Callback2<?, ?> handlerWithDataAndReply;
-		Class<?> dataType;
-		Class<?> replyType;
 
 		DynamicInvoker(Socket socket, Fn.Callback handler) {
 			this.socket = socket;
@@ -273,7 +280,9 @@ public class Dispatcher {
 		@Override
 		public Invoker invoke(Socket socket, Object data, final Fn.Callback1<Object> reply) throws Exception {
 			if (this.socket == socket) {
-				// TODO convert according to dataType
+				if (dataType != null) {
+					data = mapper.convertValue(data, dataType);
+				}
 				if (handler != null) {
 					handler.call();
 				}

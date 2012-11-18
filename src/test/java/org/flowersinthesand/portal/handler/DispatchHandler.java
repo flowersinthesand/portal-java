@@ -36,7 +36,7 @@ public class DispatchHandler {
 	}
 	
 	@On("data")
-	public void onData(@Data Object data) {
+	public void onData(@Data DataBean data) {
 		args = new Object[] { data };
 	}
 
@@ -47,13 +47,13 @@ public class DispatchHandler {
 	}
 
 	@On("repli-data")
-	public void onRepliData(@Reply Fn.Callback1<Object> reply, @Data Object data) {
+	public void onRepliData(@Reply Fn.Callback1<Object> reply, @Data DataBean data) {
 		args = new Object[] { reply, data };
 		reply.call(data);
 	}
 
 	@On("socket-data-repli")
-	public void onSocketDataRepli(Socket socket, @Data Object data, @Reply Fn.Callback1<Object> reply) {
+	public void onSocketDataRepli(Socket socket, @Data DataBean data, @Reply Fn.Callback1<Object> reply) {
 		args = new Object[] { socket, data, reply };
 		reply.call(data);
 	}
