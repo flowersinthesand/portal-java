@@ -19,8 +19,8 @@ import org.flowersinthesand.portal.Handler;
 import org.flowersinthesand.portal.On;
 import org.flowersinthesand.portal.Prepare;
 
-@Handler("/init")
-public class InitHandler {
+@Handler("/prepare")
+public class PrepareHandler {
 
 	public static boolean prepared;
 

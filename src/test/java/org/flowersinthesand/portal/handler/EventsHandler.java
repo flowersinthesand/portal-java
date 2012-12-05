@@ -22,8 +22,8 @@ import org.flowersinthesand.portal.On;
 import org.flowersinthesand.portal.Reply;
 import org.flowersinthesand.portal.Socket;
 
-@Handler("/dispatch")
-public class DispatchHandler {
+@Handler("/events")
+public class EventsHandler {
 
 	public Object[] args;
 

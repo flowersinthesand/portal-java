@@ -17,41 +17,24 @@ package org.flowersinthesand.portal;
 
 import java.util.Set;
 
-public abstract class Room {
+public interface Room {
 
-	public static Room find(String name) {
-		// TODO
-		return null;
-	}
+	String name();
 
-	public static Room open(String name) {
-		// TODO
-		return null;
-	}
+	Room add(Socket socket);
 
-	public static Room findOrOpen(String name) {
-		// TODO
-		return null;
-	}
+	Room remove(Socket socket);
 
-	public abstract void close();
+	Set<Socket> sockets();
 
-	public abstract String name();
+	Set<Socket> sockets(Fn.Feedback1<Boolean, Socket> filter);
 
-	public abstract Room add(Socket socket);
+	int size();
 
-	public abstract Room remove(Socket socket);
+	Room clear();
 
-	public abstract Set<Socket> sockets();
+	Object get(String key);
 
-	public abstract Set<Socket> sockets(Fn.Feedback1<Boolean, Socket> filter);
-
-	public abstract int size();
-
-	public abstract Room clear();
-
-	public abstract Object get(String key);
-
-	public abstract Room set(String key, Object value);
+	Room set(String key, Object value);
 
 }

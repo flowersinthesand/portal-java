@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.flowersinthesand.portal.config;
+package org.flowersinthesand.portal.servlet;
 
 import java.io.IOException;
+import java.util.Map.Entry;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import org.flowersinthesand.portal.Initializer;
 import org.flowersinthesand.portal.Options;
-import org.flowersinthesand.portal.dispatcher.Dispatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,19 +32,17 @@ public class InitializerContextListener implements ServletContextListener {
 
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
-		Dispatcher dispatcher = new Dispatcher();
-		event.getServletContext().setAttribute(Dispatcher.class.getName(), dispatcher);
-
 		try {
-			new Initializer(dispatcher).init(event.getServletContext().getInitParameter(Options.BASE_PACKAGE));
+			Initializer i = new Initializer().init(event.getServletContext().getInitParameter(Options.BASE_PACKAGE));
+			for (Entry<String, ?> entry : i.apps().entrySet()) {
+				event.getServletContext().setAttribute("org.flowersinthesand.portal.app." + entry.getKey(), entry.getValue());
+			}
 		} catch (IOException e) {
 			logger.warn("", e);
 		}
 	}
 
 	@Override
-	public void contextDestroyed(ServletContextEvent event) {
-
-	}
+	public void contextDestroyed(ServletContextEvent event) {}
 
 }

@@ -34,4 +34,5 @@ public class DataBean {
 				this.string == null : 
 				bean.string.equals(this.string);
 	}
+
 }

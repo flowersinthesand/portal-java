@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.flowersinthesand.portal.dispatcher;
+package org.flowersinthesand.portal;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -26,74 +26,67 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.codehaus.jackson.map.ObjectMapper;
-import org.flowersinthesand.portal.Data;
-import org.flowersinthesand.portal.Fn;
-import org.flowersinthesand.portal.Reply;
-import org.flowersinthesand.portal.Socket;
-import org.flowersinthesand.portal.config.InitializerContextListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Dispatcher {
+public class Events {
 
-	private final Logger logger = LoggerFactory.getLogger(InitializerContextListener.class);
-	private Map<String, Map<String, Set<Invoker>>> events = new ConcurrentHashMap<String, Map<String, Set<Invoker>>>();
+	private final Logger logger = LoggerFactory.getLogger(Events.class);
+	private Map<String, Map<String, Set<Invoker>>> invokers = new ConcurrentHashMap<String, Map<String, Set<Invoker>>>();
 
-	public Map<String, Map<String, Set<Invoker>>> events() {
-		return Collections.unmodifiableMap(events);
+	Map<String, Map<String, Set<Invoker>>> invokers() {
+		return Collections.unmodifiableMap(invokers);
 	}
 
-	public void on(String handler, String on, Object instance, Method method) {
-		on(handler, on, new StaticInvoker(instance, method).init());
-	}
-	
-	public void on(String handler, String on, Socket socket, Fn.Callback instance) {
-		on(handler, on, new DynamicInvoker(socket, instance).init());
-	}
-
-	public void on(String handler, String on, Socket socket, Fn.Callback1<?> instance) {
-		on(handler, on, new DynamicInvoker(socket, instance).init());
-	}
-
-	public void on(String handler, String on, Socket socket, Fn.Callback2<?, ?> instance) {
-		on(handler, on, new DynamicInvoker(socket, instance).init());
+	public void on(String app, String on, Object handler, Method method) {
+		on(app, on, new StaticInvoker(handler, method).init());
 	}
 	
-	private void on(String handler, String on, Invoker invoker) {
-		if (!events.containsKey(handler)) {
-			events.put(handler, new ConcurrentHashMap<String, Set<Invoker>>());
+	public void on(String app, String on, Socket socket, Fn.Callback instance) {
+		on(app, on, new DynamicInvoker(socket, instance).init());
+	}
+
+	public void on(String app, String on, Socket socket, Fn.Callback1<?> instance) {
+		on(app, on, new DynamicInvoker(socket, instance).init());
+	}
+
+	public void on(String app, String on, Socket socket, Fn.Callback2<?, ?> instance) {
+		on(app, on, new DynamicInvoker(socket, instance).init());
+	}
+	
+	private void on(String app, String on, Invoker invoker) {
+		if (!invokers.containsKey(app)) {
+			invokers.put(app, new ConcurrentHashMap<String, Set<Invoker>>());
 		}
-		if (!events.get(handler).containsKey(on)) {
-			events.get(handler).put(on, new CopyOnWriteArraySet<Invoker>());
+		if (!invokers.get(app).containsKey(on)) {
+			invokers.get(app).put(on, new CopyOnWriteArraySet<Invoker>());
 		}
 
-		events.get(handler).get(on).add(invoker);
+		invokers.get(app).get(on).add(invoker);
 	}
 	
-	public void fire(String handler, String on, Socket socket) {
-		fire(handler, on, socket, null);
+	public void fire(String app, String on, Socket socket) {
+		fire(app, on, socket, null);
 	}
 
-	public void fire(String handler, String on, Socket socket, Object data) {
-		fire(handler, on, socket, data, null);
+	public void fire(String app, String on, Socket socket, Object data) {
+		fire(app, on, socket, data, null);
 	}
 
-	public void fire(String handler, String on, Socket socket, Object data, Fn.Callback1<Object> reply) {
-		if (events.containsKey(handler)) {
-			if (events.get(handler).containsKey(on)) {
-				for (Invoker invoker : events.get(handler).get(on)) {
-					try {
-						invoker.invoke(socket, data, reply);
-					} catch (Exception e) {
-						// TODO
-						logger.warn("", e);
-					}
+	public void fire(String app, String on, Socket socket, Object data, Fn.Callback1<Object> reply) {
+		if (invokers.containsKey(app) && invokers.get(app).containsKey(on)) {
+			for (Invoker invoker : invokers.get(app).get(on)) {
+				try {
+					invoker.invoke(socket, data, reply);
+				} catch (Exception e) {
+					// TODO
+					logger.warn("", e);
 				}
 			}
 		}
 	}
 
-	public static interface Invoker {
+	static interface Invoker {
 
 		Invoker init();
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.flowersinthesand.portal.dispatcher;
+package org.flowersinthesand.portal;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -21,60 +21,61 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.flowersinthesand.portal.Events;
 import org.flowersinthesand.portal.Fn;
+import org.flowersinthesand.portal.Events.Invoker;
 import org.flowersinthesand.portal.Fn.Callback;
 import org.flowersinthesand.portal.Fn.Callback1;
 import org.flowersinthesand.portal.Socket;
-import org.flowersinthesand.portal.dispatcher.Dispatcher.Invoker;
 import org.flowersinthesand.portal.handler.DataBean;
-import org.flowersinthesand.portal.handler.DispatchHandler;
+import org.flowersinthesand.portal.handler.EventsHandler;
 import org.junit.Assert;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-public class DispatcherTest {
+public class EventsTest {
 
-	String url = "/dispatch";
+	String app = "/events";
 
 	@Test
 	public void staticBinding() throws SecurityException, NoSuchMethodException,
 			InstantiationException, IllegalAccessException {
-		DispatchHandler h = new DispatchHandler();
+		EventsHandler h = new EventsHandler();
 
-		Dispatcher dispatcher = new Dispatcher();
-		dispatcher.on(url, "load", h, h.getClass().getMethod("onLoad"));
+		Events events = new Events();
+		events.on(app, "load", h, h.getClass().getMethod("onLoad"));
 
-		Map<String, Map<String, Set<Invoker>>> events = dispatcher.events();
-		Assert.assertNotNull(events.get(url));
+		Map<String, Map<String, Set<Invoker>>> invokers = events.invokers();
+		Assert.assertNotNull(invokers.get(app));
 
-		Map<String, Set<Invoker>> event = events.get(url);
+		Map<String, Set<Invoker>> event = invokers.get(app);
 		Assert.assertNotNull(event.get("load"));
 	}
 
 	@Test
 	public void dynamicBinding() {
-		Dispatcher dispatcher = new Dispatcher();
-		dispatcher.on(url, "e1", null, new Fn.Callback() {
+		Events events = new Events();
+		events.on(app, "e1", null, new Fn.Callback() {
 			@Override
 			public void call() {}
 		});
-		dispatcher.on(url, "e2", null, new Fn.Callback1<Object>() {
+		events.on(app, "e2", null, new Fn.Callback1<Object>() {
 			@Override
 			public void call(Object arg1) {}
 		});
-		dispatcher.on(url, "e3", null, new Fn.Callback2<Object, Fn.Callback>() {
+		events.on(app, "e3", null, new Fn.Callback2<Object, Fn.Callback>() {
 			@Override
 			public void call(Object arg1, Callback reply) {}
 		});
-		dispatcher.on(url, "e4", null, new Fn.Callback2<Object, Fn.Callback1<Object>>() {
+		events.on(app, "e4", null, new Fn.Callback2<Object, Fn.Callback1<Object>>() {
 			@Override
 			public void call(Object arg1, Callback1<Object> reply) {}
 		});
 
-		Map<String, Map<String, Set<Invoker>>> events = dispatcher.events();
-		Assert.assertNotNull(events.get(url));
+		Map<String, Map<String, Set<Invoker>>> invokers = events.invokers();
+		Assert.assertNotNull(invokers.get(app));
 
-		Map<String, Set<Invoker>> event = events.get(url);
+		Map<String, Set<Invoker>> event = invokers.get(app);
 		Assert.assertNotNull(event.get("e1"));
 		Assert.assertNotNull(event.get("e2"));
 		Assert.assertNotNull(event.get("e3"));
@@ -83,7 +84,7 @@ public class DispatcherTest {
 
 	@Test
 	public void staticFiring() throws SecurityException, NoSuchMethodException {
-		DispatchHandler h = new DispatchHandler();
+		EventsHandler h = new EventsHandler();
 		Class<?> clazz = h.getClass(); 
 		Socket socket = Mockito.mock(Socket.class);
 		
@@ -94,17 +95,17 @@ public class DispatcherTest {
 		after.setNumber(100);
 		after.setString("String");
 
-		Dispatcher dispatcher = new Dispatcher();
-		dispatcher.on(url, "socket", h, clazz.getMethod("onSocket", Socket.class));
-		dispatcher.fire(url, "socket", socket);
+		Events events = new Events();
+		events.on(app, "socket", h, clazz.getMethod("onSocket", Socket.class));
+		events.fire(app, "socket", socket);
 		Assert.assertArrayEquals(new Object[] { socket }, h.args);
 
-		dispatcher.on(url, "data", h, clazz.getMethod("onData", DataBean.class));
-		dispatcher.fire(url, "data", socket, before);
+		events.on(app, "data", h, clazz.getMethod("onData", DataBean.class));
+		events.fire(app, "data", socket, before);
 		Assert.assertArrayEquals(new Object[] { after }, h.args);
 
-		dispatcher.on(url, "repli", h, clazz.getMethod("onRepli", Fn.Callback.class));
-		dispatcher.fire(url, "repli", socket, before, new Fn.Callback1<Object>() {
+		events.on(app, "repli", h, clazz.getMethod("onRepli", Fn.Callback.class));
+		events.fire(app, "repli", socket, before, new Fn.Callback1<Object>() {
 			@Override
 			public void call(Object arg1) {
 				Assert.assertNull(arg1);
@@ -112,8 +113,8 @@ public class DispatcherTest {
 		});
 		Assert.assertTrue(h.args[0] instanceof Fn.Callback);
 
-		dispatcher.on(url, "repli-data", h, clazz.getMethod("onRepliData", Fn.Callback1.class, DataBean.class));
-		dispatcher.fire(url, "repli-data", socket, before, new Fn.Callback1<Object>() {
+		events.on(app, "repli-data", h, clazz.getMethod("onRepliData", Fn.Callback1.class, DataBean.class));
+		events.fire(app, "repli-data", socket, before, new Fn.Callback1<Object>() {
 			@Override
 			public void call(Object arg1) {
 				Assert.assertEquals(after, arg1);
@@ -121,8 +122,8 @@ public class DispatcherTest {
 		});
 		Assert.assertTrue(h.args[0] instanceof Fn.Callback1);
 
-		dispatcher.on(url, "socket-data-repli", h, clazz.getMethod("onSocketDataRepli", Socket.class, DataBean.class, Fn.Callback1.class));
-		dispatcher.fire(url, "socket-data-repli", socket, before, new Fn.Callback1<Object>() {
+		events.on(app, "socket-data-repli", h, clazz.getMethod("onSocketDataRepli", Socket.class, DataBean.class, Fn.Callback1.class));
+		events.fire(app, "socket-data-repli", socket, before, new Fn.Callback1<Object>() {
 			@Override
 			public void call(Object arg1) {
 				Assert.assertEquals(after, arg1);
@@ -146,33 +147,33 @@ public class DispatcherTest {
 		after.setNumber(100);
 		after.setString("String");
 
-		Dispatcher dispatcher = new Dispatcher();
-		dispatcher.on(url, "signal", socket, new Fn.Callback() {
+		Events events = new Events();
+		events.on(app, "signal", socket, new Fn.Callback() {
 			@Override
 			public void call() {
 				theNumberOfAssertions.add(null);
 				Assert.assertTrue(true);
 			}
 		});
-		dispatcher.on(url, "signal", intruder, new Fn.Callback() {
+		events.on(app, "signal", intruder, new Fn.Callback() {
 			@Override
 			public void call() {
 				theNumberOfAssertions.add(null);
 				Assert.assertTrue(false);
 			}
 		});
-		dispatcher.fire(url, "signal", socket);
+		events.fire(app, "signal", socket);
 
-		dispatcher.on(url, "data", socket, new Fn.Callback1<DataBean>() {
+		events.on(app, "data", socket, new Fn.Callback1<DataBean>() {
 			@Override
 			public void call(DataBean arg1) {
 				theNumberOfAssertions.add(null);
 				Assert.assertEquals(arg1, after);
 			}
 		});
-		dispatcher.fire(url, "data", socket, before);
+		events.fire(app, "data", socket, before);
 		
-		dispatcher.on(url, "repli1", socket, new Fn.Callback2<DataBean, Fn.Callback>() {
+		events.on(app, "repli1", socket, new Fn.Callback2<DataBean, Fn.Callback>() {
 			@Override
 			public void call(DataBean arg1, Fn.Callback reply) {
 				theNumberOfAssertions.add(null);
@@ -180,14 +181,14 @@ public class DispatcherTest {
 				reply.call();
 			}
 		});
-		dispatcher.fire(url, "repli1", socket, before, new Fn.Callback1<Object>() {
+		events.fire(app, "repli1", socket, before, new Fn.Callback1<Object>() {
 			@Override
 			public void call(Object arg1) {
 				Assert.assertNull(arg1);
 			}
 		});
 
-		dispatcher.on(url, "repli2", socket, new Fn.Callback2<DataBean, Fn.Callback1<DataBean>>() {
+		events.on(app, "repli2", socket, new Fn.Callback2<DataBean, Fn.Callback1<DataBean>>() {
 			@Override
 			public void call(DataBean arg1, Fn.Callback1<DataBean> reply) {
 				theNumberOfAssertions.add(null);
@@ -195,7 +196,7 @@ public class DispatcherTest {
 				reply.call(arg1);
 			}
 		});
-		dispatcher.fire(url, "repli2", socket, before, new Fn.Callback1<Object>() {
+		events.fire(app, "repli2", socket, before, new Fn.Callback1<Object>() {
 			@Override
 			public void call(Object arg1) {
 				Assert.assertEquals(arg1, after);

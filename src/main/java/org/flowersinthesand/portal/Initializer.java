@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.flowersinthesand.portal.config;
+package org.flowersinthesand.portal;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
-import org.flowersinthesand.portal.Handler;
-import org.flowersinthesand.portal.On;
-import org.flowersinthesand.portal.Prepare;
-import org.flowersinthesand.portal.dispatcher.Dispatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,14 +31,10 @@ import eu.infomas.annotation.AnnotationDetector;
 
 public class Initializer {
 
-	private final Logger logger = LoggerFactory.getLogger(InitializerContextListener.class);
-	private Dispatcher dispatcher;
+	private final Logger logger = LoggerFactory.getLogger(Initializer.class);
+	private Map<String, Map<String, Object>> apps = new LinkedHashMap<String, Map<String,Object>>();
 
-	Initializer(Dispatcher dispatcher) {
-		this.dispatcher = dispatcher;
-	}
-	
-	void init(String packageName) throws IOException {
+	public Initializer init(String packageName) throws IOException {
 		AnnotationDetector detector = new AnnotationDetector(new AnnotationDetector.TypeReporter() {
 			
 			@SuppressWarnings("unchecked")
@@ -51,17 +47,25 @@ public class Initializer {
 			public void reportTypeAnnotation(Class<? extends Annotation> annotation, String className) {
 				if (Handler.class.equals(annotation)) {
 					try {
-						process(className);
+						Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass(className);
+						String app = clazz.getAnnotation(Handler.class).value();
+
+						if (!apps.containsKey(app)) {
+							apps.put(app, new LinkedHashMap<String, Object>());
+							apps.get(app).put("events", new Events());
+							apps.get(app).put("rooms", new Rooms());
+							Rooms.add(app, (Rooms) apps.get(app).get("rooms"));
+						}
+
+						process(app, clazz);
 					} catch (Exception e) {
 						logger.warn("", e);
 					}
 				}
 			}
 
-			void process(String className) throws InstantiationException, IllegalAccessException,
-					ClassNotFoundException, IllegalArgumentException, InvocationTargetException {
-				Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass(className);
-				String handler = clazz.getAnnotation(Handler.class).value();
+			void process(String app, Class<?> clazz) throws InstantiationException,
+					IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 				Object instance = clazz.newInstance();
 
 				for (Method method : clazz.getMethods()) {
@@ -86,7 +90,7 @@ public class Initializer {
 
 					// Register event
 					if (on != null) {
-						dispatcher.on(handler, on, instance, method);
+						((Events) apps.get(app).get("events")).on(app, on, instance, method);
 					}
 				}
 				
@@ -99,6 +103,16 @@ public class Initializer {
 		} else {
 			detector.detect();
 		}
+
+		for (Entry<String, Map<String, Object>> entry : apps.entrySet()) {
+			apps.put(entry.getKey(), Collections.unmodifiableMap(entry.getValue()));
+		}
+
+		return this;
+	}
+
+	public Map<String, Map<String, Object>> apps() {
+		return Collections.unmodifiableMap(apps);
 	}
 
 }
