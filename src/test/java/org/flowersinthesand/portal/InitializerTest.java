@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
-import org.flowersinthesand.portal.Events.Invoker;
+import org.flowersinthesand.portal.DefaultEvents.Invoker;
 import org.flowersinthesand.portal.handler.PrepareHandler;
 import org.junit.Assert;
 import org.testng.annotations.Test;
@@ -37,14 +37,12 @@ public class InitializerTest {
 
 	@Test
 	public void initialization() throws IOException, SecurityException, NoSuchMethodException {
-		Map<String, Object> app = new Initializer().init(pkg).apps().get("/prepare");
-		Map<String, Map<String, Set<Invoker>>> invokers = ((Events) app.get("events")).invokers();
-		Assert.assertNotNull(invokers.get("/prepare"));
+		App app = new Initializer().init(pkg).apps().get("/prepare");
+		Assert.assertNotNull(app);
 
-		Map<String, Set<Invoker>> event = invokers.get("/prepare");
-		Assert.assertNotNull(event.get("load"));
-		Assert.assertNull(event.get("ready"));
-
+		Map<String, Set<Invoker>> invokers = ((DefaultEvents) app.events()).invokers();
+		Assert.assertNotNull(invokers.get("load"));
+		Assert.assertNull(invokers.get("ready"));
 		Assert.assertTrue(PrepareHandler.prepared);
 	}
 

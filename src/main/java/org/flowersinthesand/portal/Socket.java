@@ -15,26 +15,71 @@
  */
 package org.flowersinthesand.portal;
 
-public interface Socket {
+import java.util.Map;
 
-	boolean opened();
+import org.flowersinthesand.portal.Fn;
 
-	String param(String key);
+public class Socket {
 
-	Socket on(String event, Fn.Callback handler);
+	private String id;
+	private App app;
+	private Map<String, String[]> params;
 
-	<A> Socket on(String event, Fn.Callback1<A> handler);
+	public Socket(String id, App app, Map<String, String[]> params) {
+		this.id = id;
+		this.app = app;
+		this.params = params;
+	}
 
-	<A, B> Socket on(String event, Fn.Callback2<A, B> handler);
+	public String id() {
+		return id;
+	}
 
-	Socket send(String event);
+	public boolean opened() {
+		return app.sockets().opened(this);
+	}
 
-	Socket send(String event, Object data);
+	public String param(String key) {
+		String[] param = params.get(key);
+		return param == null ? null : param[0];
+	}
 
-	Socket send(String event, Object data, Fn.Callback callback);
+	public Socket on(String event, Fn.Callback handler) {
+		app.events().on(event, this, handler);
+		return this;
+	}
 
-	<A> Socket send(String event, Object data, Fn.Callback1<A> callback);
+	public <A> Socket on(String event, Fn.Callback1<A> handler) {
+		app.events().on(event, this, handler);
+		return this;
+	}
 
-	void close();
+	public <A, B> Socket on(String event, Fn.Callback2<A, B> handler) {
+		app.events().on(event, this, handler);
+		return this;
+	}
+
+	public Socket send(String event) {
+		return send(event, null);
+	}
+
+	public Socket send(String event, Object data) {
+		app.sockets().send(this, event, data);
+		return this;
+	}
+
+	public Socket send(String event, Object data, Fn.Callback callback) {
+		app.sockets().send(this, event, data, callback);
+		return this;
+	}
+
+	public <A> Socket send(String event, Object data, Fn.Callback1<A> callback) {
+		app.sockets().send(this, event, data, callback);
+		return this;
+	}
+
+	public void close() {
+		app.sockets().close(this);
+	}
 
 }

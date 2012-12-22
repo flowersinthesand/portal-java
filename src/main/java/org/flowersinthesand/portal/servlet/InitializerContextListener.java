@@ -21,6 +21,7 @@ import java.util.Map.Entry;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import org.flowersinthesand.portal.App;
 import org.flowersinthesand.portal.Initializer;
 import org.flowersinthesand.portal.Options;
 import org.slf4j.Logger;
@@ -34,8 +35,9 @@ public class InitializerContextListener implements ServletContextListener {
 	public void contextInitialized(ServletContextEvent event) {
 		try {
 			Initializer i = new Initializer().init(event.getServletContext().getInitParameter(Options.BASE_PACKAGE));
-			for (Entry<String, ?> entry : i.apps().entrySet()) {
+			for (Entry<String, App> entry : i.apps().entrySet()) {
 				event.getServletContext().setAttribute("org.flowersinthesand.portal.app." + entry.getKey(), entry.getValue());
+				// TODO register atmosphere-handler
 			}
 		} catch (IOException e) {
 			logger.warn("", e);

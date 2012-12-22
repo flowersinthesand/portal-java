@@ -15,26 +15,69 @@
  */
 package org.flowersinthesand.portal;
 
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
-public interface Room {
+import org.flowersinthesand.portal.Fn.Feedback1;
 
-	String name();
+public class Room {
 
-	Room add(Socket socket);
+	private String name;
+	private Set<Socket> sockets = new CopyOnWriteArraySet<Socket>();
+	private Map<String, Object> attrs = new ConcurrentHashMap<String, Object>();
 
-	Room remove(Socket socket);
+	public Room(String name) {
+		this.name = name;
+	}
 
-	Set<Socket> sockets();
+	public String name() {
+		return name;
+	}
 
-	Set<Socket> sockets(Fn.Feedback1<Boolean, Socket> filter);
+	public Room add(Socket socket) {
+		sockets.add(socket);
+		return this;
+	}
 
-	int size();
+	public Room remove(Socket socket) {
+		sockets.remove(socket);
+		return this;
+	}
 
-	Room clear();
+	public Set<Socket> sockets() {
+		return Collections.unmodifiableSet(sockets);
+	}
 
-	Object get(String key);
+	public Set<Socket> sockets(Feedback1<Boolean, Socket> filter) {
+		Set<Socket> filtered = new LinkedHashSet<Socket>();
+		for (Socket socket : sockets()) {
+			if (filter.apply(socket)) {
+				filtered.add(socket);
+			}
+		}
+		return filtered;
+	}
 
-	Room set(String key, Object value);
+	public int size() {
+		return sockets.size();
+	}
+
+	public Room clear() {
+		sockets.clear();
+		return this;
+	}
+
+	public Object get(String key) {
+		return attrs.get(key);
+	}
+
+	public Room set(String key, Object value) {
+		attrs.put(key, value);
+		return this;
+	}
 
 }
