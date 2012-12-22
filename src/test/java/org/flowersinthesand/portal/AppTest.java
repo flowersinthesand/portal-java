@@ -45,4 +45,10 @@ public class AppTest {
 		Assert.assertNotNull(app.room("/unknown"));
 	}
 
+	@Test
+	public void attr() {
+		App app = new App();
+		Assert.assertNull(app.get("b"));
+		Assert.assertSame(app.set("a", this).get("a"), this);
+	}
 }
