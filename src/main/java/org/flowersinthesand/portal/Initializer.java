@@ -17,10 +17,13 @@ package org.flowersinthesand.portal;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.flowersinthesand.portal.atmosphere.AtmosphereSocketManager;
@@ -33,6 +36,7 @@ public class Initializer {
 
 	private final Logger logger = LoggerFactory.getLogger(Initializer.class);
 	private Map<String, App> apps = new LinkedHashMap<String, App>();
+	private List<Preparer> preparers = new ArrayList<Preparer>();
 
 	public Initializer init(String packageName) throws IOException {
 		AnnotationDetector detector = new AnnotationDetector(new AnnotationDetector.TypeReporter() {
@@ -69,11 +73,22 @@ public class Initializer {
 			detector.detect();
 		}
 
+		// Executes @Prepare methods
+		for (Preparer preparer : preparers) {
+			try {
+				preparer.execute();
+			} catch (Exception e) {
+				logger.warn("", e);
+			}
+		}
+
 		return this;
 	}
 
 	private App create(String name) {
 		App app = new App();
+		App.add(name, app);
+		
 		AtmosphereSocketManager socketManager = new AtmosphereSocketManager();
 		socketManager.setApp(app);
 		
@@ -86,13 +101,28 @@ public class Initializer {
 	private void process(App app, Class<?> clazz) throws InstantiationException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		Object instance = clazz.newInstance();
+		
+		// Finds @Name
+		for (Field field : clazz.getDeclaredFields()) {
+			if (field.isAnnotationPresent(Name.class)) {
+				String value = field.getAnnotation(Name.class).value();
+				field.setAccessible(true);
+				if (field.getType() == App.class) {
+					field.set(instance, App.find(value));
+				} else if (field.getType() == Room.class) {
+					field.set(instance, app.room(value));
+				} else {
+					// TODO throw new exception
+				}
+			}
+		}
+		
+		// Finds @Prepare and @On
 		for (Method method : clazz.getMethods()) {
-			// Executes @Prepare
 			if (method.isAnnotationPresent(Prepare.class)) {
-				method.invoke(instance);
+				preparers.add(new Preparer(instance, method));
 			}
 
-			// Finds @On
 			String on = null;
 			if (method.isAnnotationPresent(On.class)) {
 				on = method.getAnnotation(On.class).value();
@@ -115,6 +145,22 @@ public class Initializer {
 
 	public Map<String, App> apps() {
 		return Collections.unmodifiableMap(apps);
+	}
+
+	private static class Preparer {
+		
+		Object instance;
+		Method method;
+
+		public Preparer(Object instance, Method method) {
+			this.instance = instance;
+			this.method = method;
+		}
+
+		public void execute() throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+			method.invoke(instance);
+		}
+
 	}
 
 }

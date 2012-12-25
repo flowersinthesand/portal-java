@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.flowersinthesand.portal.DefaultEventDispatcher.Invoker;
-import org.flowersinthesand.portal.handler.PrepareHandler;
+import org.flowersinthesand.portal.handler.InitHandler;
 import org.junit.Assert;
 import org.testng.annotations.Test;
 
@@ -36,14 +36,31 @@ public class InitializerTest {
 	}
 
 	@Test
-	public void initialization() throws IOException, SecurityException, NoSuchMethodException {
-		App app = new Initializer().init(pkg).apps().get("/prepare");
+	public void initialization() throws IOException {
+		App app = new Initializer().init(pkg).apps().get("/init");
 		Assert.assertNotNull(app);
 
 		Map<String, Set<Invoker>> invokers = ((DefaultEventDispatcher) app.getEventDispatcher()).invokers();
 		Assert.assertNotNull(invokers.get("load"));
 		Assert.assertNull(invokers.get("ready"));
-		Assert.assertTrue(PrepareHandler.prepared);
 	}
+
+	@Test
+	public void injection() throws IOException {
+		App app = new Initializer().init(pkg).apps().get("/init");
+		
+		Assert.assertEquals(InitHandler.getPrivateRoom().name(), "privateRoom");
+		Assert.assertEquals(InitHandler.getPackagePrivateRoom().name(), "packagePrivateRoom");
+		Assert.assertEquals(InitHandler.getPublicRoom().name(), "publicRoom");
+		Assert.assertSame(InitHandler.getApp(), app);
+	}
+
+	@Test
+	public void preparation() throws IOException {
+		new Initializer().init(pkg).apps().get("/init");
+		
+		Assert.assertTrue(InitHandler.prepared);
+	}
+
 
 }

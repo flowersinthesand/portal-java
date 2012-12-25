@@ -15,21 +15,48 @@
  */
 package org.flowersinthesand.portal.handler;
 
+import org.flowersinthesand.portal.App;
 import org.flowersinthesand.portal.Handler;
+import org.flowersinthesand.portal.Name;
 import org.flowersinthesand.portal.On;
 import org.flowersinthesand.portal.Prepare;
+import org.flowersinthesand.portal.Room;
 
-@Handler("/prepare")
-public class PrepareHandler {
+@Handler("/init")
+public class InitHandler {
 
 	public static boolean prepared;
+	@Name("/init")
+	static App app;
+	@Name("privateRoom")
+	private static Room privateRoom;
+	@Name("packagePrivateRoom")
+	static Room packagePrivateRoom;
+	@Name("publicRoom")
+	public static Room publicRoom;
 
 	@Prepare
 	public void prepare1() {
 		prepared = true;
 	}
-	
+
 	@On("load")
 	public void onLoad() {}
-	
+
+	public static App getApp() {
+		return app;
+	}
+
+	public static Room getPrivateRoom() {
+		return privateRoom;
+	}
+
+	public static Room getPackagePrivateRoom() {
+		return packagePrivateRoom;
+	}
+
+	public static Room getPublicRoom() {
+		return publicRoom;
+	}
+
 }
