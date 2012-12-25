@@ -66,7 +66,16 @@ public class RoomTest {
 	public void attr() {
 		Room room = new Room("room");
 		Assert.assertNull(room.get("notfound"));
-		Assert.assertSame(room.set("socket1", this).get("socket1"), this);
+		
+		String data = "data";
+		Assert.assertSame(room.set("data", data).get("data"), data);
+		Assert.assertEquals(room.replace("data", new Fn.Feedback1<String, String>() {
+			@Override
+			public String apply(String old) {
+				return "new" + old;
+			}
+		})
+		.get("data"), "newdata");
 	}
 
 }

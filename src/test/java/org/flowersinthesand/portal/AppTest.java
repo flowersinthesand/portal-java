@@ -49,6 +49,15 @@ public class AppTest {
 	public void attr() {
 		App app = new App();
 		Assert.assertNull(app.get("b"));
-		Assert.assertSame(app.set("a", this).get("a"), this);
+		
+		String data = "data";
+		Assert.assertSame(app.set("data", data).get("data"), data);
+		Assert.assertEquals(app.replace("data", new Fn.Feedback1<String, String>() {
+			@Override
+			public String apply(String old) {
+				return "new" + old;
+			}
+		})
+		.get("data"), "newdata");
 	}
 }
