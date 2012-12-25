@@ -35,6 +35,20 @@ public class Room {
 		return name;
 	}
 
+	public Object get(String key) {
+		return attrs.get(key);
+	}
+
+	public Room set(String key, Object value) {
+		attrs.put(key, value);
+		return this;
+	}
+
+	@SuppressWarnings("unchecked")
+	public <N, O> Room replace(String key, Fn.Feedback1<N, O> replacer) {
+		return set(key, replacer.apply((O) get(key)));
+	}
+
 	public Room add(Socket socket) {
 		sockets.add(socket);
 		return this;
@@ -42,6 +56,17 @@ public class Room {
 
 	public Room remove(Socket socket) {
 		sockets.remove(socket);
+		return this;
+	}
+
+	public Room send(String event) {
+		return send(event, null);
+	}
+
+	public Room send(String event, Object data) {
+		for (Socket s : sockets) {
+			s.send(event, data);
+		}
 		return this;
 	}
 
@@ -56,20 +81,6 @@ public class Room {
 	public Room clear() {
 		sockets.clear();
 		return this;
-	}
-
-	public Object get(String key) {
-		return attrs.get(key);
-	}
-
-	public Room set(String key, Object value) {
-		attrs.put(key, value);
-		return this;
-	}
-
-	@SuppressWarnings("unchecked")
-	public <N, O> Room replace(String key, Fn.Feedback1<N, O> replacer) {
-		return set(key, replacer.apply((O) get(key)));
 	}
 
 }

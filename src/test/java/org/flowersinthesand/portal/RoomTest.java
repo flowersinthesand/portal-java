@@ -15,8 +15,13 @@
  */
 package org.flowersinthesand.portal;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Assert;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.testng.annotations.Test;
 
 public class RoomTest {
@@ -52,6 +57,37 @@ public class RoomTest {
 		chat.clear();
 		Assert.assertArrayEquals(new Socket[] {}, chat.sockets().toArray(new Socket[] {}));
 		Assert.assertEquals(chat.size(), 0);
+	}
+	
+	@Test
+	public void sending() {
+		Room chat = new Room("chat");
+		final List<Object> executed = new ArrayList<Object>(); 
+		Answer<Object> increment = new Answer<Object>() {
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				executed.add(1);
+				return null;
+			}
+		};
+		
+		Socket socket1 = Mockito.mock(Socket.class);
+		Socket socket2 = Mockito.mock(Socket.class);
+		chat.add(socket1).add(socket2);
+		
+		Mockito.when(socket1.send("e", null)).then(increment);
+		Mockito.when(socket2.send("e", null)).then(increment);
+		
+		String data = "data";
+		Mockito.when(socket1.send("ed", data)).then(increment);
+		Mockito.when(socket2.send("ed", data)).then(increment);
+		
+		chat.send("e");
+		Assert.assertEquals(executed.size(), 2);
+		
+		executed.clear();
+		chat.send("ed", data);
+		Assert.assertEquals(executed.size(), 2);
 	}
 
 	@Test
