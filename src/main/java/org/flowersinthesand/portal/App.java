@@ -23,8 +23,8 @@ import java.util.concurrent.ConcurrentMap;
 public class App implements Serializable {
 
 	public final static String NAME = "org.flowersinthesand.portal.App.name";
-	public final static String EVENTS = "org.flowersinthesand.portal.App.events";
-	public final static String SOCKETS = "org.flowersinthesand.portal.App.sockets";
+	public final static String EVENT_DISPATCHER = "org.flowersinthesand.portal.App.eventDispatcher";
+	public final static String SOCKET_MANAGER = "org.flowersinthesand.portal.App.socketManager";
 	public final static String ROOMS = "org.flowersinthesand.portal.App.rooms";
 	public final static String FIRST = "org.flowersinthesand.portal.App.first";
 
@@ -72,25 +72,25 @@ public class App implements Serializable {
 		return (String) attrs.get(NAME);
 	}
 
-	public Events events() {
-		return (Events) attrs.get(EVENTS);
+	public EventDispatcher getEventDispatcher() {
+		return (EventDispatcher) attrs.get(EVENT_DISPATCHER);
 	}
 
-	public Sockets sockets() {
-		return (Sockets) attrs.get(SOCKETS);
+	public SocketManager getSocketManager() {
+		return (SocketManager) attrs.get(SOCKET_MANAGER);
 	}
 
 	@SuppressWarnings("unchecked")
-	public Map<String, Room> rooms() {
+	public Map<String, Room> findAllRoom() {
 		return (Map<String, Room>) attrs.get(ROOMS);
 	}
 
 	public Room findRoom(String name) {
-		return rooms().get(name);
+		return findAllRoom().get(name);
 	}
 
 	public Room openRoom(String name) {
-		rooms().put(name, new Room(name));
+		findAllRoom().put(name, new Room(name));
 		return room(name);
 	}
 

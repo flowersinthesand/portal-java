@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.flowersinthesand.portal.atmosphere.AtmosphereSockets;
+import org.flowersinthesand.portal.atmosphere.AtmosphereSocketManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,7 +74,13 @@ public class Initializer {
 
 	private App create(String name) {
 		App app = new App();
-		return app.set(App.NAME, name).set(App.EVENTS, new DefaultEvents()).set(App.SOCKETS, new AtmosphereSockets(app));
+		AtmosphereSocketManager socketManager = new AtmosphereSocketManager();
+		socketManager.setApp(app);
+		
+		return app
+			.set(App.NAME, name)
+			.set(App.EVENT_DISPATCHER, new DefaultEventDispatcher())
+			.set(App.SOCKET_MANAGER, socketManager);
 	}
 
 	private void process(App app, Class<?> clazz) throws InstantiationException,
@@ -102,7 +108,7 @@ public class Initializer {
 
 			// Register event
 			if (on != null) {
-				app.events().on(on, instance, method);
+				app.getEventDispatcher().on(on, instance, method);
 			}
 		}
 	}

@@ -29,9 +29,9 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DefaultEvents implements Events {
+public class DefaultEventDispatcher implements EventDispatcher {
 
-	private final Logger logger = LoggerFactory.getLogger(DefaultEvents.class);
+	private final Logger logger = LoggerFactory.getLogger(DefaultEventDispatcher.class);
 	private Map<String, Set<Invoker>> invokers = new ConcurrentHashMap<String, Set<Invoker>>();
 
 	@Override

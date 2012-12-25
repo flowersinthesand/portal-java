@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
-import org.flowersinthesand.portal.DefaultEvents.Invoker;
+import org.flowersinthesand.portal.DefaultEventDispatcher.Invoker;
 import org.flowersinthesand.portal.handler.PrepareHandler;
 import org.junit.Assert;
 import org.testng.annotations.Test;
@@ -40,7 +40,7 @@ public class InitializerTest {
 		App app = new Initializer().init(pkg).apps().get("/prepare");
 		Assert.assertNotNull(app);
 
-		Map<String, Set<Invoker>> invokers = ((DefaultEvents) app.events()).invokers();
+		Map<String, Set<Invoker>> invokers = ((DefaultEventDispatcher) app.getEventDispatcher()).invokers();
 		Assert.assertNotNull(invokers.get("load"));
 		Assert.assertNull(invokers.get("ready"));
 		Assert.assertTrue(PrepareHandler.prepared);

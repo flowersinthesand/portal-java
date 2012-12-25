@@ -2,7 +2,7 @@ package org.flowersinthesand.portal;
 
 import java.lang.reflect.Method;
 
-public interface Events {
+public interface EventDispatcher {
 
 	void on(String event, Object handler, Method method);
 

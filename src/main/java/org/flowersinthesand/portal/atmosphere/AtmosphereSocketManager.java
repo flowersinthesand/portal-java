@@ -33,21 +33,16 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.flowersinthesand.portal.App;
-import org.flowersinthesand.portal.Fn.Callback;
-import org.flowersinthesand.portal.Fn.Callback1;
+import org.flowersinthesand.portal.Fn;
 import org.flowersinthesand.portal.Room;
 import org.flowersinthesand.portal.Socket;
-import org.flowersinthesand.portal.Sockets;
+import org.flowersinthesand.portal.SocketManager;
 
-public class AtmosphereSockets implements Sockets, AtmosphereHandler {
+public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler {
 	
 	private Map<String, Socket> sockets = new ConcurrentHashMap<String, Socket>();
 	private ObjectMapper mapper = new ObjectMapper();
 	private App app;
-	
-	public AtmosphereSockets(App app) {
-		this.app = app;
-	}
 
 	@Override
 	public void onRequest(AtmosphereResource resource) throws IOException {
@@ -113,7 +108,7 @@ public class AtmosphereSockets implements Sockets, AtmosphereHandler {
 			if (data != null) {
 				data = data.startsWith("data=") ? data.substring("data=".length()) : data;
 				Map<String, Object> message = mapper.readValue(data, new TypeReference<Map<String, Object>>() {});
-				app.events().fire((String) message.get("type"), sockets.get(message.get("socket")), message.get("data"));
+				app.getEventDispatcher().fire((String) message.get("type"), sockets.get(message.get("socket")), message.get("data"));
 			}
 		}
 	}
@@ -145,16 +140,16 @@ public class AtmosphereSockets implements Sockets, AtmosphereHandler {
 		
 		BroadcasterFactory.getDefault().get(id);
 		sockets.put(id, socket);
-		app.events().fire("open", socket);
+		app.getEventDispatcher().fire("open", socket);
 	}
 	
 	private void onClose(Socket socket) {
 		BroadcasterFactory.getDefault().remove(socket.id());
 		sockets.remove(socket.id());
-		for (Room room : app.rooms().values()) {
+		for (Room room : app.findAllRoom().values()) {
 			room.remove(socket);
 		}
-		app.events().fire("close", socket);
+		app.getEventDispatcher().fire("close", socket);
 	}
 
 	private void format(PrintWriter writer, String transport, Object message, String jsonp)
@@ -196,7 +191,7 @@ public class AtmosphereSockets implements Sockets, AtmosphereHandler {
 	}
 
 	@Override
-	public void send(Socket socket, String event, Object data, Callback callback) {
+	public void send(Socket socket, String event, Object data, Fn.Callback callback) {
 		Map<String, Object> message = new LinkedHashMap<String, Object>();
 		message.put("type", event);
 		message.put("data", data);
@@ -206,7 +201,7 @@ public class AtmosphereSockets implements Sockets, AtmosphereHandler {
 	}
 
 	@Override
-	public <A> void send(Socket socket, String event, Object data, Callback1<A> callback) {
+	public <A> void send(Socket socket, String event, Object data, Fn.Callback1<A> callback) {
 		Map<String, Object> message = new LinkedHashMap<String, Object>();
 		message.put("type", event);
 		message.put("data", data);
@@ -219,6 +214,10 @@ public class AtmosphereSockets implements Sockets, AtmosphereHandler {
 	public void close(Socket socket) {
 		BroadcasterFactory.getDefault().lookup(socket.id()).resumeAll();
 		sockets.remove(socket.id());
+	}
+	
+	public void setApp(App app) {
+		this.app = app;
 	}
 
 }

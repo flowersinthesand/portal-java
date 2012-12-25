@@ -15,7 +15,7 @@
  */
 package org.flowersinthesand.portal;
 
-public interface Sockets {
+public interface SocketManager {
 
 	boolean opened(Socket socket);
 
