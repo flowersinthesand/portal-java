@@ -44,14 +44,6 @@ public class RoomTest {
 		chat.add(socket2);
 		Assert.assertArrayEquals(new Socket[] { socket1, socket2 }, chat.sockets().toArray(new Socket[] {}));
 		Assert.assertEquals(chat.size(), 2);
-		
-		Assert.assertArrayEquals(new Socket[] { socket1 }, chat.sockets(new Fn.Feedback1<Boolean, Socket>() {
-			@Override
-			public Boolean apply(Socket s) {
-				return s != socket2;
-			}
-		})
-		.toArray(new Socket[] {}));
 
 		chat.remove(socket1);
 		Assert.assertArrayEquals(new Socket[] { socket2 }, chat.sockets().toArray(new Socket[] {}));

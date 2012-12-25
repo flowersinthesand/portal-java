@@ -16,13 +16,10 @@
 package org.flowersinthesand.portal;
 
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
-
-import org.flowersinthesand.portal.Fn.Feedback1;
 
 public class Room {
 
@@ -50,16 +47,6 @@ public class Room {
 
 	public Set<Socket> sockets() {
 		return Collections.unmodifiableSet(sockets);
-	}
-
-	public Set<Socket> sockets(Feedback1<Boolean, Socket> filter) {
-		Set<Socket> filtered = new LinkedHashSet<Socket>();
-		for (Socket socket : sockets()) {
-			if (filter.apply(socket)) {
-				filtered.add(socket);
-			}
-		}
-		return filtered;
 	}
 
 	public int size() {
