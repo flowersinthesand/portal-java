@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.atmosphere.cpr.AtmosphereHandler;
@@ -134,10 +135,11 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 
 	private void start(String id, Map<String, String[]> params) {
 		AtmosphereSocket socket = new AtmosphereSocket(id, app, params);
-		
+
 		broadcasterFactory.get(id);
 		sockets.put(id, socket);
-		
+		socket.setHeartbeatTimer();
+
 		app.getEventDispatcher().fire("open", socket);
 	}
 
@@ -146,10 +148,14 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 
 		broadcasterFactory.remove(socket.id());
 		sockets.remove(socket.id());
+		Timer heartbeatTimer = socket.heartbeatTimer();
+		if (heartbeatTimer != null) {
+			heartbeatTimer.cancel();
+		}
 		for (Room room : app.findAllRoom().values()) {
 			room.remove(socket);
 		}
-		
+
 		app.getEventDispatcher().fire("close", socket);
 	}
 
@@ -159,8 +165,13 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		String type = (String) message.get("type");
 		Object data = message.get("data");
 		boolean reply = message.containsKey("reply") && (Boolean) message.get("reply");
-		
-		if (type.equals("reply")) {
+
+		if (type.equals("heartbeat")) {
+			if (socket.heartbeatTimer() != null) {
+				socket.setHeartbeatTimer();
+				socket.send("heartbeat");
+			}
+		} else if (type.equals("reply")) {
 			@SuppressWarnings("unchecked")
 			Map<String, Object> replyData = (Map<String, Object>) data;
 			Integer replyEventId = (Integer) replyData.get("id");
