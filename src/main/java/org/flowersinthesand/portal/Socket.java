@@ -17,8 +17,6 @@ package org.flowersinthesand.portal;
 
 import java.util.Map;
 
-import org.flowersinthesand.portal.Fn;
-
 public class Socket {
 
 	private String id;

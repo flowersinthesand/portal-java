@@ -28,8 +28,6 @@ import org.atmosphere.cpr.AtmosphereResourceEvent;
 import org.atmosphere.cpr.AtmosphereResourceEventListener;
 import org.atmosphere.cpr.AtmosphereResponse;
 import org.atmosphere.cpr.BroadcasterFactory;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.flowersinthesand.portal.App;
@@ -40,7 +38,8 @@ import org.flowersinthesand.portal.SocketManager;
 
 public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler {
 	
-	private Map<String, Socket> sockets = new ConcurrentHashMap<String, Socket>();
+	private Map<String, AtmosphereSocket> sockets = new ConcurrentHashMap<String, AtmosphereSocket>();
+	private BroadcasterFactory broadcasterFactory = BroadcasterFactory.getDefault();
 	private ObjectMapper mapper = new ObjectMapper();
 	private App app;
 
@@ -74,7 +73,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 				@Override
 				public void onSuspend(AtmosphereResourceEvent event) {
 					if (!transport.startsWith("longpoll") || first) {
-						onOpen(id, event.getResource().getRequest().getParameterMap());
+						start(id, event.getResource().getRequest().getParameterMap());
 					}
 				}
 
@@ -98,7 +97,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 
 				private void cleanup(AtmosphereResourceEvent event) {
 					if (!transport.startsWith("longpoll") || (!first && !event.getResource().getResponse().isCommitted())) {
-						onClose(sockets.get(id));
+						end(id);
 					}
 				}
 			})
@@ -106,9 +105,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		} else if (request.getMethod().equalsIgnoreCase("POST")) {
 			String data = request.getReader().readLine();
 			if (data != null) {
-				data = data.startsWith("data=") ? data.substring("data=".length()) : data;
-				Map<String, Object> message = mapper.readValue(data, new TypeReference<Map<String, Object>>() {});
-				app.getEventDispatcher().fire((String) message.get("type"), sockets.get(message.get("socket")), message.get("data"));
+				fire(data.startsWith("data=") ? data.substring("data=".length()) : data);
 			}
 		}
 	}
@@ -135,25 +132,61 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 	@Override
 	public void destroy() {}
 
-	private void onOpen(String id, Map<String, String[]> params) {
-		Socket socket = new Socket(id, app, params);
+	private void start(String id, Map<String, String[]> params) {
+		AtmosphereSocket socket = new AtmosphereSocket(id, app, params);
 		
-		BroadcasterFactory.getDefault().get(id);
+		broadcasterFactory.get(id);
 		sockets.put(id, socket);
+		
 		app.getEventDispatcher().fire("open", socket);
 	}
-	
-	private void onClose(Socket socket) {
-		BroadcasterFactory.getDefault().remove(socket.id());
+
+	private void end(String id) {
+		AtmosphereSocket socket = sockets.get(id);
+
+		broadcasterFactory.remove(socket.id());
 		sockets.remove(socket.id());
 		for (Room room : app.findAllRoom().values()) {
 			room.remove(socket);
 		}
+		
 		app.getEventDispatcher().fire("close", socket);
 	}
 
-	private void format(PrintWriter writer, String transport, Object message, String jsonp)
-			throws JsonGenerationException, JsonMappingException, IOException {
+	private void fire(String raw) throws IOException {
+		final Map<String, Object> message = mapper.readValue(raw, new TypeReference<Map<String, Object>>() {});
+		final AtmosphereSocket socket = sockets.get(message.get("socket"));
+		String type = (String) message.get("type");
+		Object data = message.get("data");
+		boolean reply = message.containsKey("reply") && (Boolean) message.get("reply");
+		
+		if (type.equals("reply")) {
+			@SuppressWarnings("unchecked")
+			Map<String, Object> replyData = (Map<String, Object>) data;
+			Integer replyEventId = (Integer) replyData.get("id");
+			if (socket.callbacks().containsKey(replyEventId)) {
+				socket.callbacks().get(replyEventId).call(replyData.get("data"));
+				socket.callbacks().remove(replyEventId);
+			}
+		}
+		
+		if (!reply) {
+			app.getEventDispatcher().fire(type, socket, data);
+		} else {
+			app.getEventDispatcher().fire(type, socket, data, new Fn.Callback1<Object>() {
+				@Override
+				public void call(Object arg1) {
+					Map<String, Object> replyData = new LinkedHashMap<String, Object>();
+					replyData.put("id", message.get("id"));
+					replyData.put("data", arg1);
+
+					socket.send("reply", replyData);
+				}
+			});
+		}
+	}
+
+	private void format(PrintWriter writer, String transport, Object message, String jsonp) throws IOException {
 		String data = mapper.writeValueAsString(message);
 		if (transport.equals("ws")) {
 			writer.print(data);
@@ -182,37 +215,55 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 	}
 
 	@Override
-	public void send(Socket socket, String event, Object data) {
-		Map<String, Object> message = new LinkedHashMap<String, Object>();
-		message.put("type", event);
-		message.put("data", data);
-		message.put("reply", false);
-		BroadcasterFactory.getDefault().lookup(socket.id()).broadcast(message);
+	public void send(Socket s, String event, Object data) {
+		AtmosphereSocket socket = (AtmosphereSocket) s;
+		
+		socket.eventId().incrementAndGet();
+		broadcasterFactory.lookup(socket.id()).broadcast(rawMessage(socket.eventId().get(), event, data, false));
 	}
 
 	@Override
-	public void send(Socket socket, String event, Object data, Fn.Callback callback) {
-		Map<String, Object> message = new LinkedHashMap<String, Object>();
-		message.put("type", event);
-		message.put("data", data);
-		message.put("reply", true);
-		// TODO deal with callback
-		BroadcasterFactory.getDefault().lookup(socket.id()).broadcast(message);
+	public void send(Socket s, String event, Object data, final Fn.Callback callback) {
+		AtmosphereSocket socket = (AtmosphereSocket) s;
+
+		socket.eventId().incrementAndGet();
+		socket.callbacks().put(socket.eventId().get(), new Fn.Callback1<Object>() {
+			@Override
+			public void call(Object arg1) {
+				callback.call();
+			}
+		});
+		broadcasterFactory.lookup(socket.id()).broadcast(rawMessage(socket.eventId().get(), event, data, true));
 	}
 
 	@Override
-	public <A> void send(Socket socket, String event, Object data, Fn.Callback1<A> callback) {
+	public <A> void send(Socket s, String event, Object data, final Fn.Callback1<A> callback) {
+		AtmosphereSocket socket = (AtmosphereSocket) s;
+
+		socket.eventId().incrementAndGet();
+		socket.callbacks().put(socket.eventId().get(), new Fn.Callback1<Object>() {
+			@SuppressWarnings("unchecked")
+			@Override
+			public void call(Object arg1) {
+				((Fn.Callback1<Object>) callback).call(arg1);
+			}
+		});
+		broadcasterFactory.lookup(socket.id()).broadcast(rawMessage(socket.eventId().get(), event, data, true));
+	}
+	
+	private Map<String, Object> rawMessage(int id, String type, Object data, boolean reply) {
 		Map<String, Object> message = new LinkedHashMap<String, Object>();
-		message.put("type", event);
+		message.put("id", id);
+		message.put("type", type);
 		message.put("data", data);
-		message.put("reply", true);
-		// TODO deal with callback1
-		BroadcasterFactory.getDefault().lookup(socket.id()).broadcast(message);
+		message.put("reply", reply);
+		
+		return message;
 	}
 
 	@Override
 	public void close(Socket socket) {
-		BroadcasterFactory.getDefault().lookup(socket.id()).resumeAll();
+		broadcasterFactory.lookup(socket.id()).resumeAll();
 		sockets.remove(socket.id());
 	}
 	
