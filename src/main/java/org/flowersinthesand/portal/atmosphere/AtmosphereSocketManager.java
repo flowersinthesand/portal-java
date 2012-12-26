@@ -18,7 +18,9 @@ package org.flowersinthesand.portal.atmosphere;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -36,23 +38,26 @@ import org.flowersinthesand.portal.Fn;
 import org.flowersinthesand.portal.Room;
 import org.flowersinthesand.portal.Socket;
 import org.flowersinthesand.portal.SocketManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler {
-	
+
+	private final Logger logger = LoggerFactory.getLogger(AtmosphereSocketManager.class);
 	private Map<String, AtmosphereSocket> sockets = new ConcurrentHashMap<String, AtmosphereSocket>();
 	private BroadcasterFactory broadcasterFactory = BroadcasterFactory.getDefault();
 	private ObjectMapper mapper = new ObjectMapper();
 	private App app;
 
 	@Override
-	public void onRequest(AtmosphereResource resource) throws IOException {
+	public void onRequest(final AtmosphereResource resource) throws IOException {
 		final AtmosphereRequest request = resource.getRequest();
 		final AtmosphereResponse response = resource.getResponse();
 
 		if (request.getMethod().equalsIgnoreCase("GET")) {
 			final String id = request.getParameter("id");
 			final String transport = request.getParameter("transport");
-			final boolean first = "1".equals(request.getParameter("count"));
+			final boolean firstLongPoll = transport.startsWith("longpoll") && "1".equals(request.getParameter("count"));
 			final PrintWriter writer = response.getWriter();
 			
 			resource.addEventListener(new AtmosphereResourceEventListener() {
@@ -73,8 +78,36 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 
 				@Override
 				public void onSuspend(AtmosphereResourceEvent event) {
-					if (!transport.startsWith("longpoll") || first) {
-						start(id, event.getResource().getRequest().getParameterMap());
+					if (!transport.startsWith("longpoll")) {
+						start(id, request.getParameterMap());
+					} else {
+						if (firstLongPoll) {
+							start(id, request.getParameterMap());
+						} else {
+							Integer lastEventId = Integer.valueOf(request.getParameter("lastEventId"));
+							Set<Map<String, Object>> original = sockets.get(id).cache();
+							Set<Map<String, Object>> temp = new LinkedHashSet<Map<String, Object>>();
+							for (Map<String, Object> message : original) {
+								if (lastEventId < (Integer) message.get("id")) {
+									temp.add(message);
+								}
+							}
+							original.clear();
+
+							if (!temp.isEmpty()) {
+								String jsonp = request.getParameter("callback");
+								try {
+									for (Map<String, Object> message : temp) {
+										format(writer, transport, message, jsonp);
+									}
+								} catch (IOException e) {
+									// TODO
+									logger.warn("", e);
+								}
+								writer.flush();
+								resource.resume();
+							}
+						}
 					}
 				}
 
@@ -97,7 +130,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 				}
 
 				private void cleanup(AtmosphereResourceEvent event) {
-					if (!transport.startsWith("longpoll") || (!first && !event.getResource().getResponse().isCommitted())) {
+					if (!transport.startsWith("longpoll") || (!firstLongPoll && !response.isCommitted())) {
 						end(id);
 					}
 				}
@@ -213,7 +246,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 				writer.print(jsonp);
 				writer.print("(");
 				writer.print(mapper.writeValueAsString(data));
-				writer.print(")");
+				writer.print(");");
 			} else {
 				writer.print(data);
 			}
@@ -230,7 +263,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		AtmosphereSocket socket = (AtmosphereSocket) s;
 		
 		socket.eventId().incrementAndGet();
-		broadcasterFactory.lookup(socket.id()).broadcast(rawMessage(socket.eventId().get(), event, data, false));
+		broadcasterFactory.lookup(socket.id()).broadcast(socket.cache(rawMessage(socket.eventId().get(), event, data, false)));
 	}
 
 	@Override
@@ -244,7 +277,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 				callback.call();
 			}
 		});
-		broadcasterFactory.lookup(socket.id()).broadcast(rawMessage(socket.eventId().get(), event, data, true));
+		broadcasterFactory.lookup(socket.id()).broadcast(socket.cache(rawMessage(socket.eventId().get(), event, data, true)));
 	}
 
 	@Override
@@ -259,7 +292,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 				((Fn.Callback1<Object>) callback).call(arg1);
 			}
 		});
-		broadcasterFactory.lookup(socket.id()).broadcast(rawMessage(socket.eventId().get(), event, data, true));
+		broadcasterFactory.lookup(socket.id()).broadcast(socket.cache(rawMessage(socket.eventId().get(), event, data, true)));
 	}
 	
 	private Map<String, Object> rawMessage(int id, String type, Object data, boolean reply) {
