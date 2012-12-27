@@ -34,7 +34,7 @@ public class Socket {
 	}
 
 	public boolean opened() {
-		return app.getSocketManager().opened(this);
+		return app.socketManager().opened(this);
 	}
 
 	public String param(String key) {
@@ -43,17 +43,17 @@ public class Socket {
 	}
 
 	public Socket on(String event, Fn.Callback handler) {
-		app.getEventDispatcher().on(event, this, handler);
+		app.eventDispatcher().on(event, this, handler);
 		return this;
 	}
 
 	public <A> Socket on(String event, Fn.Callback1<A> handler) {
-		app.getEventDispatcher().on(event, this, handler);
+		app.eventDispatcher().on(event, this, handler);
 		return this;
 	}
 
 	public <A, B> Socket on(String event, Fn.Callback2<A, B> handler) {
-		app.getEventDispatcher().on(event, this, handler);
+		app.eventDispatcher().on(event, this, handler);
 		return this;
 	}
 
@@ -62,22 +62,22 @@ public class Socket {
 	}
 
 	public Socket send(String event, Object data) {
-		app.getSocketManager().send(this, event, data);
+		app.socketManager().send(this, event, data);
 		return this;
 	}
 
 	public Socket send(String event, Object data, Fn.Callback callback) {
-		app.getSocketManager().send(this, event, data, callback);
+		app.socketManager().send(this, event, data, callback);
 		return this;
 	}
 
 	public <A> Socket send(String event, Object data, Fn.Callback1<A> callback) {
-		app.getSocketManager().send(this, event, data, callback);
+		app.socketManager().send(this, event, data, callback);
 		return this;
 	}
 
 	public void close() {
-		app.getSocketManager().close(this);
+		app.socketManager().close(this);
 	}
 
 }

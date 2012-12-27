@@ -41,7 +41,7 @@ public class InitializerServlet extends AtmosphereServlet {
 			Initializer i = new Initializer().init(getServletConfig().getInitParameter(Options.BASE_PACKAGE));
 			for (App app : i.apps().values()) {
 				getServletContext().setAttribute("com.github.flowersinthesand.portal.App#" + app.name(), app);
-				framework.addAtmosphereHandler(app.name(), (AtmosphereHandler) app.getSocketManager());
+				framework.addAtmosphereHandler(app.name(), (AtmosphereHandler) app.socketManager());
 			}
 		} catch (IOException e) {
 			logger.error("Failed to scan the class path", e);

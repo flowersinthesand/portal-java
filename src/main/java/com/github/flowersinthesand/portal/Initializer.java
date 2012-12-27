@@ -154,7 +154,7 @@ public class Initializer {
 			}
 			
 			if (on != null) {
-				app.getEventDispatcher().on(on, instance, method);
+				app.eventDispatcher().on(on, instance, method);
 			}
 		}
 	}

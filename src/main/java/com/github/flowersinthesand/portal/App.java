@@ -72,11 +72,11 @@ public class App implements Serializable {
 		return (String) attrs.get(NAME);
 	}
 
-	public EventDispatcher getEventDispatcher() {
+	public EventDispatcher eventDispatcher() {
 		return (EventDispatcher) attrs.get(EVENT_DISPATCHER);
 	}
 
-	public SocketManager getSocketManager() {
+	public SocketManager socketManager() {
 		return (SocketManager) attrs.get(SOCKET_MANAGER);
 	}
 

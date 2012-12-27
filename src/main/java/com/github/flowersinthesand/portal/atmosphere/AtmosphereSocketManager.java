@@ -177,7 +177,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		sockets.put(id, socket);
 		socket.setHeartbeatTimer();
 
-		app.getEventDispatcher().fire("open", socket);
+		app.eventDispatcher().fire("open", socket);
 	}
 
 	private void end(String id) {
@@ -195,7 +195,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 			room.remove(socket);
 		}
 
-		app.getEventDispatcher().fire("close", socket);
+		app.eventDispatcher().fire("close", socket);
 	}
 
 	private void fire(String raw) throws IOException {
@@ -225,9 +225,9 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		}
 		
 		if (!reply) {
-			app.getEventDispatcher().fire(type, socket, data);
+			app.eventDispatcher().fire(type, socket, data);
 		} else {
-			app.getEventDispatcher().fire(type, socket, data, new Fn.Callback1<Object>() {
+			app.eventDispatcher().fire(type, socket, data, new Fn.Callback1<Object>() {
 				@Override
 				public void call(Object arg1) {
 					Map<String, Object> replyData = new LinkedHashMap<String, Object>();

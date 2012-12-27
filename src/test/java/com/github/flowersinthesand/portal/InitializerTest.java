@@ -44,7 +44,7 @@ public class InitializerTest {
 		App app = new Initializer().init(pkg).apps().get("/init");
 		Assert.assertNotNull(app);
 
-		Map<String, Set<Invoker>> invokers = ((DefaultEventDispatcher) app.getEventDispatcher()).invokers();
+		Map<String, Set<Invoker>> invokers = ((DefaultEventDispatcher) app.eventDispatcher()).invokers();
 		Assert.assertNotNull(invokers.get("load"));
 		Assert.assertNull(invokers.get("ready"));
 	}
