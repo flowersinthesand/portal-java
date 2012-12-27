@@ -40,6 +40,8 @@ public class Initializer {
 	private List<Preparer> preparers = new ArrayList<Preparer>();
 
 	public Initializer init(String packageName) throws IOException {
+		logger.info("Initializing the Portal application");
+		
 		AnnotationDetector detector = new AnnotationDetector(new AnnotationDetector.TypeReporter() {
 			
 			@SuppressWarnings("unchecked")
@@ -50,43 +52,41 @@ public class Initializer {
 
 			@Override
 			public void reportTypeAnnotation(Class<? extends Annotation> annotation, String className) {
-				if (Handler.class.equals(annotation)) {
-					try {
-						Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass(className);
-						String name = clazz.getAnnotation(Handler.class).value();
-
-						if (!apps.containsKey(name)) {
-							apps.put(name, create(name));
-						}
-
-						process(apps.get(name), clazz);
-					} catch (Exception e) {
-						logger.warn("", e);
+				try {
+					Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass(className);
+					String name = clazz.getAnnotation(Handler.class).value();
+					
+					if (!apps.containsKey(name)) {
+						apps.put(name, createApp(name));
 					}
+					
+					process(apps.get(name), clazz);
+				} catch (ClassNotFoundException e) {
+					logger.error("", e);
 				}
 			}
 		});
-
-		// Detects @Handler
+		
 		if (packageName != null) {
+			logger.info("Scanning the class path under {}", packageName);
 			detector.detect(packageName);
 		} else {
+			logger.info("Scanning the class path");
 			detector.detect();
 		}
-
-		// Executes @Prepare methods
+		
 		for (Preparer preparer : preparers) {
 			try {
 				preparer.execute();
 			} catch (Exception e) {
-				logger.warn("", e);
+				logger.error("Failed to execute @Prepare method " + preparer.method, e);
 			}
 		}
 
 		return this;
 	}
 
-	private App create(String name) {
+	private App createApp(String name) {
 		App app = new App();
 		App.add(name, app);
 		
@@ -99,45 +99,60 @@ public class Initializer {
 			.set(App.SOCKET_MANAGER, socketManager);
 	}
 
-	private void process(App app, Class<?> clazz) throws InstantiationException,
-			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		Object instance = clazz.newInstance();
+	private void process(App app, Class<?> clazz) {
+		logger.info("Processing @Handler(\"{}\") on {}", app.name(), clazz.getName());
+
+		Object instance;
+		try {
+			instance = clazz.newInstance();
+		} catch (Exception e) {
+			logger.error("Failed to construct " + clazz.getName(), e);
+			return;
+		}
 		
-		// Finds @Name
 		for (Field field : clazz.getDeclaredFields()) {
 			if (field.isAnnotationPresent(Name.class)) {
-				String value = field.getAnnotation(Name.class).value();
+				String name = field.getAnnotation(Name.class).value();
+				Object value = null;
+				logger.debug("@Name(\"{}\") on {}", name, field);
+
 				field.setAccessible(true);
 				if (field.getType() == App.class) {
-					field.set(instance, App.find(value));
+					value = App.find(name);
 				} else if (field.getType() == Room.class) {
-					field.set(instance, app.room(value));
+					value = app.room(name);
 				} else {
-					// TODO throw new exception
+					logger.error("@Name can be present only on the fields whose type is App or Room");
+				}
+
+				try {
+					field.set(instance, value);
+				} catch (Exception e) {
+					logger.error("Failed to set " + field + " to " + value, e);
 				}
 			}
 		}
 		
-		// Finds @Prepare and @On
 		for (Method method : clazz.getMethods()) {
 			if (method.isAnnotationPresent(Prepare.class)) {
+				logger.debug("@Prepare on {}", method);
 				preparers.add(new Preparer(instance, method));
 			}
 
 			String on = null;
 			if (method.isAnnotationPresent(On.class)) {
 				on = method.getAnnotation(On.class).value();
+				logger.debug("@On(\"{}\") on {}", on, method);
 			} else {
-				// Such as @On.open, @On.close
 				for (Annotation ann : method.getAnnotations()) {
 					if (ann.annotationType().isAnnotationPresent(On.class)) {
 						on = ann.annotationType().getAnnotation(On.class).value();
+						logger.debug("@On(\"{}\") of {} on {}", on, ann, method);
 						break;
 					}
 				}
 			}
-
-			// Register event
+			
 			if (on != null) {
 				app.getEventDispatcher().on(on, instance, method);
 			}
@@ -147,7 +162,7 @@ public class Initializer {
 	public Map<String, App> apps() {
 		return Collections.unmodifiableMap(apps);
 	}
-
+	
 	private static class Preparer {
 		
 		Object instance;

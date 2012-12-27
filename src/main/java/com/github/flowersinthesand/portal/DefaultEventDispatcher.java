@@ -36,30 +36,35 @@ public class DefaultEventDispatcher implements EventDispatcher {
 
 	@Override
 	public void on(String event, Object handler, Method method) {
-		on(event, new StaticInvoker(handler, method).init());
+		on(event, new StaticInvoker(handler, method));
 	}
 	
 	@Override
 	public void on(String event, Socket socket, Fn.Callback handler) {
-		on(event, new DynamicInvoker(socket, handler).init());
+		on(event, new DynamicInvoker(socket, handler));
 	}
 
 	@Override
 	public void on(String event, Socket socket, Fn.Callback1<?> handler) {
-		on(event, new DynamicInvoker(socket, handler).init());
+		on(event, new DynamicInvoker(socket, handler));
 	}
 
 	@Override
 	public void on(String event, Socket socket, Fn.Callback2<?, ?> handler) {
-		on(event, new DynamicInvoker(socket, handler).init());
+		on(event, new DynamicInvoker(socket, handler));
 	}
 	
-	private void on(String on, Invoker invoker) {
-		if (!invokers.containsKey(on)) {
-			invokers.put(on, new CopyOnWriteArraySet<Invoker>());
+	private void on(String event, Invoker invoker) {
+		if (!invokers.containsKey(event)) {
+			invokers.put(event, new CopyOnWriteArraySet<Invoker>());
 		}
-
-		invokers.get(on).add(invoker);
+		
+		logger.debug("Attaching the {} event handler {}", event, invoker);
+		try {
+			invokers.get(event).add(invoker.init());
+		} catch (EventHandlerSignatureException e) {
+			logger.error("Event handler method signature is inappropriate", e);
+		}
 	}
 	
 	@Override
@@ -74,13 +79,14 @@ public class DefaultEventDispatcher implements EventDispatcher {
 
 	@Override
 	public void fire(String on, Socket socket, Object data, Fn.Callback1<Object> reply) {
+		logger.info("Firing the {} event", on);
 		if (invokers.containsKey(on)) {
 			for (Invoker invoker : invokers.get(on)) {
+				logger.trace("Invoking handler {}", invoker);
 				try {
 					invoker.invoke(socket, data, reply);
 				} catch (Exception e) {
-					// TODO
-					logger.warn("", e);
+					logger.error("Exception occurred while invoking a handler " + invoker, e);
 				}
 			}
 		}
@@ -88,6 +94,16 @@ public class DefaultEventDispatcher implements EventDispatcher {
 	
 	Map<String, Set<Invoker>> invokers() {
 		return Collections.unmodifiableMap(invokers);
+	}
+
+	public static class EventHandlerSignatureException extends RuntimeException {
+
+		private static final long serialVersionUID = -8865213376744003351L;
+
+		public EventHandlerSignatureException(String msg) {
+			super(msg);
+		}
+		
 	}
 
 	static interface Invoker {
@@ -124,7 +140,7 @@ public class DefaultEventDispatcher implements EventDispatcher {
 				Class<?> paramType = paramTypes[i];
 				if (Socket.class.equals(paramType)) {
 					if (socketIndex > -1) {
-						throw new RuntimeException("duplicated Socket");
+						throw new EventHandlerSignatureException("Socket is duplicated in the parameters of " + method);
 					}
 					socketIndex = i;
 				}
@@ -136,51 +152,30 @@ public class DefaultEventDispatcher implements EventDispatcher {
 				for (Annotation annotation : paramAnnotations[i]) {
 					if (Data.class.equals(annotation.annotationType())) {
 						if (dataType != null) {
-							throw new RuntimeException("duplicated @Data");
+							throw new EventHandlerSignatureException("@Data is duplicated in the parameters of " + method);
 						}
 						dataIndex = i;
 						dataType = paramType;
 					}
 					if (Reply.class.equals(annotation.annotationType())) {
 						if (replyType != null) {
-							throw new RuntimeException("duplicated @Reply");
+							throw new EventHandlerSignatureException("@Reply is duplicated in the parameters of " + method);
 						}
 						if (Fn.Callback.class.equals(paramType) || Fn.Callback1.class.equals(paramType)) {
 							replyIndex = i;
 							replyType = paramType;
 						} else {
-							throw new RuntimeException("wrong");
+							throw new EventHandlerSignatureException("@Reply must be present either on Fn.Callback or Fn.Callback1 in " + method);
 						}
 					}
 				}
 			}
 
 			int sum = socketIndex + dataIndex + replyIndex;
-			switch (length) {
-			case 3:
-				if (sum != 3) {
-					throw new RuntimeException("wrong");
-				}
-				break;
-			case 2:
-				if (sum != 0) {
-					throw new RuntimeException("wrong");
-				}
-				break;
-			case 1:
-				if (sum != -2) {
-					throw new RuntimeException("wrong");
-				}
-				break;
-			case 0:
-				if (sum != -3) {
-					throw new RuntimeException("wrong");
-				}
-				break;
-			default:
-				throw new RuntimeException("wrong");
+			if (length > 3 || (length == 3 && sum != 3) || (length == 2 && sum != 0) || (length == 1 && sum != -2) || (length == 0 && sum != -3)) {
+				throw new EventHandlerSignatureException("There is an unhandled paramter in " + method);
 			}
-
+			
 			return this;
 		}
 
@@ -254,7 +249,7 @@ public class DefaultEventDispatcher implements EventDispatcher {
 				replyType = getReplyType(handlerWithDataAndReply);
 
 				if (!Fn.Callback.class.equals(replyType) && !Fn.Callback1.class.equals(replyType)) {
-					throw new RuntimeException("wrong");
+					throw new EventHandlerSignatureException("Reply functon must be either Fn.Callback or Fn.Callback1");
 				}
 			}
 			return this;

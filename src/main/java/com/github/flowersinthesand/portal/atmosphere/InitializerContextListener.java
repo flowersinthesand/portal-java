@@ -41,8 +41,7 @@ public class InitializerContextListener implements ServletContextListener {
 				// TODO register atmosphere-handler
 			}
 		} catch (IOException e) {
-			// TODO file scan error
-			logger.error("", e);
+			logger.error("Failed to scan the class path", e);
 		}
 	}
 

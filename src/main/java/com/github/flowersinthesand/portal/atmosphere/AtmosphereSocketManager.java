@@ -96,14 +96,14 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 							original.clear();
 
 							if (!temp.isEmpty()) {
+								logger.debug("With the last event id {}, flushing cached messages {}", lastEventId, temp);
 								String jsonp = request.getParameter("callback");
 								try {
 									for (Map<String, Object> message : temp) {
 										format(writer, transport, message, jsonp);
 									}
 								} catch (IOException e) {
-									// TODO
-									logger.warn("", e);
+									logger.error("", e);
 								}
 								writer.flush();
 								resource.resume();
@@ -140,6 +140,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		} else if (request.getMethod().equalsIgnoreCase("POST")) {
 			String data = request.getReader().readLine();
 			if (data != null) {
+				logger.debug("POST message body {}", data);
 				fire(data.startsWith("data=") ? data.substring("data=".length()) : data);
 			}
 		}
@@ -168,6 +169,8 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 	public void destroy() {}
 
 	private void start(String id, Map<String, String[]> params) {
+		logger.info("Socket#{} has been opened", id);
+		
 		AtmosphereSocket socket = new AtmosphereSocket(id, app, params);
 
 		broadcasterFactory.get(id);
@@ -178,6 +181,8 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 	}
 
 	private void end(String id) {
+		logger.info("Socket#{} has been closed", id);
+		
 		AtmosphereSocket socket = sockets.get(id);
 
 		broadcasterFactory.remove(socket.id());
@@ -199,18 +204,22 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		String type = (String) message.get("type");
 		Object data = message.get("data");
 		boolean reply = message.containsKey("reply") && (Boolean) message.get("reply");
+		logger.info("Receiving an event {}", message);
 
 		if (type.equals("heartbeat")) {
+			logger.debug("Handling heartbeat");
 			if (socket.heartbeatTimer() != null) {
 				socket.setHeartbeatTimer();
 				socket.send("heartbeat");
 			}
 		} else if (type.equals("reply")) {
 			@SuppressWarnings("unchecked")
-			Map<String, Object> replyData = (Map<String, Object>) data;
-			Integer replyEventId = (Integer) replyData.get("id");
+			Map<String, Object> replyMessage = (Map<String, Object>) data;
+			Integer replyEventId = (Integer) replyMessage.get("id");
+			Object replyData = replyMessage.get("data");
 			if (socket.callbacks().containsKey(replyEventId)) {
-				socket.callbacks().get(replyEventId).call(replyData.get("data"));
+				logger.debug("Executing the reply function corresponding to the event#{} with the data {}", replyEventId, replyData);
+				socket.callbacks().get(replyEventId).call(replyData);
 				socket.callbacks().remove(replyEventId);
 			}
 		}
@@ -225,6 +234,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 					replyData.put("id", message.get("id"));
 					replyData.put("data", arg1);
 
+					logger.debug("Sending the reply event with the data {}", replyData);
 					socket.send("reply", replyData);
 				}
 			});
@@ -233,6 +243,8 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 
 	private void format(PrintWriter writer, String transport, Object message, String jsonp) throws IOException {
 		String data = mapper.writeValueAsString(message);
+		logger.debug("Formatting data {} for {} transport", data, transport);
+		
 		if (transport.equals("ws")) {
 			writer.print(data);
 		} else if (transport.equals("sse") || transport.startsWith("stream")) {
@@ -264,7 +276,10 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		AtmosphereSocket socket = (AtmosphereSocket) s;
 		
 		socket.eventId().incrementAndGet();
-		broadcasterFactory.lookup(socket.id()).broadcast(socket.cache(rawMessage(socket.eventId().get(), event, data, false)));
+		
+		Map<String, Object> message = rawMessage(socket.eventId().get(), event, data, false);
+		logger.info("Sending an event {}", message);
+		broadcasterFactory.lookup(socket.id()).broadcast(socket.cache(message));
 	}
 
 	@Override
@@ -278,7 +293,10 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 				callback.call();
 			}
 		});
-		broadcasterFactory.lookup(socket.id()).broadcast(socket.cache(rawMessage(socket.eventId().get(), event, data, true)));
+		
+		Map<String, Object> message = rawMessage(socket.eventId().get(), event, data, true);
+		logger.info("Sending an event {}", message);
+		broadcasterFactory.lookup(socket.id()).broadcast(socket.cache(message));
 	}
 
 	@Override
@@ -293,7 +311,10 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 				((Fn.Callback1<Object>) callback).call(arg1);
 			}
 		});
-		broadcasterFactory.lookup(socket.id()).broadcast(socket.cache(rawMessage(socket.eventId().get(), event, data, true)));
+		
+		Map<String, Object> message = rawMessage(socket.eventId().get(), event, data, true);
+		logger.info("Sending an event {}", message);
+		broadcasterFactory.lookup(socket.id()).broadcast(socket.cache(message));
 	}
 	
 	private Map<String, Object> rawMessage(int id, String type, Object data, boolean reply) {
@@ -308,6 +329,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 
 	@Override
 	public void close(Socket socket) {
+		logger.info("Closing socket#{}", socket.id());
 		broadcasterFactory.lookup(socket.id()).resumeAll();
 		sockets.remove(socket.id());
 	}
