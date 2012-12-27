@@ -15,7 +15,12 @@
  */
 package com.github.flowersinthesand.portal.atmosphere;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -27,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Initializer;
-import com.github.flowersinthesand.portal.Options;
 
 public class InitializerServlet extends AtmosphereServlet {
 
@@ -37,8 +41,18 @@ public class InitializerServlet extends AtmosphereServlet {
 	@Override
 	public void init(ServletConfig sc) throws ServletException {
 		super.init(sc);
+		
+		List<File> files = new ArrayList<File>();
+		files.add(new File(getServletContext().getRealPath("/WEB-INF/classes/")));
+		files.addAll(Arrays.asList(new File(getServletContext().getRealPath("/WEB-INF/lib/")).listFiles(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.endsWith(".jar");
+			}
+		})));
+
 		try {
-			Initializer i = new Initializer().init(getServletConfig().getInitParameter(Options.BASE_PACKAGE));
+			Initializer i = new Initializer().init(files);
 			for (App app : i.apps().values()) {
 				getServletContext().setAttribute("com.github.flowersinthesand.portal.App#" + app.name(), app);
 				framework.addAtmosphereHandler(app.name(), (AtmosphereHandler) app.socketManager());

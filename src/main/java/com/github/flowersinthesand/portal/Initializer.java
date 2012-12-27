@@ -15,6 +15,7 @@
  */
 package com.github.flowersinthesand.portal;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -39,7 +40,7 @@ public class Initializer {
 	private Map<String, App> apps = new LinkedHashMap<String, App>();
 	private List<Preparer> preparers = new ArrayList<Preparer>();
 
-	public Initializer init(String packageName) throws IOException {
+	public Initializer init(List<File> files) throws IOException {
 		logger.info("Initializing the Portal application");
 		
 		AnnotationDetector detector = new AnnotationDetector(new AnnotationDetector.TypeReporter() {
@@ -67,12 +68,9 @@ public class Initializer {
 			}
 		});
 		
-		if (packageName != null) {
-			logger.info("Scanning the class path under {}", packageName);
-			detector.detect(packageName);
-		} else {
-			logger.info("Scanning the class path");
-			detector.detect();
+		for (File file : files) {
+			logger.debug("Scanning @Handler annotation in {}", file);
+			detector.detect(file);
 		}
 		
 		for (Preparer preparer : preparers) {
