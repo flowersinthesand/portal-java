@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.flowersinthesand.portal.servlet;
+package com.github.flowersinthesand.portal.atmosphere;
 
 import java.io.IOException;
 import java.util.Map.Entry;
@@ -41,7 +41,8 @@ public class InitializerContextListener implements ServletContextListener {
 				// TODO register atmosphere-handler
 			}
 		} catch (IOException e) {
-			logger.warn("", e);
+			// TODO file scan error
+			logger.error("", e);
 		}
 	}
 
