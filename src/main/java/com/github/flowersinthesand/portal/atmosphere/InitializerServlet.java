@@ -16,11 +16,12 @@
 package com.github.flowersinthesand.portal.atmosphere;
 
 import java.io.IOException;
-import java.util.Map.Entry;
 
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
 
+import org.atmosphere.cpr.AtmosphereHandler;
+import org.atmosphere.cpr.AtmosphereServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,24 +29,23 @@ import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Initializer;
 import com.github.flowersinthesand.portal.Options;
 
-public class InitializerContextListener implements ServletContextListener {
+public class InitializerServlet extends AtmosphereServlet {
 
-	private final Logger logger = LoggerFactory.getLogger(InitializerContextListener.class);
+	private static final long serialVersionUID = -708330422123334651L;
+	private final Logger logger = LoggerFactory.getLogger(InitializerServlet.class);
 
 	@Override
-	public void contextInitialized(ServletContextEvent event) {
+	public void init(ServletConfig sc) throws ServletException {
+		super.init(sc);
 		try {
-			Initializer i = new Initializer().init(event.getServletContext().getInitParameter(Options.BASE_PACKAGE));
-			for (Entry<String, App> entry : i.apps().entrySet()) {
-				event.getServletContext().setAttribute("com.github.flowersinthesand.portal.App#" + entry.getKey(), entry.getValue());
-				// TODO register atmosphere-handler
+			Initializer i = new Initializer().init(getServletConfig().getInitParameter(Options.BASE_PACKAGE));
+			for (App app : i.apps().values()) {
+				getServletContext().setAttribute("com.github.flowersinthesand.portal.App#" + app.name(), app);
+				framework.addAtmosphereHandler(app.name(), (AtmosphereHandler) app.getSocketManager());
 			}
 		} catch (IOException e) {
 			logger.error("Failed to scan the class path", e);
 		}
 	}
-
-	@Override
-	public void contextDestroyed(ServletContextEvent event) {}
 
 }

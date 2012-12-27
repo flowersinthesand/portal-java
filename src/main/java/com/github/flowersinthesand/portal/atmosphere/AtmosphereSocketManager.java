@@ -80,10 +80,10 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 				@Override
 				public void onSuspend(AtmosphereResourceEvent event) {
 					if (!transport.startsWith("longpoll")) {
-						start(id, request.getParameterMap());
+						start(id, resource);
 					} else {
 						if (firstLongPoll) {
-							start(id, request.getParameterMap());
+							start(id, resource);
 						} else {
 							Integer lastEventId = Integer.valueOf(request.getParameter("lastEventId"));
 							Set<Map<String, Object>> original = sockets.get(id).cache();
@@ -131,7 +131,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 				}
 
 				private void cleanup(AtmosphereResourceEvent event) {
-					if (!transport.startsWith("longpoll") || (!firstLongPoll && !response.isCommitted())) {
+					if (sockets.containsKey(id) && (!transport.startsWith("longpoll") || (!firstLongPoll && !response.isCommitted()))) {
 						end(id);
 					}
 				}
@@ -168,12 +168,12 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 	@Override
 	public void destroy() {}
 
-	private void start(String id, Map<String, String[]> params) {
+	private void start(String id, AtmosphereResource resource) {
 		logger.info("Socket#{} has been opened", id);
 		
-		AtmosphereSocket socket = new AtmosphereSocket(id, app, params);
+		AtmosphereSocket socket = new AtmosphereSocket(id, app, resource.getRequest().getParameterMap());
 
-		broadcasterFactory.get(id);
+		broadcasterFactory.get(id).addAtmosphereResource(resource);
 		sockets.put(id, socket);
 		socket.setHeartbeatTimer();
 
@@ -185,7 +185,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		
 		AtmosphereSocket socket = sockets.get(id);
 
-		broadcasterFactory.remove(socket.id());
+		broadcasterFactory.lookup(socket.id()).destroy();
 		sockets.remove(socket.id());
 		Timer heartbeatTimer = socket.heartbeatTimer();
 		if (heartbeatTimer != null) {
