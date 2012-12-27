@@ -29,6 +29,7 @@ import org.atmosphere.cpr.AtmosphereRequest;
 import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.AtmosphereResourceEvent;
 import org.atmosphere.cpr.AtmosphereResourceEventListener;
+import org.atmosphere.cpr.AtmosphereResourceImpl;
 import org.atmosphere.cpr.AtmosphereResponse;
 import org.atmosphere.cpr.BroadcasterFactory;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -56,6 +57,8 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		final AtmosphereResponse response = resource.getResponse();
 
 		if (request.getMethod().equalsIgnoreCase("GET")) {
+			response.setCharacterEncoding("utf-8");
+			
 			final String id = request.getParameter("id");
 			final String transport = request.getParameter("transport");
 			final boolean firstLongPoll = transport.startsWith("longpoll") && "1".equals(request.getParameter("count"));
@@ -64,7 +67,6 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 			resource.addEventListener(new AtmosphereResourceEventListener() {
 				@Override
 				public void onPreSuspend(AtmosphereResourceEvent event) {
-					response.setCharacterEncoding("utf-8");
 					if (transport.equals("sse") || transport.startsWith("stream")) {
 						response.setContentType("text/" + ("sse".equals(transport) ? "event-stream" : "plain"));
 						for (int i = 0; i < 2000; i++) {
@@ -148,12 +150,13 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 
 	@Override
 	public void onStateChange(AtmosphereResourceEvent event) throws IOException {
+		if (event.getMessage() == null || event.isCancelled() || event.isResuming() || event.isResumedOnTimeout()) {
+			return;
+		}
+		
 		AtmosphereResource resource = event.getResource();
 		AtmosphereRequest request = resource.getRequest();
 		AtmosphereResponse response = resource.getResponse();
-		if (event.getMessage() == null || event.isCancelled() || event.isResuming() || event.isResumedOnTimeout() || request.destroyed()) {
-			return;
-		}
 
 		PrintWriter writer = response.getWriter();
 		String transport = request.getParameter("transport");
@@ -330,7 +333,15 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 	@Override
 	public void close(Socket socket) {
 		logger.info("Closing socket#{}", socket.id());
-		broadcasterFactory.lookup(socket.id()).resumeAll();
+		for (AtmosphereResource r : broadcasterFactory.lookup(socket.id()).getAtmosphereResources()) {
+			r.resume();
+			try {
+				// TODO to disconnect a websocket connection
+				((AtmosphereResourceImpl) r).cancel();
+			} catch (IOException e) {
+				logger.warn("", e);
+			}
+		}
 		sockets.remove(socket.id());
 	}
 	
