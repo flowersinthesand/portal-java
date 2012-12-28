@@ -66,6 +66,7 @@ public class Initializer {
 					logger.error("", e);
 				}
 			}
+			
 		});
 		
 		for (File file : files) {

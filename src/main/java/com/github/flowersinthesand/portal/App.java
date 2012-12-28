@@ -39,13 +39,9 @@ public class App implements Serializable {
 		return name == null ? null : apps.get(name);
 	}
 
-	static synchronized void add(String name, App app) {
+	static void add(String name, App app) {
 		apps.putIfAbsent(FIRST, app);
 		apps.put(name, app);
-	}
-
-	public static void clear() {
-		apps.clear();
 	}
 
 	private Map<String, Object> attrs = new ConcurrentHashMap<String, Object>();
@@ -81,16 +77,16 @@ public class App implements Serializable {
 	}
 
 	@SuppressWarnings("unchecked")
-	public Map<String, Room> findAllRoom() {
+	public Map<String, Room> rooms() {
 		return (Map<String, Room>) attrs.get(ROOMS);
 	}
 
 	public Room findRoom(String name) {
-		return findAllRoom().get(name);
+		return rooms().get(name);
 	}
 
 	public Room openRoom(String name) {
-		findAllRoom().put(name, new Room(name));
+		rooms().put(name, new Room(name));
 		return room(name);
 	}
 

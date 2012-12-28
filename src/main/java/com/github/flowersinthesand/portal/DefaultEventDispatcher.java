@@ -96,14 +96,13 @@ public class DefaultEventDispatcher implements EventDispatcher {
 		return Collections.unmodifiableMap(invokers);
 	}
 
+	@SuppressWarnings("serial")
 	public static class EventHandlerSignatureException extends RuntimeException {
-
-		private static final long serialVersionUID = -8865213376744003351L;
 
 		public EventHandlerSignatureException(String msg) {
 			super(msg);
 		}
-		
+
 	}
 
 	static interface Invoker {

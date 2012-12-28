@@ -210,7 +210,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		if (heartbeatTimer != null) {
 			heartbeatTimer.cancel();
 		}
-		for (Room room : app.findAllRoom().values()) {
+		for (Room room : app.rooms().values()) {
 			room.remove(socket);
 		}
 
@@ -223,7 +223,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		String type = (String) message.get("type");
 		Object data = message.get("data");
 		boolean reply = message.containsKey("reply") && (Boolean) message.get("reply");
-		logger.info("Receiving an event {}", message);
+		logger.info("Socket#{} is receiving an event {}", socket.id(), message);
 
 		if (type.equals("heartbeat")) {
 			logger.debug("Handling heartbeat");
@@ -297,7 +297,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		socket.eventId().incrementAndGet();
 
 		Map<String, Object> message = rawMessage(socket.eventId().get(), event, data, false);
-		logger.info("Sending an event {}", message);
+		logger.info("Socket#{} is sending an event {}", socket.id(), message);
 		broadcasterFactory.lookup(socket.id()).broadcast(socket.cache(message));
 	}
 
@@ -314,7 +314,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		});
 
 		Map<String, Object> message = rawMessage(socket.eventId().get(), event, data, true);
-		logger.info("Sending an event {}", message);
+		logger.info("Socket#{} is sending an event {}", socket.id(), message);
 		broadcasterFactory.lookup(socket.id()).broadcast(socket.cache(message));
 	}
 
@@ -332,7 +332,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		});
 
 		Map<String, Object> message = rawMessage(socket.eventId().get(), event, data, true);
-		logger.info("Sending an event {}", message);
+		logger.info("Socket#{} is sending an event {}", socket.id(), message);
 		broadcasterFactory.lookup(socket.id()).broadcast(socket.cache(message));
 	}
 
