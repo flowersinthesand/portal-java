@@ -59,10 +59,11 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 	public void onRequest(final AtmosphereResource resource) throws IOException {
 		final AtmosphereRequest request = resource.getRequest();
 		final AtmosphereResponse response = resource.getResponse();
-
+		
+		request.setCharacterEncoding("utf-8");
+		response.setCharacterEncoding("utf-8");
+		
 		if (request.getMethod().equalsIgnoreCase("GET")) {
-			response.setCharacterEncoding("utf-8");
-
 			final String id = request.getParameter("id");
 			final String transport = request.getParameter("transport");
 			final boolean firstLongPoll = transport.startsWith("longpoll") && "1".equals(request.getParameter("count"));
