@@ -33,9 +33,9 @@ import org.slf4j.LoggerFactory;
 import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Initializer;
 
+@SuppressWarnings("serial")
 public class InitializerServlet extends AtmosphereServlet {
 
-	private static final long serialVersionUID = -708330422123334651L;
 	private final Logger logger = LoggerFactory.getLogger(InitializerServlet.class);
 
 	@Override
