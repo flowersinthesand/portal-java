@@ -17,8 +17,11 @@ package com.github.flowersinthesand.portal.atmosphere;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
@@ -31,6 +34,7 @@ import org.atmosphere.cpr.AtmosphereResourceEvent;
 import org.atmosphere.cpr.AtmosphereResourceEventListener;
 import org.atmosphere.cpr.AtmosphereResourceImpl;
 import org.atmosphere.cpr.AtmosphereResponse;
+import org.atmosphere.cpr.Broadcaster;
 import org.atmosphere.cpr.BroadcasterFactory;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
@@ -58,12 +62,12 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 
 		if (request.getMethod().equalsIgnoreCase("GET")) {
 			response.setCharacterEncoding("utf-8");
-			
+
 			final String id = request.getParameter("id");
 			final String transport = request.getParameter("transport");
 			final boolean firstLongPoll = transport.startsWith("longpoll") && "1".equals(request.getParameter("count"));
 			final PrintWriter writer = response.getWriter();
-			
+
 			resource.addEventListener(new AtmosphereResourceEventListener() {
 				@Override
 				public void onPreSuspend(AtmosphereResourceEvent event) {
@@ -86,10 +90,14 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 					} else {
 						if (firstLongPoll) {
 							start(id, resource);
+							resource.resume();
 						} else {
+							Broadcaster broadcaster = broadcasterFactory.lookup(id); 
+							broadcaster.addAtmosphereResource(resource);
+
 							Integer lastEventId = Integer.valueOf(request.getParameter("lastEventId"));
 							Set<Map<String, Object>> original = sockets.get(id).cache();
-							Set<Map<String, Object>> temp = new LinkedHashSet<Map<String, Object>>();
+							List<Map<String, Object>> temp = new ArrayList<Map<String, Object>>();
 							for (Map<String, Object> message : original) {
 								if (lastEventId < (Integer) message.get("id")) {
 									temp.add(message);
@@ -98,17 +106,14 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 							original.clear();
 
 							if (!temp.isEmpty()) {
-								logger.debug("With the last event id {}, flushing cached messages {}", lastEventId, temp);
-								String jsonp = request.getParameter("callback");
-								try {
-									for (Map<String, Object> message : temp) {
-										format(writer, transport, message, jsonp);
+								Collections.sort(temp, new Comparator<Map<String, Object>>() {
+									@Override
+									public int compare(Map<String, Object> o1, Map<String, Object> o2) {
+										return (Integer) o1.get("id") > (Integer) o2.get("id") ? 1 : -1;
 									}
-								} catch (IOException e) {
-									logger.error("", e);
-								}
-								writer.flush();
-								resource.resume();
+								});
+								logger.debug("With the last event id {}, flushing cached messages {}", lastEventId, temp);
+								broadcaster.broadcast(temp);
 							}
 						}
 					}
@@ -133,7 +138,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 				}
 
 				private void cleanup(AtmosphereResourceEvent event) {
-					if (sockets.containsKey(id) && (!transport.startsWith("longpoll") || (!firstLongPoll && !response.isCommitted()))) {
+					if (sockets.containsKey(id) && (!transport.startsWith("longpoll") || (!firstLongPoll && request.getAttribute("used") == null))) {
 						end(id);
 					}
 				}
@@ -153,7 +158,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		if (event.getMessage() == null || event.isCancelled() || event.isResuming() || event.isResumedOnTimeout()) {
 			return;
 		}
-		
+
 		AtmosphereResource resource = event.getResource();
 		AtmosphereRequest request = resource.getRequest();
 		AtmosphereResponse response = resource.getResponse();
@@ -161,9 +166,18 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		PrintWriter writer = response.getWriter();
 		String transport = request.getParameter("transport");
 
-		format(writer, transport, event.getMessage(), request.getParameter("callback"));
+		String jsonp = request.getParameter("callback");
+		if (event.getMessage() instanceof List) {
+			for (Object message : (List<?>) event.getMessage()) {
+				format(writer, transport, message, jsonp);
+			}
+		} else {
+			format(writer, transport, event.getMessage(), jsonp);
+		}
+
 		writer.flush();
 		if (transport.startsWith("longpoll")) {
+			request.setAttribute("used", true);
 			resource.resume();
 		}
 	}
@@ -172,9 +186,10 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 	public void destroy() {}
 
 	private void start(String id, AtmosphereResource resource) {
-		logger.info("Socket#{} has been opened", id);
+		String query = resource.getRequest().getQueryString();
+		logger.info("Socket#{} has been opened, query: {}", id, query);
 		
-		AtmosphereSocket socket = new AtmosphereSocket(id, app, resource.getRequest().getParameterMap());
+		AtmosphereSocket socket = new AtmosphereSocket(id, app, query);
 
 		broadcasterFactory.get(id).addAtmosphereResource(resource);
 		sockets.put(id, socket);
@@ -185,7 +200,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 
 	private void end(String id) {
 		logger.info("Socket#{} has been closed", id);
-		
+
 		AtmosphereSocket socket = sockets.get(id);
 
 		broadcasterFactory.lookup(socket.id()).destroy();
@@ -226,7 +241,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 				socket.callbacks().remove(replyEventId);
 			}
 		}
-		
+
 		if (!reply) {
 			app.eventDispatcher().fire(type, socket, data);
 		} else {
@@ -247,7 +262,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 	private void format(PrintWriter writer, String transport, Object message, String jsonp) throws IOException {
 		String data = mapper.writeValueAsString(message);
 		logger.debug("Formatting data {} for {} transport", data, transport);
-		
+
 		if (transport.equals("ws")) {
 			writer.print(data);
 		} else if (transport.equals("sse") || transport.startsWith("stream")) {
@@ -277,9 +292,9 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 	@Override
 	public void send(Socket s, String event, Object data) {
 		AtmosphereSocket socket = (AtmosphereSocket) s;
-		
+
 		socket.eventId().incrementAndGet();
-		
+
 		Map<String, Object> message = rawMessage(socket.eventId().get(), event, data, false);
 		logger.info("Sending an event {}", message);
 		broadcasterFactory.lookup(socket.id()).broadcast(socket.cache(message));
@@ -296,7 +311,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 				callback.call();
 			}
 		});
-		
+
 		Map<String, Object> message = rawMessage(socket.eventId().get(), event, data, true);
 		logger.info("Sending an event {}", message);
 		broadcasterFactory.lookup(socket.id()).broadcast(socket.cache(message));
@@ -314,19 +329,19 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 				((Fn.Callback1<Object>) callback).call(arg1);
 			}
 		});
-		
+
 		Map<String, Object> message = rawMessage(socket.eventId().get(), event, data, true);
 		logger.info("Sending an event {}", message);
 		broadcasterFactory.lookup(socket.id()).broadcast(socket.cache(message));
 	}
-	
+
 	private Map<String, Object> rawMessage(int id, String type, Object data, boolean reply) {
 		Map<String, Object> message = new LinkedHashMap<String, Object>();
 		message.put("id", id);
 		message.put("type", type);
 		message.put("data", data);
 		message.put("reply", reply);
-		
+
 		return message;
 	}
 
@@ -344,7 +359,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		}
 		sockets.remove(socket.id());
 	}
-	
+
 	public void setApp(App app) {
 		this.app = app;
 	}

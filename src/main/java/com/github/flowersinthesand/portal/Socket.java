@@ -15,18 +15,23 @@
  */
 package com.github.flowersinthesand.portal;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Socket {
 
 	private String id;
 	private App app;
-	private Map<String, String[]> params;
+	private Map<String, String> params;
 
-	public Socket(String id, App app, Map<String, String[]> params) {
+	public Socket(String id, App app, String query) {
 		this.id = id;
 		this.app = app;
-		this.params = params;
+		this.params = new LinkedHashMap<String, String>();
+		for (String entity : query.split("&")) {
+			String[] parts = entity.split("=", 2);
+			this.params.put(parts[0], parts[1]);
+		}
 	}
 
 	public String id() {
@@ -38,8 +43,7 @@ public class Socket {
 	}
 
 	public String param(String key) {
-		String[] param = params.get(key);
-		return param == null ? null : param[0];
+		return params.get(key);
 	}
 
 	public Socket on(String event, Fn.Callback handler) {

@@ -47,7 +47,7 @@ public class InitializerServlet extends AtmosphereServlet {
 		files.addAll(Arrays.asList(new File(getServletContext().getRealPath("/WEB-INF/lib/")).listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
-				return name.endsWith(".jar");
+				return name.toLowerCase().endsWith(".jar");
 			}
 		})));
 
