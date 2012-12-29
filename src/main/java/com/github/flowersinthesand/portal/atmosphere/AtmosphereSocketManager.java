@@ -49,6 +49,16 @@ import com.github.flowersinthesand.portal.SocketManager;
 
 public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler {
 
+	private static final String padding2K;
+
+	static {
+		StringBuffer pad = new StringBuffer();
+		for (int i = 0; i < 2048; i++) {
+			pad.append(' ');
+		}
+		padding2K = pad.toString();
+	}
+
 	private final Logger logger = LoggerFactory.getLogger(AtmosphereSocketManager.class);
 	private Map<String, AtmosphereSocket> sockets = new ConcurrentHashMap<String, AtmosphereSocket>();
 	private BroadcasterFactory broadcasterFactory = BroadcasterFactory.getDefault();
@@ -74,10 +84,12 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 				public void onPreSuspend(AtmosphereResourceEvent event) {
 					if (transport.equals("sse") || transport.startsWith("stream")) {
 						response.setContentType("text/" + ("sse".equals(transport) ? "event-stream" : "plain"));
-						for (int i = 0; i < 2000; i++) {
-							writer.print(' ');
+						writer.print(padding2K);
+						// Android 2. || Android 3.
+						if (request.getHeader("user-agent").matches(".*Android\\s[23]\\..*")) {
+							writer.print(padding2K);
 						}
-						writer.print("\n");
+						writer.print('\n');
 						writer.flush();
 					} else if (transport.startsWith("longpoll")) {
 						response.setContentType("text/" + ("longpolljsonp".equals(transport) ? "javascript" : "plain"));
@@ -168,12 +180,13 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		String transport = request.getParameter("transport");
 
 		String jsonp = request.getParameter("callback");
+		String userAgent = request.getHeader("user-agent");
 		if (event.getMessage() instanceof List) {
 			for (Object message : (List<?>) event.getMessage()) {
-				format(writer, transport, message, jsonp);
+				format(writer, transport, message, jsonp, userAgent);
 			}
 		} else {
-			format(writer, transport, event.getMessage(), jsonp);
+			format(writer, transport, event.getMessage(), jsonp, userAgent);
 		}
 
 		writer.flush();
@@ -260,13 +273,18 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		}
 	}
 
-	private void format(PrintWriter writer, String transport, Object message, String jsonp) throws IOException {
+	private void format(PrintWriter writer, String transport, Object message, String jsonp, String userAgent) throws IOException {
 		String data = mapper.writeValueAsString(message);
 		logger.debug("Formatting data {} for {} transport", data, transport);
 
 		if (transport.equals("ws")) {
 			writer.print(data);
 		} else if (transport.equals("sse") || transport.startsWith("stream")) {
+			// Android 2. || Android 3.
+			if (userAgent.matches(".*Android\\s[23]\\..*")) {
+				writer.print(padding2K);
+				writer.print(padding2K);
+			}
 			for (String datum : data.split("\r\n|\r|\n")) {
 				writer.print("data: ");
 				writer.print(datum);
