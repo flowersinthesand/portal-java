@@ -47,41 +47,58 @@ public class Socket {
 	}
 
 	public Socket on(String event, Fn.Callback handler) {
-		app.eventDispatcher().on(event, this, handler);
+		if (opened()) {
+			app.eventDispatcher().on(event, this, handler);
+		}
 		return this;
 	}
 
 	public <A> Socket on(String event, Fn.Callback1<A> handler) {
-		app.eventDispatcher().on(event, this, handler);
+		if (opened()) {
+			app.eventDispatcher().on(event, this, handler);
+		}
 		return this;
 	}
 
 	public <A, B> Socket on(String event, Fn.Callback2<A, B> handler) {
-		app.eventDispatcher().on(event, this, handler);
+		if (opened()) {
+			app.eventDispatcher().on(event, this, handler);
+		}
 		return this;
 	}
 
 	public Socket send(String event) {
-		return send(event, null);
+		if (opened()) {
+			app.socketManager().send(this, event, null);
+		}
+		return this;
 	}
 
 	public Socket send(String event, Object data) {
-		app.socketManager().send(this, event, data);
+		if (opened()) {
+			app.socketManager().send(this, event, data);
+		}
 		return this;
 	}
 
 	public Socket send(String event, Object data, Fn.Callback callback) {
-		app.socketManager().send(this, event, data, callback);
+		if (opened()) {
+			app.socketManager().send(this, event, data, callback);
+		}
 		return this;
 	}
 
 	public <A> Socket send(String event, Object data, Fn.Callback1<A> callback) {
-		app.socketManager().send(this, event, data, callback);
+		if (opened()) {
+			app.socketManager().send(this, event, data, callback);
+		}
 		return this;
 	}
 
 	public void close() {
-		app.socketManager().close(this);
+		if (opened()) {
+			app.socketManager().close(this);
+		}
 	}
 
 }
