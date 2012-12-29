@@ -50,7 +50,9 @@ public class Room {
 	}
 
 	public Room add(Socket socket) {
-		sockets.add(socket);
+		if (socket.opened()) {
+			sockets.add(socket);
+		}
 		return this;
 	}
 
