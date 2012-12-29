@@ -81,29 +81,29 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 
 			resource.addEventListener(new AtmosphereResourceEventListener() {
 				@Override
-				public void onPreSuspend(AtmosphereResourceEvent event) {
-					if (transport.equals("sse") || transport.startsWith("stream")) {
-						response.setContentType("text/" + ("sse".equals(transport) ? "event-stream" : "plain"));
-						writer.print(padding2K);
-						// Android 2. || Android 3.
-						if (request.getHeader("user-agent").matches(".*Android\\s[23]\\..*")) {
-							writer.print(padding2K);
-						}
-						writer.print('\n');
-						writer.flush();
-					} else if (transport.startsWith("longpoll")) {
-						response.setContentType("text/" + ("longpolljsonp".equals(transport) ? "javascript" : "plain"));
-					}
-				}
+				public void onPreSuspend(AtmosphereResourceEvent event) {}
 
 				@Override
 				public void onSuspend(AtmosphereResourceEvent event) {
 					if (!transport.startsWith("longpoll")) {
 						start(id, resource);
+						if (transport.equals("sse") || transport.startsWith("stream")) {
+							response.setContentType("text/" + ("sse".equals(transport) ? "event-stream" : "plain"));
+							writer.print(padding2K);
+							// Android 2. || Android 3.
+							if (request.getHeader("user-agent").matches(".*Android\\s[23]\\..*")) {
+								writer.print(padding2K);
+							}
+							writer.print('\n');
+							writer.flush();
+						}
+						app.eventDispatcher().fire("open", sockets.get(id));
 					} else {
+						response.setContentType("text/" + ("longpolljsonp".equals(transport) ? "javascript" : "plain"));
 						if (firstLongPoll) {
 							start(id, resource);
 							resource.resume();
+							app.eventDispatcher().fire("open", sockets.get(id));
 						} else {
 							Broadcaster broadcaster = broadcasterFactory.lookup(id); 
 							broadcaster.addAtmosphereResource(resource);
@@ -152,7 +152,9 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 
 				private void cleanup(AtmosphereResourceEvent event) {
 					if (sockets.containsKey(id) && (!transport.startsWith("longpoll") || (!firstLongPoll && request.getAttribute("used") == null))) {
+						Socket socket = sockets.get(id);
 						end(id);
+						app.eventDispatcher().fire("close", socket);
 					}
 				}
 			})
@@ -208,8 +210,6 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		broadcasterFactory.get(id).addAtmosphereResource(resource);
 		sockets.put(id, socket);
 		socket.setHeartbeatTimer();
-
-		app.eventDispatcher().fire("open", socket);
 	}
 
 	private void end(String id) {
@@ -226,8 +226,6 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		for (Room room : app.rooms().values()) {
 			room.remove(socket);
 		}
-
-		app.eventDispatcher().fire("close", socket);
 	}
 
 	private void fire(String raw) throws IOException {
