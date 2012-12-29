@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.flowersinthesand.portal;
+package com.github.flowersinthesand.portal.handler;
 
-public interface SocketManager {
+import com.github.flowersinthesand.portal.Handler;
+import com.github.flowersinthesand.portal.On;
 
-	boolean opened(Socket socket);
+@Handler("/protocols")
+public class ProtocolsHandler {
 
-	void send(Socket socket, String event, Object data);
+	public static boolean opened;
 
-	void send(Socket socket, String event, Object data, Fn.Callback callback);
-
-	<A> void send(Socket socket, String event, Object data, Fn.Callback1<A> callback);
-
-	void close(Socket socket);
+	@On.open
+	public void onOpen() {
+		opened = true;
+	}
 
 }

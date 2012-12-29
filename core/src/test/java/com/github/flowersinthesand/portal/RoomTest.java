@@ -41,6 +41,7 @@ public class RoomTest {
 		Room chat = new Room("chat");
 		
 		Socket socket1 = Mockito.mock(Socket.class);
+		Mockito.when(socket1.opened()).thenReturn(true);
 		chat.add(socket1);
 		Assert.assertArrayEquals(new Socket[] { socket1 }, chat.sockets().toArray(new Socket[] {}));
 		Assert.assertEquals(chat.size(), 1);
@@ -49,7 +50,8 @@ public class RoomTest {
 		Assert.assertArrayEquals(new Socket[] { socket1 }, chat.sockets().toArray(new Socket[] {}));
 		Assert.assertEquals(chat.size(), 1);
 
-		final Socket socket2 = Mockito.mock(Socket.class);
+		Socket socket2 = Mockito.mock(Socket.class);
+		Mockito.when(socket2.opened()).thenReturn(true);
 		chat.add(socket2);
 		Assert.assertArrayEquals(new Socket[] { socket1, socket2 }, chat.sockets().toArray(new Socket[] {}));
 		Assert.assertEquals(chat.size(), 2);
@@ -76,7 +78,11 @@ public class RoomTest {
 		};
 		
 		Socket socket1 = Mockito.mock(Socket.class);
+		Mockito.when(socket1.opened()).thenReturn(true);
+
 		Socket socket2 = Mockito.mock(Socket.class);
+		Mockito.when(socket2.opened()).thenReturn(true);
+		
 		chat.add(socket1).add(socket2);
 		
 		Mockito.when(socket1.send("e", null)).then(increment);

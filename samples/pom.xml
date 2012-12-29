@@ -1,0 +1,46 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.github.flowersinthesand</groupId>
+		<artifactId>portal-parent</artifactId>
+		<version>0.1-SNAPSHOT</version>
+	</parent>
+	<groupId>com.github.flowersinthesand</groupId>
+	<artifactId>portal-samples</artifactId>
+	<version>0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<name>Portal samples</name>
+	<modules>
+		<module>chat</module>
+	</modules>
+	<dependencies>
+		<dependency>
+			<groupId>com.github.flowersinthesand</groupId>
+			<artifactId>portal-core</artifactId>
+		</dependency>
+	</dependencies>
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.2</version>
+				<configuration>
+					<failOnMissingWebXml>false</failOnMissingWebXml>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<configuration>
+					<downloadJavadocs>true</downloadJavadocs>
+					<downloadSources>true</downloadSources>
+					<wtpversion>2.0</wtpversion>
+					<jeeversion>6.0</jeeversion>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

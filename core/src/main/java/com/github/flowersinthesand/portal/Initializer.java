@@ -30,8 +30,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.flowersinthesand.portal.atmosphere.AtmosphereSocketManager;
-
 import eu.infomas.annotation.AnnotationDetector;
 
 public class Initializer {
@@ -88,10 +86,17 @@ public class Initializer {
 	private App createApp(String name) {
 		App app = new App();
 		App.add(name, app);
-		
-		AtmosphereSocketManager socketManager = new AtmosphereSocketManager();
+
+		SocketManager socketManager = null;
+		try {
+			// TODO Temporary expedient
+			socketManager = (SocketManager) Class.forName("com.github.flowersinthesand.portal.atmosphere.AtmosphereSocketManager").newInstance();
+		} catch (Exception e) {
+			logger.error("", e);
+		}
+
 		socketManager.setApp(app);
-		
+
 		return app
 			.set(App.NAME, name)
 			.set(App.EVENT_DISPATCHER, new DefaultEventDispatcher())

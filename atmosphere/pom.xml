@@ -3,31 +3,46 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.github.flowersinthesand</groupId>
-		<artifactId>portal-samples</artifactId>
+		<artifactId>portal-parent</artifactId>
 		<version>0.1-SNAPSHOT</version>
 	</parent>
 	<groupId>com.github.flowersinthesand</groupId>
-	<artifactId>portal-chat</artifactId>
+	<artifactId>portal-atmosphere</artifactId>
 	<version>0.1-SNAPSHOT</version>
-	<packaging>war</packaging>
-	<name>Chat webapp</name>
+	<packaging>jar</packaging>
+	<name>Portal Atmosphere</name>
 	<dependencies>
+		<dependency>
+			<groupId>com.github.flowersinthesand</groupId>
+			<artifactId>portal-core</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.apache.geronimo.specs</groupId>
 			<artifactId>geronimo-servlet_3.0_spec</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.github.flowersinthesand</groupId>
-			<artifactId>portal-atmosphere</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.atmosphere</groupId>
+			<artifactId>atmosphere-runtime</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>
