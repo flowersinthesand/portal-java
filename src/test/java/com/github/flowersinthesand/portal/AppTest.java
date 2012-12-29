@@ -42,10 +42,7 @@ public class AppTest {
 	@Test
 	public void room() {
 		App app = new App();
-		Assert.assertNull(app.findRoom("/notfound"));
-		app.openRoom("/ok");
-		Assert.assertNotNull(app.findRoom("/ok"));
-		Assert.assertNotNull(app.room("/unknown"));
+		Assert.assertNotNull(app.room("/ok"));
 	}
 
 	@Test

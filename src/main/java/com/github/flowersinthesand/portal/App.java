@@ -81,18 +81,13 @@ public class App implements Serializable {
 		return (Map<String, Room>) attrs.get(ROOMS);
 	}
 
-	public Room findRoom(String name) {
-		return rooms().get(name);
-	}
-
-	public Room openRoom(String name) {
-		rooms().put(name, new Room(name));
-		return room(name);
-	}
-
 	public Room room(String name) {
-		Room room = findRoom(name);
-		return room == null ? openRoom(name) : room;
+		if (rooms().containsKey(name)) {
+			return rooms().get(name);
+		}
+
+		rooms().put(name, new Room(name));
+		return rooms().get(name);
 	}
 
 }
