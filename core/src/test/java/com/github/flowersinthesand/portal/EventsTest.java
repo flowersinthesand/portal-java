@@ -25,10 +25,6 @@ import org.junit.Assert;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-import com.github.flowersinthesand.portal.DefaultEventDispatcher;
-import com.github.flowersinthesand.portal.EventDispatcher;
-import com.github.flowersinthesand.portal.Fn;
-import com.github.flowersinthesand.portal.Socket;
 import com.github.flowersinthesand.portal.DefaultEventDispatcher.Invoker;
 import com.github.flowersinthesand.portal.handler.DataBean;
 import com.github.flowersinthesand.portal.handler.EventsHandler;

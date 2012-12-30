@@ -18,9 +18,6 @@ package com.github.flowersinthesand.portal;
 import org.junit.Assert;
 import org.testng.annotations.Test;
 
-import com.github.flowersinthesand.portal.App;
-import com.github.flowersinthesand.portal.Fn;
-
 public class AppTest {
 
 	@Test
@@ -52,12 +49,5 @@ public class AppTest {
 		
 		String data = "data";
 		Assert.assertSame(app.set("data", data).get("data"), data);
-		Assert.assertEquals(app.replace("data", new Fn.Feedback1<String, String>() {
-			@Override
-			public String apply(String old) {
-				return "new" + old;
-			}
-		})
-		.get("data"), "newdata");
 	}
 }

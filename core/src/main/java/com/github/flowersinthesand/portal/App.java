@@ -59,11 +59,6 @@ public class App implements Serializable {
 		return this;
 	}
 
-	@SuppressWarnings("unchecked")
-	public <N, O> App replace(String key, Fn.Feedback1<N, O> replacer) {
-		return set(key, replacer.apply((O) get(key)));
-	}
-
 	public String name() {
 		return (String) attrs.get(NAME);
 	}

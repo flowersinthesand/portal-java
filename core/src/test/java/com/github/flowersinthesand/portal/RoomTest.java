@@ -24,10 +24,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.testng.annotations.Test;
 
-import com.github.flowersinthesand.portal.Fn;
-import com.github.flowersinthesand.portal.Room;
-import com.github.flowersinthesand.portal.Socket;
-
 public class RoomTest {
 	
 	@Test
@@ -107,13 +103,6 @@ public class RoomTest {
 		
 		String data = "data";
 		Assert.assertSame(room.set("data", data).get("data"), data);
-		Assert.assertEquals(room.replace("data", new Fn.Feedback1<String, String>() {
-			@Override
-			public String apply(String old) {
-				return "new" + old;
-			}
-		})
-		.get("data"), "newdata");
 	}
 
 }

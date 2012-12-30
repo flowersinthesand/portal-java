@@ -44,11 +44,6 @@ public class Room {
 		return this;
 	}
 
-	@SuppressWarnings("unchecked")
-	public <N, O> Room replace(String key, Fn.Feedback1<N, O> replacer) {
-		return set(key, replacer.apply((O) get(key)));
-	}
-
 	public Room add(Socket socket) {
 		if (socket.opened()) {
 			sockets.add(socket);
