@@ -32,36 +32,36 @@ import org.slf4j.LoggerFactory;
 public class DefaultEventDispatcher implements EventDispatcher {
 
 	private final Logger logger = LoggerFactory.getLogger(DefaultEventDispatcher.class);
-	private Map<String, Set<Invoker>> invokers = new ConcurrentHashMap<String, Set<Invoker>>();
+	private Map<String, Set<EventHandler>> eventHandlers = new ConcurrentHashMap<String, Set<EventHandler>>();
 
 	@Override
 	public void on(String event, Object handler, Method method) {
-		on(event, new StaticInvoker(handler, method));
+		on(event, new StaticEventHandler(handler, method));
 	}
 	
 	@Override
 	public void on(String event, Socket socket, Fn.Callback handler) {
-		on(event, new DynamicInvoker(socket, handler));
+		on(event, new DynamicEventHandler(socket, handler));
 	}
 
 	@Override
 	public void on(String event, Socket socket, Fn.Callback1<?> handler) {
-		on(event, new DynamicInvoker(socket, handler));
+		on(event, new DynamicEventHandler(socket, handler));
 	}
 
 	@Override
 	public void on(String event, Socket socket, Fn.Callback2<?, ?> handler) {
-		on(event, new DynamicInvoker(socket, handler));
+		on(event, new DynamicEventHandler(socket, handler));
 	}
 	
-	private void on(String event, Invoker invoker) {
-		if (!invokers.containsKey(event)) {
-			invokers.put(event, new CopyOnWriteArraySet<Invoker>());
+	private void on(String event, EventHandler eventHandler) {
+		if (!eventHandlers.containsKey(event)) {
+			eventHandlers.put(event, new CopyOnWriteArraySet<EventHandler>());
 		}
 		
-		logger.debug("Attaching the {} event handler {}", event, invoker);
+		logger.debug("Attaching the {} event handler {}", event, eventHandler);
 		try {
-			invokers.get(event).add(invoker.init());
+			eventHandlers.get(event).add(eventHandler.init());
 		} catch (EventHandlerSignatureException e) {
 			logger.error("Event handler method signature is inappropriate", e);
 		}
@@ -80,20 +80,20 @@ public class DefaultEventDispatcher implements EventDispatcher {
 	@Override
 	public void fire(String on, Socket socket, Object data, Fn.Callback1<Object> reply) {
 		logger.info("Firing {} event to Socket#{}", on, socket.param("id"));
-		if (invokers.containsKey(on)) {
-			for (Invoker invoker : invokers.get(on)) {
-				logger.trace("Invoking handler {}", invoker);
+		if (eventHandlers.containsKey(on)) {
+			for (EventHandler eventHandler : eventHandlers.get(on)) {
+				logger.trace("Invoking handler {}", eventHandler);
 				try {
-					invoker.invoke(socket, data, reply);
+					eventHandler.handle(socket, data, reply);
 				} catch (Exception e) {
-					logger.error("Exception occurred while invoking a handler " + invoker, e);
+					logger.error("Exception occurred while invoking a handler " + eventHandler, e);
 				}
 			}
 		}
 	}
 	
-	Map<String, Set<Invoker>> invokers() {
-		return Collections.unmodifiableMap(invokers);
+	Map<String, Set<EventHandler>> eventHandlers() {
+		return Collections.unmodifiableMap(eventHandlers);
 	}
 
 	@SuppressWarnings("serial")
@@ -105,15 +105,15 @@ public class DefaultEventDispatcher implements EventDispatcher {
 
 	}
 
-	static interface Invoker {
+	static interface EventHandler {
 
-		Invoker init();
+		EventHandler init();
 
-		Invoker invoke(Socket socket, Object data, Fn.Callback1<Object> reply) throws Exception;
+		EventHandler handle(Socket socket, Object data, Fn.Callback1<Object> reply) throws Exception;
 
 	}
 
-	static class StaticInvoker implements Invoker {
+	static class StaticEventHandler implements EventHandler {
 
 		ObjectMapper mapper = new ObjectMapper();
 		Class<?> dataType;
@@ -126,14 +126,14 @@ public class DefaultEventDispatcher implements EventDispatcher {
 		int dataIndex = -1;
 		int replyIndex = -1;
 
-		StaticInvoker(Object handler, Method method) {
+		StaticEventHandler(Object handler, Method method) {
 			this.handler = handler;
 			this.method = method;
 			this.length = method.getParameterTypes().length;
 		}
 
 		@Override
-		public Invoker init() {
+		public EventHandler init() {
 			Class<?>[] paramTypes = method.getParameterTypes();
 			for (int i = 0; i < paramTypes.length; i++) {
 				Class<?> paramType = paramTypes[i];
@@ -179,7 +179,7 @@ public class DefaultEventDispatcher implements EventDispatcher {
 		}
 
 		@Override
-		public Invoker invoke(Socket socket, Object data, final Fn.Callback1<Object> reply) throws Exception {
+		public EventHandler handle(Socket socket, Object data, final Fn.Callback1<Object> reply) throws Exception {
 			Object[] args = new Object[length];
 			
 			if (socketIndex > -1) {
@@ -212,7 +212,7 @@ public class DefaultEventDispatcher implements EventDispatcher {
 
 	}
 
-	static class DynamicInvoker implements Invoker {
+	static class DynamicEventHandler implements EventHandler {
 
 		ObjectMapper mapper = new ObjectMapper();
 		Class<?> dataType;
@@ -223,23 +223,23 @@ public class DefaultEventDispatcher implements EventDispatcher {
 		Fn.Callback1<?> handlerWithData;
 		Fn.Callback2<?, ?> handlerWithDataAndReply;
 
-		DynamicInvoker(Socket socket, Fn.Callback handler) {
+		DynamicEventHandler(Socket socket, Fn.Callback handler) {
 			this.socket = socket;
 			this.handler = handler;
 		}
 
-		DynamicInvoker(Socket socket, Fn.Callback1<?> handler) {
+		DynamicEventHandler(Socket socket, Fn.Callback1<?> handler) {
 			this.socket = socket;
 			this.handlerWithData = handler;
 		}
 
-		DynamicInvoker(Socket socket, Fn.Callback2<?, ?> handler) {
+		DynamicEventHandler(Socket socket, Fn.Callback2<?, ?> handler) {
 			this.socket = socket;
 			this.handlerWithDataAndReply = handler;
 		}
 
 		@Override
-		public Invoker init() {
+		public EventHandler init() {
 			if (handlerWithData != null) {
 				dataType = getDataType(handlerWithData);
 			}
@@ -268,7 +268,7 @@ public class DefaultEventDispatcher implements EventDispatcher {
 
 		@SuppressWarnings({ "unchecked", "rawtypes" })
 		@Override
-		public Invoker invoke(Socket socket, Object data, final Fn.Callback1<Object> reply) throws Exception {
+		public EventHandler handle(Socket socket, Object data, final Fn.Callback1<Object> reply) throws Exception {
 			if (this.socket == socket) {
 				if (dataType != null) {
 					data = mapper.convertValue(data, dataType);

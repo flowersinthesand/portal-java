@@ -27,7 +27,7 @@ import org.junit.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.github.flowersinthesand.portal.DefaultEventDispatcher.Invoker;
+import com.github.flowersinthesand.portal.DefaultEventDispatcher.EventHandler;
 import com.github.flowersinthesand.portal.handler.InitHandler;
 
 public class InitializerTest {
@@ -52,9 +52,9 @@ public class InitializerTest {
 		App app = new Initializer().init(files).apps().get("/init");
 		Assert.assertNotNull(app);
 
-		Map<String, Set<Invoker>> invokers = ((DefaultEventDispatcher) app.eventDispatcher()).invokers();
-		Assert.assertNotNull(invokers.get("load"));
-		Assert.assertNull(invokers.get("ready"));
+		Map<String, Set<EventHandler>> eventHandlers = ((DefaultEventDispatcher) app.eventDispatcher()).eventHandlers();
+		Assert.assertNotNull(eventHandlers.get("load"));
+		Assert.assertNull(eventHandlers.get("ready"));
 	}
 
 	@Test

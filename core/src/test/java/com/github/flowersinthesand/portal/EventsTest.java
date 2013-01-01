@@ -25,7 +25,7 @@ import org.junit.Assert;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-import com.github.flowersinthesand.portal.DefaultEventDispatcher.Invoker;
+import com.github.flowersinthesand.portal.DefaultEventDispatcher.EventHandler;
 import com.github.flowersinthesand.portal.handler.DataBean;
 import com.github.flowersinthesand.portal.handler.EventsHandler;
 
@@ -39,8 +39,8 @@ public class EventsTest {
 		DefaultEventDispatcher events = new DefaultEventDispatcher();
 		events.on("load", h, h.getClass().getMethod("onLoad"));
 
-		Map<String, Set<Invoker>> invokers = events.invokers();
-		Assert.assertNotNull(invokers.get("load"));
+		Map<String, Set<EventHandler>> eventHandlers = events.eventHandlers();
+		Assert.assertNotNull(eventHandlers.get("load"));
 	}
 
 	@Test
@@ -63,11 +63,11 @@ public class EventsTest {
 			public void call(Object arg1, Fn.Callback1<Object> reply) {}
 		});
 
-		Map<String, Set<Invoker>> invokers = events.invokers();
-		Assert.assertNotNull(invokers.get("e1"));
-		Assert.assertNotNull(invokers.get("e2"));
-		Assert.assertNotNull(invokers.get("e3"));
-		Assert.assertNotNull(invokers.get("e4"));
+		Map<String, Set<EventHandler>> eventHandlers = events.eventHandlers();
+		Assert.assertNotNull(eventHandlers.get("e1"));
+		Assert.assertNotNull(eventHandlers.get("e2"));
+		Assert.assertNotNull(eventHandlers.get("e3"));
+		Assert.assertNotNull(eventHandlers.get("e4"));
 	}
 
 	@Test
