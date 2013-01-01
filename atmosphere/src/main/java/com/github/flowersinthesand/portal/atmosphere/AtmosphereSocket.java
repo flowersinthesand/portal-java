@@ -34,8 +34,12 @@ public class AtmosphereSocket extends Socket {
 	private Set<Map<String, Object>> cache = new CopyOnWriteArraySet<Map<String, Object>>();
 	private Map<Integer, Fn.Callback1<Object>> callbacks = new ConcurrentHashMap<Integer, Fn.Callback1<Object>>();
 
-	public AtmosphereSocket(String id, App app, String query) {
-		super(id, app, query);
+	public AtmosphereSocket(String query, App app) {
+		super(query, app);
+	}
+
+	public String id() {
+		return param("id");
 	}
 
 	public synchronized Timer heartbeatTimer() {

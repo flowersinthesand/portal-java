@@ -19,13 +19,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Socket {
-
-	private String id;
+	
 	private App app;
 	private Map<String, String> params;
 
-	public Socket(String id, App app, String query) {
-		this.id = id;
+	public Socket(String query, App app) {
 		this.app = app;
 		this.params = new LinkedHashMap<String, String>();
 		for (String entity : query.split("&")) {
@@ -33,11 +31,7 @@ public class Socket {
 			this.params.put(parts[0], parts[1]);
 		}
 	}
-
-	public String id() {
-		return id;
-	}
-
+	
 	public boolean opened() {
 		return app.socketManager().opened(this);
 	}

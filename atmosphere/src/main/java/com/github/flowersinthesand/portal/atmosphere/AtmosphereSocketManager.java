@@ -205,7 +205,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		String query = resource.getRequest().getQueryString();
 		logger.info("Socket#{} has been opened, query: {}", id, query);
 		
-		AtmosphereSocket socket = new AtmosphereSocket(id, app, query);
+		AtmosphereSocket socket = new AtmosphereSocket(query, app);
 
 		broadcasterFactory.get(id).addAtmosphereResource(resource);
 		sockets.put(id, socket);
@@ -217,8 +217,8 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 
 		AtmosphereSocket socket = sockets.get(id);
 
-		broadcasterFactory.lookup(socket.id()).destroy();
-		sockets.remove(socket.id());
+		broadcasterFactory.lookup(id).destroy();
+		sockets.remove(id);
 		Timer heartbeatTimer = socket.heartbeatTimer();
 		if (heartbeatTimer != null) {
 			heartbeatTimer.cancel();
@@ -230,11 +230,12 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 
 	private void fire(String raw) throws IOException {
 		final Map<String, Object> message = mapper.readValue(raw, new TypeReference<Map<String, Object>>() {});
-		final AtmosphereSocket socket = sockets.get(message.get("socket"));
+		String id = (String) message.get("socket");
+		final AtmosphereSocket socket = sockets.get(id);
 		String type = (String) message.get("type");
 		Object data = message.get("data");
 		boolean reply = message.containsKey("reply") && (Boolean) message.get("reply");
-		logger.info("Socket#{} is receiving an event {}", socket.id(), message);
+		logger.info("Socket#{} is receiving an event {}", id, message);
 
 		if (type.equals("heartbeat")) {
 			logger.debug("Handling heartbeat");
@@ -352,9 +353,9 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		broadcasterFactory.lookup(socket.id()).broadcast(socket.cache(message));
 	}
 
-	private Map<String, Object> rawMessage(int id, String type, Object data, boolean reply) {
+	private Map<String, Object> rawMessage(int eventId, String type, Object data, boolean reply) {
 		Map<String, Object> message = new LinkedHashMap<String, Object>();
-		message.put("id", id);
+		message.put("id", eventId);
 		message.put("type", type);
 		message.put("data", data);
 		message.put("reply", reply);
@@ -363,7 +364,8 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 	}
 
 	@Override
-	public void close(Socket socket) {
+	public void close(Socket s) {
+		AtmosphereSocket socket = (AtmosphereSocket) s;
 		logger.info("Closing socket#{}", socket.id());
 		for (AtmosphereResource r : broadcasterFactory.lookup(socket.id()).getAtmosphereResources()) {
 			r.resume();

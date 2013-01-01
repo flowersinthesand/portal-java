@@ -79,7 +79,7 @@ public class DefaultEventDispatcher implements EventDispatcher {
 
 	@Override
 	public void fire(String on, Socket socket, Object data, Fn.Callback1<Object> reply) {
-		logger.info("Firing {} event to Socket#{}", on, socket.id());
+		logger.info("Firing {} event to Socket#{}", on, socket.param("id"));
 		if (invokers.containsKey(on)) {
 			for (Invoker invoker : invokers.get(on)) {
 				logger.trace("Invoking handler {}", invoker);
