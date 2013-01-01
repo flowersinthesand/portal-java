@@ -23,12 +23,14 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 public class Room {
 
+	private App app;
 	private String name;
 	private Set<Socket> sockets = new CopyOnWriteArraySet<Socket>();
 	private Map<String, Object> attrs = new ConcurrentHashMap<String, Object>();
 
-	public Room(String name) {
+	public Room(String name, App app) {
 		this.name = name;
+		this.app = app;
 	}
 
 	public String name() {
@@ -82,8 +84,10 @@ public class Room {
 		return sockets.size();
 	}
 
-	public Room clear() {
+	public Room delete() {
 		sockets.clear();
+		attrs.clear();
+		app.rooms().remove(name);
 		return this;
 	}
 

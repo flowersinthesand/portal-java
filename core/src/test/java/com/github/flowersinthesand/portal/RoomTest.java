@@ -16,7 +16,9 @@
 package com.github.flowersinthesand.portal;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.mockito.Mockito;
@@ -28,13 +30,13 @@ public class RoomTest {
 	
 	@Test
 	public void name() {
-		Room room = new Room("room");
+		Room room = new Room("room", Mockito.mock(App.class));
 		Assert.assertEquals(room.name(), "room");
 	}
 
 	@Test
 	public void sockets() {
-		Room chat = new Room("chat");
+		Room chat = new Room("chat", Mockito.mock(App.class));
 		
 		Socket socket1 = Mockito.mock(Socket.class);
 		Mockito.when(socket1.opened()).thenReturn(true);
@@ -55,15 +57,11 @@ public class RoomTest {
 		chat.remove(socket1);
 		Assert.assertArrayEquals(new Socket[] { socket2 }, chat.sockets().toArray(new Socket[] {}));
 		Assert.assertEquals(chat.size(), 1);
-
-		chat.clear();
-		Assert.assertArrayEquals(new Socket[] {}, chat.sockets().toArray(new Socket[] {}));
-		Assert.assertEquals(chat.size(), 0);
 	}
 	
 	@Test
 	public void sending() {
-		Room chat = new Room("chat");
+		Room chat = new Room("chat", Mockito.mock(App.class));
 		final List<Object> executed = new ArrayList<Object>(); 
 		Answer<Object> increment = new Answer<Object>() {
 			@Override
@@ -98,7 +96,7 @@ public class RoomTest {
 	
 	@Test
 	public void closing() {
-		Room chat = new Room("chat");
+		Room chat = new Room("chat", Mockito.mock(App.class));
 		final List<Object> executed = new ArrayList<Object>(); 
 		Answer<Object> increment = new Answer<Object>() {
 			@Override
@@ -122,10 +120,28 @@ public class RoomTest {
 		chat.close();
 		Assert.assertEquals(executed.size(), 2);
 	}
+	
+	@Test
+	public void deletion() {
+		Map<String, Room> rooms = new LinkedHashMap<String, Room>();
+		App app = Mockito.mock(App.class);
+		Mockito.when(app.rooms()).thenReturn(rooms);
+		rooms.put("chat", new Room("chat", app));
+		Room chat = rooms.get("chat");
+
+		chat.add(Mockito.mock(Socket.class));
+		chat.set("data", new Object());
+
+		Assert.assertEquals(rooms.size(), 1);
+		chat.delete();
+		Assert.assertEquals(chat.sockets().size(), 0);
+		Assert.assertNull(chat.get("data"));
+		Assert.assertEquals(rooms.size(), 0);
+	}
 
 	@Test
 	public void attr() {
-		Room room = new Room("room");
+		Room room = new Room("room", Mockito.mock(App.class));
 		Assert.assertNull(room.get("notfound"));
 		
 		String data = "data";

@@ -81,7 +81,7 @@ public class App implements Serializable {
 			return rooms().get(name);
 		}
 
-		rooms().put(name, new Room(name));
+		rooms().put(name, new Room(name, this));
 		return rooms().get(name);
 	}
 
