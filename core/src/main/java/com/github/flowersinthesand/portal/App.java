@@ -51,7 +51,7 @@ public class App implements Serializable {
 	}
 
 	public Object get(String key) {
-		return attrs.get(key);
+		return key == null ? null : attrs.get(key);
 	}
 
 	public App set(String key, Object value) {

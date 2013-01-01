@@ -38,7 +38,7 @@ public class Room {
 	}
 
 	public Object get(String key) {
-		return attrs.get(key);
+		return key == null ? null : attrs.get(key);
 	}
 
 	public Room set(String key, Object value) {
@@ -68,7 +68,7 @@ public class Room {
 		}
 		return this;
 	}
-	
+
 	public Room close() {
 		for (Socket s : sockets) {
 			s.close();
