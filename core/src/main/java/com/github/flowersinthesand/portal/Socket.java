@@ -89,10 +89,11 @@ public class Socket {
 		return this;
 	}
 
-	public void close() {
+	public Socket close() {
 		if (opened()) {
 			app.socketManager().close(this);
 		}
+		return this;
 	}
 
 }
