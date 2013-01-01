@@ -29,16 +29,4 @@ public abstract class Fn {
 		void call(A arg1, B arg2);
 	}
 
-	public static interface Feedback<R> {
-		R apply();
-	}
-
-	public static interface Feedback1<R, A> {
-		R apply(A arg1);
-	}
-
-	public static interface Feedback2<R, A, B> {
-		R apply(A arg1, B arg2);
-	}
-
 }
