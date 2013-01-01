@@ -95,6 +95,33 @@ public class RoomTest {
 		chat.send("ed", data);
 		Assert.assertEquals(executed.size(), 2);
 	}
+	
+	@Test
+	public void closing() {
+		Room chat = new Room("chat");
+		final List<Object> executed = new ArrayList<Object>(); 
+		Answer<Object> increment = new Answer<Object>() {
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				executed.add(1);
+				return null;
+			}
+		};
+
+		Socket socket1 = Mockito.mock(Socket.class);
+		Mockito.when(socket1.opened()).thenReturn(true);
+
+		Socket socket2 = Mockito.mock(Socket.class);
+		Mockito.when(socket2.opened()).thenReturn(true);
+
+		chat.add(socket1).add(socket2);
+
+		Mockito.when(socket1.close()).then(increment);
+		Mockito.when(socket2.close()).then(increment);
+
+		chat.close();
+		Assert.assertEquals(executed.size(), 2);
+	}
 
 	@Test
 	public void attr() {

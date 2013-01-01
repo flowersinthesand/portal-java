@@ -66,6 +66,13 @@ public class Room {
 		}
 		return this;
 	}
+	
+	public Room close() {
+		for (Socket s : sockets) {
+			s.close();
+		}
+		return this;
+	}
 
 	public Set<Socket> sockets() {
 		return Collections.unmodifiableSet(sockets);
