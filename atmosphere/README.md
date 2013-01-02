@@ -11,7 +11,7 @@ Add the following dependency to your pom.xml:
 </dependency>
 ```
 
-Copy the following into a file named `context.xml` in `META-INF` if the target serer is Tomcat or in `WEB-INF` if the target server is JBoss. If the target server supports Servlet Specification 3.0, you don't need to do that.
+Copy the following into a file named `context.xml` in `META-INF` if the target server is Tomcat or in `WEB-INF` if the target server is JBoss. If the target server supports Servlet Specification 3.0, you don't need to do that.
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <Context>
