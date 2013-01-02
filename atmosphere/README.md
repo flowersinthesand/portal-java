@@ -2,6 +2,7 @@
 `portal-atmosphere` module integrates the portal application with the [Atmosphere framework](https://github.com/atmosphere/atmosphere/) which makes the application run on most servlet containers that support the Servlet Specification 2.3. 
 
 ## Installing
+### Updating pom.xml
 Add the following dependency to your pom.xml:
 ```xml
 <dependency>
@@ -11,7 +12,8 @@ Add the following dependency to your pom.xml:
 </dependency>
 ```
 
-Copy the following into a file named `context.xml` in `META-INF` if the target server is Tomcat or in `WEB-INF` if the target server is JBoss. If the target server supports Servlet Specification 3.0, you don't need to do that.
+### Adding context.xml
+Copy the following into a file named `context.xml` in `META-INF` if the target server is Tomcat or in `WEB-INF` if the target server is JBoss. If the target server supports Servlet Specification 3.0, you don't need to add it. This is required by the Atmosphere.
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <Context>
@@ -19,11 +21,12 @@ Copy the following into a file named `context.xml` in `META-INF` if the target s
 </Context>
 ```
 
+### Declaring InitializerServlet
 The only thing left is to declare the [InitializerServlet](https://github.com/flowersinthesand/portal-java/blob/master/atmosphere/src/main/java/com/github/flowersinthesand/portal/atmosphere/InitializerServlet.java). In the declaration, the url of portal applications to be integrated with the Atmosphere must be defined in the servlet mapping and setting the `load-on-startup` to `0` is recommended for eager initialization. A portal application can't declare more than one InitializerServlet. If you want to add a new portal application, add new mapping to the existing declaration.
 
 There are two ways to declare a servlet. Note that the WebServlet annotation is available only in servlet containers supporting the Servlet Specificiation 3.0.
 
-### Using web.xml
+#### Using web.xml
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="2.5" 
@@ -43,7 +46,7 @@ There are two ways to declare a servlet. Note that the WebServlet annotation is 
 </web-app>
 ```
 
-### Using WebServlet annotation
+#### Using WebServlet annotation
 ```java
 @WebServlet(urlPatterns = { "/event/*" }, loadOnStartup = 0)
 public class PortalServlet extends InitializerServlet {}
