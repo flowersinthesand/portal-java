@@ -4,11 +4,11 @@
 	<parent>
 		<groupId>com.github.flowersinthesand</groupId>
 		<artifactId>portal-parent</artifactId>
-		<version>0.1-SNAPSHOT</version>
+		<version>0.1</version>
 	</parent>
 	<groupId>com.github.flowersinthesand</groupId>
 	<artifactId>portal-core</artifactId>
-	<version>0.1-SNAPSHOT</version>
+	<version>0.1</version>
 	<packaging>jar</packaging>
 	<name>Portal Core</name>
 	<dependencies>
