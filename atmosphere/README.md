@@ -41,14 +41,14 @@ There are two ways to declare a servlet. Note that the WebServlet annotation is 
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>portal</servlet-name>
-		<url-pattern>/event/*</url-pattern>
+		<url-pattern>/event</url-pattern>
 	</servlet-mapping>
 </web-app>
 ```
 
 #### Using WebServlet annotation
 ```java
-@WebServlet(urlPatterns = { "/event/*" }, loadOnStartup = 0)
+@WebServlet(urlPatterns = { "/event" }, loadOnStartup = 0)
 public class PortalServlet extends InitializerServlet {}
 ```
 
