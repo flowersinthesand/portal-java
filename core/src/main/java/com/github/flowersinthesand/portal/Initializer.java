@@ -38,8 +38,8 @@ public class Initializer {
 	private Map<String, App> apps = new LinkedHashMap<String, App>();
 	private List<Preparer> preparers = new ArrayList<Preparer>();
 
-	public Initializer init(List<File> files) throws IOException {
-		logger.info("Initializing the Portal application");
+	public Initializer init(List<File> files, final Map<String, String> options) throws IOException {
+		logger.info("Initializing the Portal application with options {}", options);
 		
 		AnnotationDetector detector = new AnnotationDetector(new AnnotationDetector.TypeReporter() {
 			
@@ -56,7 +56,7 @@ public class Initializer {
 					String name = clazz.getAnnotation(Handler.class).value();
 					
 					if (!apps.containsKey(name)) {
-						apps.put(name, createApp(name));
+						apps.put(name, createApp(name, options));
 					}
 					
 					process(apps.get(name), clazz);
@@ -83,16 +83,15 @@ public class Initializer {
 		return this;
 	}
 
-	private App createApp(String name) {
+	private App createApp(String name, Map<String, String> options) {
 		App app = new App();
 		App.add(name, app);
 
 		SocketManager socketManager = null;
 		try {
-			// TODO Temporary expedient
-			socketManager = (SocketManager) Class.forName("com.github.flowersinthesand.portal.atmosphere.AtmosphereSocketManager").newInstance();
+			socketManager = (SocketManager) Class.forName(options.get(SocketManager.class.getName())).newInstance();
 		} catch (Exception e) {
-			logger.error("", e);
+			logger.error("There is no SocketManager implementation", e);
 		}
 
 		socketManager.setApp(app);

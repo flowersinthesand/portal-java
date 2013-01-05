@@ -20,7 +20,9 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -32,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Initializer;
+import com.github.flowersinthesand.portal.SocketManager;
 
 @SuppressWarnings("serial")
 public class InitializerServlet extends AtmosphereServlet {
@@ -51,8 +54,11 @@ public class InitializerServlet extends AtmosphereServlet {
 			}
 		})));
 
+		Map<String, String> options = new LinkedHashMap<String, String>();
+		options.put(SocketManager.class.getName(), AtmosphereSocketManager.class.getName());
+
 		try {
-			Initializer i = new Initializer().init(files);
+			Initializer i = new Initializer().init(files, options);
 			for (App app : i.apps().values()) {
 				getServletContext().setAttribute("com.github.flowersinthesand.portal.App#" + app.name(), app);
 				framework.addAtmosphereHandler(app.name(), (AtmosphereHandler) app.socketManager());

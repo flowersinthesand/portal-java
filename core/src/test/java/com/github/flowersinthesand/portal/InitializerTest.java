@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,28 +29,32 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.github.flowersinthesand.portal.DefaultEventDispatcher.EventHandler;
+import com.github.flowersinthesand.portal.atmosphere.NoOpSocketManager;
 import com.github.flowersinthesand.portal.handler.InitHandler;
 
 public class InitializerTest {
 	
 	List<File> files;
-	
+	Map<String, String> options;
+
 	@BeforeMethod
 	public void setPath() throws URISyntaxException {
 		files = new ArrayList<File>();
 		files.add(new File(Thread.currentThread().getContextClassLoader().getResource("").toURI()));
+		options = new LinkedHashMap<String, String>();
+		options.put(SocketManager.class.getName(), NoOpSocketManager.class.getName());
 	}
 
 	@Test
 	public void scanning() throws IOException {
-		Assert.assertTrue(new Initializer().init(files).apps().size() > 0);
+		Assert.assertTrue(new Initializer().init(files, options).apps().size() > 0);
 		files.set(0, new File(files.get(0), "fake"));
-		Assert.assertTrue(new Initializer().init(files).apps().size() == 0);
+		Assert.assertTrue(new Initializer().init(files, options).apps().size() == 0);
 	}
 
 	@Test
 	public void initialization() throws IOException {
-		App app = new Initializer().init(files).apps().get("/init");
+		App app = new Initializer().init(files, options).apps().get("/init");
 		Assert.assertNotNull(app);
 
 		Map<String, Set<EventHandler>> eventHandlers = ((DefaultEventDispatcher) app.eventDispatcher()).eventHandlers();
@@ -59,7 +64,7 @@ public class InitializerTest {
 
 	@Test
 	public void injection() throws IOException {
-		App app = new Initializer().init(files).apps().get("/init");
+		App app = new Initializer().init(files, options).apps().get("/init");
 		
 		Assert.assertEquals(InitHandler.getPrivateRoom().name(), "privateRoom");
 		Assert.assertEquals(InitHandler.getPackagePrivateRoom().name(), "packagePrivateRoom");
@@ -69,7 +74,7 @@ public class InitializerTest {
 
 	@Test
 	public void preparation() throws IOException {
-		new Initializer().init(files).apps().get("/init");
+		new Initializer().init(files, options).apps().get("/init");
 		
 		Assert.assertTrue(InitHandler.prepared);
 	}
