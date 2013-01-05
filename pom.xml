@@ -175,9 +175,6 @@
 		</plugins>
 	</build>
 	<profiles>
-		<!-- https://docs.sonatype.org/display/Repository/How+To+Generate+PGP+Signatures+With+Maven#HowToGeneratePGPSignaturesWithMaven-MavenGPGPlugin -->
-		<!-- https://docs.sonatype.org/display/Repository/Sonatype+OSS+Maven+Repository+Usage+Guide#SonatypeOSSMavenRepositoryUsageGuide-7a.DeploySnapshotsandStageReleaseswithMaven -->
-		<!-- $ mvn release:perform -->
 		<profile>
 			<id>release-sign-artifacts</id>
 			<activation>
