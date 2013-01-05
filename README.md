@@ -205,3 +205,40 @@ public class DataHandler {
     
 }
 ```
+
+### Creating a custom event handler marker
+You can externalize event names by creating a custom event handler annotation using `On` annotation.
+
+#### Browser
+```js
+portal.open("/event").send("custom", "data").send("welcome", "data");
+```
+
+#### Server
+```java
+public interface Event {
+
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Documented
+    @On("welcome")
+    public static @interface welcome {}
+
+}
+```
+```java
+@Handler("/event")
+public class EventHandler {
+
+    @On("custom")
+    public void custom(@Data String data) {
+        System.out.println(data);
+    }
+
+    @Event.welcome
+    public void welcome(@Data String data) {
+        System.out.println(data);
+    }
+
+}
+```
