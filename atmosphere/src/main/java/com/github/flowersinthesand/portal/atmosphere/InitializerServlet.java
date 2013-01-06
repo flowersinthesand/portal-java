@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -40,6 +41,7 @@ import com.github.flowersinthesand.portal.SocketManager;
 public class InitializerServlet extends AtmosphereServlet {
 
 	private final Logger logger = LoggerFactory.getLogger(InitializerServlet.class);
+	protected Initializer initializer = new Initializer();
 
 	@Override
 	public void init(ServletConfig sc) throws ServletException {
@@ -58,10 +60,10 @@ public class InitializerServlet extends AtmosphereServlet {
 		options.put(SocketManager.class.getName(), AtmosphereSocketManager.class.getName());
 
 		try {
-			Initializer i = new Initializer().init(files, options);
-			for (App app : i.apps().values()) {
-				getServletContext().setAttribute("com.github.flowersinthesand.portal.App#" + app.name(), app);
-				framework.addAtmosphereHandler(app.name(), (AtmosphereHandler) app.socketManager());
+			initializer.init(files, options);
+			for (Entry<String, App> entry : initializer.apps().entrySet()) {
+				getServletContext().setAttribute("com.github.flowersinthesand.portal.App#" + entry.getKey(), entry.getValue());
+				framework.addAtmosphereHandler(entry.getKey(), (AtmosphereHandler) entry.getValue().socketManager());
 			}
 		} catch (IOException e) {
 			logger.error("Failed to scan the class path", e);
