@@ -85,7 +85,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 
 				@Override
 				public void onSuspend(AtmosphereResourceEvent event) {
-					if (!transport.startsWith("longpoll")) {
+					if (transport.equals("ws") || transport.equals("sse") || transport.startsWith("stream")) {
 						start(id, resource);
 						if (transport.equals("sse") || transport.startsWith("stream")) {
 							response.setContentType("text/" + ("sse".equals(transport) ? "event-stream" : "plain"));
@@ -98,7 +98,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 							writer.flush();
 						}
 						app.eventDispatcher().fire("open", sockets.get(id));
-					} else {
+					} else if (transport.startsWith("longpoll")) {
 						response.setContentType("text/" + ("longpolljsonp".equals(transport) ? "javascript" : "plain"));
 						if (firstLongPoll) {
 							start(id, resource);
@@ -151,10 +151,13 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 				}
 
 				private void cleanup(AtmosphereResourceEvent event) {
-					if (sockets.containsKey(id) && (!transport.startsWith("longpoll") || (!firstLongPoll && request.getAttribute("used") == null))) {
-						Socket socket = sockets.get(id);
-						end(id);
-						app.eventDispatcher().fire("close", socket);
+					if (sockets.containsKey(id)) {
+						if ((transport.equals("ws") || transport.equals("sse") || transport.startsWith("stream")) || 
+							(transport.startsWith("longpoll") && !firstLongPoll && request.getAttribute("used") == null)) {
+							Socket socket = sockets.get(id);
+							end(id);
+							app.eventDispatcher().fire("close", socket);
+						}
 					}
 				}
 			})
