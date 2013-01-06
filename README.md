@@ -11,9 +11,11 @@ Add the following dependency to your pom.xml:
 </dependency>
 ```
 
-Now you can write a complete portal application, but you need to choose runtime enviornment where your application will be run such as servlet container or stand-alone server and a corresponding module for the integration.
+Now you can write a complete portal application, but you need to choose runtime environment where your application will be run such as servlet container or stand-alone server and a corresponding module for the integration.
 
 * [atmosphere](https://github.com/flowersinthesand/portal-java/tree/master/atmosphere/README.md) for servlet container
+
+For convenience, browser side resources such as `portal.js` and `portal-extension.js` are also provided. See the [README.md](https://github.com/flowersinthesand/portal-java/tree/master/javascript) of the javascript module.
 
 ## References
 * [API](https://github.com/flowersinthesand/portal-java/wiki/API)
