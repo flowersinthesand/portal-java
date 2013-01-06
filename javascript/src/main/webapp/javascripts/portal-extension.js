@@ -8,4 +8,8 @@
  */
 (function(portal) {
 	portal.defaults.heartbeat = 20000;
+	portal.defaults._xdrURL = portal.defaults.xdrURL;
+	portal.defaults.xdrURL = function(url) {
+		return portal.defaults._xdrURL.call(this, url) || url;
+	};
 })(window.portal);
