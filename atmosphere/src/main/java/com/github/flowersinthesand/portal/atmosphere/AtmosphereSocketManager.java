@@ -315,10 +315,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		AtmosphereSocket socket = (AtmosphereSocket) s;
 
 		socket.eventId().incrementAndGet();
-
-		Map<String, Object> message = rawMessage(socket.eventId().get(), event, data, false);
-		logger.info("Socket#{} is sending an event {}", socket.id(), message);
-		broadcasterFactory.lookup(socket.id()).broadcast(socket.cache(message));
+		doSend(socket, event, data, false);
 	}
 
 	@Override
@@ -332,10 +329,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 				callback.call();
 			}
 		});
-
-		Map<String, Object> message = rawMessage(socket.eventId().get(), event, data, true);
-		logger.info("Socket#{} is sending an event {}", socket.id(), message);
-		broadcasterFactory.lookup(socket.id()).broadcast(socket.cache(message));
+		doSend(socket, event, data, true);
 	}
 
 	@Override
@@ -350,20 +344,19 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 				((Fn.Callback1<Object>) callback).call(arg1);
 			}
 		});
-
-		Map<String, Object> message = rawMessage(socket.eventId().get(), event, data, true);
-		logger.info("Socket#{} is sending an event {}", socket.id(), message);
-		broadcasterFactory.lookup(socket.id()).broadcast(socket.cache(message));
+		doSend(socket, event, data, true);
 	}
-
-	private Map<String, Object> rawMessage(int eventId, String type, Object data, boolean reply) {
+	
+	private void doSend(AtmosphereSocket socket, String type, Object data, boolean reply) {
 		Map<String, Object> message = new LinkedHashMap<String, Object>();
-		message.put("id", eventId);
+		
+		message.put("id", socket.eventId().get());
 		message.put("type", type);
 		message.put("data", data);
 		message.put("reply", reply);
-
-		return message;
+		
+		logger.info("Socket#{} is sending an event {}", socket.id(), message);
+		broadcasterFactory.lookup(socket.id()).broadcast(socket.cache(message));
 	}
 
 	@Override
