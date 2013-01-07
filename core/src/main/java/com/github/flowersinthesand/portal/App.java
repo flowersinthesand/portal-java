@@ -22,11 +22,11 @@ import java.util.concurrent.ConcurrentMap;
 
 public class App implements Serializable {
 
-	public final static String NAME = "com.github.flowersinthesand.portal.App.name";
-	public final static String EVENT_DISPATCHER = "com.github.flowersinthesand.portal.App.eventDispatcher";
-	public final static String SOCKET_MANAGER = "com.github.flowersinthesand.portal.App.socketManager";
-	public final static String ROOMS = "com.github.flowersinthesand.portal.App.rooms";
-	public final static String FIRST = "com.github.flowersinthesand.portal.App.first";
+	public final static String NAME = App.class.getName() + ".name";
+	public final static String EVENT_DISPATCHER = App.class.getName() + ".eventDispatcher";
+	public final static String SOCKET_MANAGER = App.class.getName() + ".socketManager";
+	public final static String ROOMS = App.class.getName() + ".rooms";
+	public final static String FIRST = App.class.getName() + ".first";
 
 	private final static long serialVersionUID = 1728426808062835850L;
 	private final static ConcurrentMap<String, App> apps = new ConcurrentHashMap<String, App>();
