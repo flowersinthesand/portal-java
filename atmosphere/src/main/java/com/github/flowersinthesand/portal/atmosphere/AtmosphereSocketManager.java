@@ -314,7 +314,6 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 	public void send(Socket s, String event, Object data) {
 		AtmosphereSocket socket = (AtmosphereSocket) s;
 
-		socket.eventId().incrementAndGet();
 		doSend(socket, event, data, false);
 	}
 
@@ -322,21 +321,20 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 	public void send(Socket s, String event, Object data, final Fn.Callback callback) {
 		AtmosphereSocket socket = (AtmosphereSocket) s;
 
-		socket.eventId().incrementAndGet();
+		doSend(socket, event, data, true);
 		socket.callbacks().put(socket.eventId().get(), new Fn.Callback1<Object>() {
 			@Override
 			public void call(Object arg1) {
 				callback.call();
 			}
 		});
-		doSend(socket, event, data, true);
 	}
 
 	@Override
 	public <A> void send(Socket s, String event, Object data, final Fn.Callback1<A> callback) {
 		AtmosphereSocket socket = (AtmosphereSocket) s;
 
-		socket.eventId().incrementAndGet();
+		doSend(socket, event, data, true);
 		socket.callbacks().put(socket.eventId().get(), new Fn.Callback1<Object>() {
 			@SuppressWarnings("unchecked")
 			@Override
@@ -344,13 +342,12 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 				((Fn.Callback1<Object>) callback).call(arg1);
 			}
 		});
-		doSend(socket, event, data, true);
 	}
 	
 	private void doSend(AtmosphereSocket socket, String type, Object data, boolean reply) {
 		Map<String, Object> message = new LinkedHashMap<String, Object>();
 		
-		message.put("id", socket.eventId().get());
+		message.put("id", socket.eventId().incrementAndGet());
 		message.put("type", type);
 		message.put("data", data);
 		message.put("reply", reply);
