@@ -62,7 +62,6 @@ public class InitializerServlet extends AtmosphereServlet {
 		try {
 			initializer.init(files, options);
 			for (Entry<String, App> entry : initializer.apps().entrySet()) {
-				getServletContext().setAttribute("com.github.flowersinthesand.portal.App#" + entry.getKey(), entry.getValue());
 				framework.addAtmosphereHandler(entry.getKey(), (AtmosphereHandler) entry.getValue().socketManager());
 			}
 		} catch (IOException e) {
