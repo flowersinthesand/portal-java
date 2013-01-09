@@ -24,11 +24,19 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Collection;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.github.flowersinthesand.portal.spi.DefaultDispatcher;
+import com.github.flowersinthesand.portal.spi.Dispatcher;
+import com.github.flowersinthesand.portal.spi.NoOpSocketManager;
+import com.github.flowersinthesand.portal.spi.SocketManager;
 
 import eu.infomas.annotation.AnnotationDetector;
 
@@ -37,13 +45,28 @@ public class Initializer {
 	private final Logger logger = LoggerFactory.getLogger(Initializer.class);
 	private Map<String, App> apps = new LinkedHashMap<String, App>();
 	private List<Preparer> preparers = new ArrayList<Preparer>();
+	@SuppressWarnings("serial")
+	private Map<String, Object> option = new LinkedHashMap<String, Object>() {{
+		put("socketManager", NoOpSocketManager.class.getName());
+		put("dispatcher", DefaultDispatcher.class.getName());
+	}};
 
-	public Initializer init(List<File> files, final Map<String, String> options) throws IOException {
-		logger.info("Initializing the Portal application with options {}", options);
+	@SuppressWarnings("unchecked")
+	public Initializer init(Map<String, Object> o) {
+		option.putAll(o);
+		logger.info("Initializing the Portal application with option {}", option);
 		
+		String base = "";
+		if (option.containsKey("base")) {
+			try {
+				base = new File((String) option.get("base")).getCanonicalPath();
+			} catch (IOException e) {
+				logger.error("Cannot resolve the canonical path of the base " + option.get("base"), e);
+			}
+		}
+
 		AnnotationDetector detector = new AnnotationDetector(new AnnotationDetector.TypeReporter() {
-			
-			@SuppressWarnings("unchecked")
+
 			@Override
 			public Class<? extends Annotation>[] annotations() {
 				return new Class[] { Handler.class };
@@ -51,12 +74,48 @@ public class Initializer {
 
 			@Override
 			public void reportTypeAnnotation(Class<? extends Annotation> annotation, String className) {
+				if (!option.containsKey("controllers")) {
+					option.put("controllers", new LinkedHashSet<String>());
+				}
+				
+				Set<String> controllers = (Set<String>) option.get("controllers");
+				controllers.add(className);
+			}
+
+		});
+
+		if (option.containsKey("locations")) {
+			for (String location : (Collection<String>) option.get("locations")) {
+				location = base + ((location.length() != 0 && location.charAt(0) != '/') ? "/" : "") + location;
+				logger.debug("Scanning @Handler annotation in {}", location);
+
 				try {
-					Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass(className);
+					detector.detect(new File(location));
+				} catch (IOException e) {
+					logger.error("Failed to scan in " + location, e);
+				}
+			}
+		}
+		if (option.containsKey("packages")) {
+			for (String packageName : (Collection<String>) option.get("packages")) {
+				logger.debug("Scanning @Handler annotation under ", packageName);
+
+				try {
+					detector.detect(packageName);
+				} catch (IOException e) {
+					logger.error("Failed to scan under " + packageName, e);
+				}	
+			}
+		}
+		
+		if (option.containsKey("controllers")) {
+			for (String controller : (Collection<String>) option.get("controllers")) {
+				try {
+					Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass(controller);
 					String name = clazz.getAnnotation(Handler.class).value();
 					
 					if (!apps.containsKey(name)) {
-						apps.put(name, createApp(name, options));
+						apps.put(name, createApp(name));
 					}
 					
 					process(apps.get(name), clazz);
@@ -64,12 +123,6 @@ public class Initializer {
 					logger.error("", e);
 				}
 			}
-			
-		});
-		
-		for (File file : files) {
-			logger.debug("Scanning @Handler annotation in {}", file);
-			detector.detect(file);
 		}
 		
 		for (Preparer preparer : preparers) {
@@ -83,22 +136,28 @@ public class Initializer {
 		return this;
 	}
 
-	private App createApp(String name, Map<String, String> options) {
-		App app = new App();
-		App.add(name, app);
+	private App createApp(String name) {
+		App.add(name, new App());
+		App app = App.find(name);
+
+		Dispatcher dispatcher = null;
+		try {
+			dispatcher = (Dispatcher) Class.forName((String) option.get("dispatcher")).newInstance();
+		} catch (Exception e) {
+			logger.error("There is no Dispatcher implementation", e);
+		}
 
 		SocketManager socketManager = null;
 		try {
-			socketManager = (SocketManager) Class.forName(options.get(SocketManager.class.getName())).newInstance();
+			socketManager = (SocketManager) Class.forName((String) option.get("socketManager")).newInstance();
+			socketManager.setApp(app);
 		} catch (Exception e) {
 			logger.error("There is no SocketManager implementation", e);
 		}
 
-		socketManager.setApp(app);
-
 		return app
 			.set(App.NAME, name)
-			.set(App.EVENT_DISPATCHER, new DefaultEventDispatcher())
+			.set(App.DISPATCHER, dispatcher)
 			.set(App.SOCKET_MANAGER, socketManager);
 	}
 
@@ -157,7 +216,7 @@ public class Initializer {
 			}
 			
 			if (on != null) {
-				app.eventDispatcher().on(on, instance, method);
+				app.dispatcher().on(on, instance, method);
 			}
 		}
 	}

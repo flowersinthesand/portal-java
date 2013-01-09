@@ -20,10 +20,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import com.github.flowersinthesand.portal.spi.Dispatcher;
+import com.github.flowersinthesand.portal.spi.SocketManager;
+
 public class App implements Serializable {
 
 	public final static String NAME = App.class.getName() + ".name";
-	public final static String EVENT_DISPATCHER = App.class.getName() + ".eventDispatcher";
+	public final static String DISPATCHER = App.class.getName() + ".dispatcher";
 	public final static String SOCKET_MANAGER = App.class.getName() + ".socketManager";
 	public final static String ROOMS = App.class.getName() + ".rooms";
 	public final static String FIRST = App.class.getName() + ".first";
@@ -63,8 +66,8 @@ public class App implements Serializable {
 		return (String) attrs.get(NAME);
 	}
 
-	public EventDispatcher eventDispatcher() {
-		return (EventDispatcher) attrs.get(EVENT_DISPATCHER);
+	public Dispatcher dispatcher() {
+		return (Dispatcher) attrs.get(DISPATCHER);
 	}
 
 	public SocketManager socketManager() {

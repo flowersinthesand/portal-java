@@ -18,7 +18,7 @@ Now you can write a complete portal application, but you need to choose runtime 
 For convenience, browser side resources such as `portal.js` and `portal-extension.js` are also provided. See the [README.md](https://github.com/flowersinthesand/portal-java/tree/master/javascript) of the javascript module.
 
 ## References
-* [API](https://github.com/flowersinthesand/portal-java/wiki/API)
+* [API](https://github.com/flowersinthesand/portal-java/blob/master/core/README.md)
 * [Samples](https://github.com/flowersinthesand/portal-java/tree/master/samples/README.md)
 
 ## Snippets

@@ -52,4 +52,17 @@ In the declaration, the url of portal applications to be integrated with the Atm
 ```
 
 ## Configuring
+The following JSON represents the module's default options.
+```json
+{
+    "base": getServletContext().getRealPath(""),
+    "locations": ["/WEB-INF/classes"],
+    "socketManager": "com.github.flowersinthesand.portal.atmosphere.AtmosphereSocketManager"
+}
+```
+
+### Options
+TODO  
+
+### Atmosphere
 Since InitializerServlet extends AtmosphereServlet, Atmosphere's various options are still available. For details about options, see the [document](http://pastehtml.com/view/cgwfei5nu.html)

@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.flowersinthesand.portal.atmosphere;
+package com.github.flowersinthesand.portal.spi;
 
 import com.github.flowersinthesand.portal.App;
-import com.github.flowersinthesand.portal.Fn.Callback;
-import com.github.flowersinthesand.portal.Fn.Callback1;
+import com.github.flowersinthesand.portal.Fn;
 import com.github.flowersinthesand.portal.Socket;
-import com.github.flowersinthesand.portal.SocketManager;
 
 public class NoOpSocketManager implements SocketManager {
 
@@ -35,10 +33,10 @@ public class NoOpSocketManager implements SocketManager {
 	public void send(Socket socket, String event, Object data) {}
 
 	@Override
-	public void send(Socket socket, String event, Object data, Callback callback) {}
+	public void send(Socket socket, String event, Object data, Fn.Callback callback) {}
 
 	@Override
-	public <A> void send(Socket socket, String event, Object data, Callback1<A> callback) {}
+	public <A> void send(Socket socket, String event, Object data, Fn.Callback1<A> callback) {}
 
 	@Override
 	public void close(Socket socket) {}

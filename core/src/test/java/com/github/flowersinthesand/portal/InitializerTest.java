@@ -15,56 +15,163 @@
  */
 package com.github.flowersinthesand.portal;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.junit.Assert;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.github.flowersinthesand.portal.DefaultEventDispatcher.EventHandler;
-import com.github.flowersinthesand.portal.atmosphere.NoOpSocketManager;
+import com.github.flowersinthesand.portal.handler.EventsHandler;
 import com.github.flowersinthesand.portal.handler.InitHandler;
+import com.github.flowersinthesand.portal.spi.DefaultDispatcher;
+import com.github.flowersinthesand.portal.spi.DefaultDispatcher.EventHandler;
+import com.github.flowersinthesand.portal.spi.NoOpSocketManager;
 
+@SuppressWarnings("serial")
 public class InitializerTest {
-	
-	List<File> files;
-	Map<String, String> options;
 
-	@BeforeMethod
-	public void setPath() throws URISyntaxException {
-		files = new ArrayList<File>();
-		files.add(new File(Thread.currentThread().getContextClassLoader().getResource("").toURI()));
-		options = new LinkedHashMap<String, String>();
-		options.put(SocketManager.class.getName(), NoOpSocketManager.class.getName());
+	@Test
+	public void controller() {
+		Assert.assertTrue(new Initializer()
+			.init(new LinkedHashMap<String, Object>())
+			.apps()
+			.size() == 0);
+		Assert.assertTrue(new Initializer()
+			.init(new LinkedHashMap<String, Object>() {{
+				put("controllers", new LinkedHashSet<String>(){{
+					add(EventsHandler.class.getName());
+				}});
+			}})
+			.apps()
+			.size() == 1);
+		Assert.assertTrue(new Initializer()
+			.init(new LinkedHashMap<String, Object>() {{
+				put("controllers", new LinkedHashSet<String>(){{
+					add(EventsHandler.class.getName());
+					add(InitHandler.class.getName());
+				}});
+			}})
+			.apps()
+			.size() == 2);
 	}
 
 	@Test
-	public void scanning() throws IOException {
-		Assert.assertTrue(new Initializer().init(files, options).apps().size() > 0);
-		files.set(0, new File(files.get(0), "fake"));
-		Assert.assertTrue(new Initializer().init(files, options).apps().size() == 0);
+	public void scan() {
+		Assert.assertTrue(new Initializer()
+			.init(new LinkedHashMap<String, Object>() {{
+				put("base", ".");
+			}})
+			.apps()
+			.size() == 0);
+		Assert.assertTrue(new Initializer()
+			.init(new LinkedHashMap<String, Object>() {{
+				put("base", ".");
+				put("locations", new LinkedHashSet<String>(){{
+					add("/target");
+				}});
+			}})
+			.apps()
+			.size() == 2);
+		Assert.assertTrue(new Initializer()
+			.init(new LinkedHashMap<String, Object>() {{
+				put("base", "../");
+				put("locations", new LinkedHashSet<String>(){{
+					add("/target");
+				}});
+			}})
+			.apps()
+			.size() == 0);
+		Assert.assertTrue(new Initializer()
+			.init(new LinkedHashMap<String, Object>() {{
+				put("base", ".");
+				put("locations", new LinkedHashSet<String>(){{
+					add("/src");
+				}});
+			}})
+			.apps()
+			.size() == 0);
+		Assert.assertTrue(new Initializer()
+			.init(new LinkedHashMap<String, Object>() {{
+				put("packages", new LinkedHashSet<String>(){{
+					add("com.github.flowersinthesand.portal");
+				}});
+			}})
+			.apps()
+			.size() == 2);
+		Assert.assertTrue(new Initializer()
+			.init(new LinkedHashMap<String, Object>() {{
+				put("packages", new LinkedHashSet<String>(){{
+					add("org.flowersinthesand.portal");
+				}});
+			}})
+			.apps()
+			.size() == 0);
 	}
 
 	@Test
-	public void initialization() throws IOException {
-		App app = new Initializer().init(files, options).apps().get("/init");
+	public void socket() {
+		Assert.assertTrue(new Initializer()
+			.init(new LinkedHashMap<String, Object>() {{
+				put("base", ".");
+				put("locations", new LinkedHashSet<String>(){{
+					add("");
+				}});
+				put("socketManager", NoOpSocketManager.class.getName());
+			}})
+			.apps()
+			.get("/init")
+			.get(App.SOCKET_MANAGER) instanceof NoOpSocketManager);
+	}
+
+	@Test
+	public void event() {
+		Assert.assertTrue(new Initializer()
+			.init(new LinkedHashMap<String, Object>() {{
+				put("base", ".");
+				put("locations", new LinkedHashSet<String>(){{
+					add("");
+				}});
+				put("dispatcher", DefaultDispatcher.class.getName());
+			}})
+			.apps()
+			.get("/init")
+			.get(App.DISPATCHER) instanceof DefaultDispatcher);
+	}
+
+	@Test
+	public void init() throws IOException {
+		App app = new Initializer()
+			.init(new LinkedHashMap<String, Object>() {{
+				put("base", ".");
+				put("locations", new LinkedHashSet<String>(){{
+					add("");
+				}});
+				put("dispatcher", DefaultDispatcher.class.getName());
+			}})
+			.apps()
+			.get("/init");
 		Assert.assertNotNull(app);
-
-		Map<String, Set<EventHandler>> eventHandlers = ((DefaultEventDispatcher) app.eventDispatcher()).eventHandlers();
+		
+		Map<String, Set<EventHandler>> eventHandlers = ((DefaultDispatcher) app.dispatcher()).eventHandlers();
 		Assert.assertNotNull(eventHandlers.get("load"));
 		Assert.assertNull(eventHandlers.get("ready"));
 	}
 
 	@Test
-	public void injection() throws IOException {
-		App app = new Initializer().init(files, options).apps().get("/init");
+	public void inject() throws IOException {
+		App app = new Initializer()
+			.init(new LinkedHashMap<String, Object>() {{
+				put("base", ".");
+				put("locations", new LinkedHashSet<String>(){{
+					add("");
+				}});
+				put("dispatcher", DefaultDispatcher.class.getName());
+			}})
+			.apps()
+			.get("/init");
 		
 		Assert.assertEquals(InitHandler.getPrivateRoom().name(), "privateRoom");
 		Assert.assertEquals(InitHandler.getPackagePrivateRoom().name(), "packagePrivateRoom");
@@ -74,10 +181,15 @@ public class InitializerTest {
 
 	@Test
 	public void preparation() throws IOException {
-		new Initializer().init(files, options).apps().get("/init");
-		
+		new Initializer()
+		.init(new LinkedHashMap<String, Object>() {{
+			put("base", ".");
+			put("locations", new LinkedHashSet<String>(){{
+				add("");
+			}});
+			put("dispatcher", DefaultDispatcher.class.getName());
+		}});
 		Assert.assertTrue(InitHandler.prepared);
 	}
-
 
 }

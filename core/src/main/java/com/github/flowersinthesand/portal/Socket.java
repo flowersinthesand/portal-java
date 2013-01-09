@@ -42,21 +42,21 @@ public class Socket {
 
 	public Socket on(String event, Fn.Callback handler) {
 		if (opened()) {
-			app.eventDispatcher().on(event, this, handler);
+			app.dispatcher().on(event, this, handler);
 		}
 		return this;
 	}
 
 	public <A> Socket on(String event, Fn.Callback1<A> handler) {
 		if (opened()) {
-			app.eventDispatcher().on(event, this, handler);
+			app.dispatcher().on(event, this, handler);
 		}
 		return this;
 	}
 
 	public <A, B> Socket on(String event, Fn.Callback2<A, B> handler) {
 		if (opened()) {
-			app.eventDispatcher().on(event, this, handler);
+			app.dispatcher().on(event, this, handler);
 		}
 		return this;
 	}

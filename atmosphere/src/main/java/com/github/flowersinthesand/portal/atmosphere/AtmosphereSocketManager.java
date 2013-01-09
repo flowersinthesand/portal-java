@@ -45,7 +45,7 @@ import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Fn;
 import com.github.flowersinthesand.portal.Room;
 import com.github.flowersinthesand.portal.Socket;
-import com.github.flowersinthesand.portal.SocketManager;
+import com.github.flowersinthesand.portal.spi.SocketManager;
 
 public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler {
 
@@ -97,13 +97,13 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 							writer.print('\n');
 							writer.flush();
 						}
-						app.eventDispatcher().fire("open", sockets.get(id));
+						app.dispatcher().fire("open", sockets.get(id));
 					} else if (transport.startsWith("longpoll")) {
 						response.setContentType("text/" + ("longpolljsonp".equals(transport) ? "javascript" : "plain"));
 						if (firstLongPoll) {
 							start(id, resource);
 							resource.resume();
-							app.eventDispatcher().fire("open", sockets.get(id));
+							app.dispatcher().fire("open", sockets.get(id));
 						} else {
 							Broadcaster broadcaster = broadcasterFactory.lookup(id); 
 							broadcaster.addAtmosphereResource(resource);
@@ -156,7 +156,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 							(transport.startsWith("longpoll") && !firstLongPoll && request.getAttribute("used") == null)) {
 							Socket socket = sockets.get(id);
 							end(id);
-							app.eventDispatcher().fire("close", socket);
+							app.dispatcher().fire("close", socket);
 						}
 					}
 				}
@@ -259,9 +259,9 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		}
 
 		if (!reply) {
-			app.eventDispatcher().fire(type, socket, data);
+			app.dispatcher().fire(type, socket, data);
 		} else {
-			app.eventDispatcher().fire(type, socket, data, new Fn.Callback1<Object>() {
+			app.dispatcher().fire(type, socket, data, new Fn.Callback1<Object>() {
 				@Override
 				public void call(Object arg1) {
 					Map<String, Object> replyData = new LinkedHashMap<String, Object>();
