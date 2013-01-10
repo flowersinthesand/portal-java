@@ -40,15 +40,15 @@ public class InitializerListener implements ServletContextListener {
 			}
 
 			@Override
-			protected void configure(Map<String, Object> option) {
-				self.configure(option);
+			protected void configure(Map<String, Object> options, Map<Class<?>, Class<?>> classes) {
+				self.configure(options, classes);
 			}
 		});
 
 		registration.setLoadOnStartup(0);
 	}
 
-	protected void configure(Map<String, Object> option) {}
+	protected void configure(Map<String, Object> option, Map<Class<?>, Class<?>> classes) {}
 
 	protected void configure(ServletRegistration registration) {}
 

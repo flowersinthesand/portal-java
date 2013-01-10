@@ -28,7 +28,9 @@ import com.github.flowersinthesand.portal.handler.EventsHandler;
 import com.github.flowersinthesand.portal.handler.InitHandler;
 import com.github.flowersinthesand.portal.spi.DefaultDispatcher;
 import com.github.flowersinthesand.portal.spi.DefaultDispatcher.EventHandler;
+import com.github.flowersinthesand.portal.spi.Dispatcher;
 import com.github.flowersinthesand.portal.spi.NoOpSocketManager;
+import com.github.flowersinthesand.portal.spi.SocketManager;
 
 @SuppressWarnings("serial")
 public class InitializerTest {
@@ -36,7 +38,7 @@ public class InitializerTest {
 	@Test
 	public void controller() {
 		Assert.assertTrue(new Initializer()
-			.init(new LinkedHashMap<String, Object>())
+			.init(new LinkedHashMap<String, Object>(), new LinkedHashMap<Class<?>, Class<?>>())
 			.apps()
 			.size() == 0);
 		Assert.assertTrue(new Initializer()
@@ -44,7 +46,7 @@ public class InitializerTest {
 				put("controllers", new LinkedHashSet<String>(){{
 					add(EventsHandler.class.getName());
 				}});
-			}})
+			}}, new LinkedHashMap<Class<?>, Class<?>>())
 			.apps()
 			.size() == 1);
 		Assert.assertTrue(new Initializer()
@@ -53,7 +55,7 @@ public class InitializerTest {
 					add(EventsHandler.class.getName());
 					add(InitHandler.class.getName());
 				}});
-			}})
+			}}, new LinkedHashMap<Class<?>, Class<?>>())
 			.apps()
 			.size() == 2);
 	}
@@ -63,7 +65,7 @@ public class InitializerTest {
 		Assert.assertTrue(new Initializer()
 			.init(new LinkedHashMap<String, Object>() {{
 				put("base", ".");
-			}})
+			}}, new LinkedHashMap<Class<?>, Class<?>>())
 			.apps()
 			.size() == 0);
 		Assert.assertTrue(new Initializer()
@@ -72,7 +74,7 @@ public class InitializerTest {
 				put("locations", new LinkedHashSet<String>(){{
 					add("/target");
 				}});
-			}})
+			}}, new LinkedHashMap<Class<?>, Class<?>>())
 			.apps()
 			.size() == 2);
 		Assert.assertTrue(new Initializer()
@@ -81,7 +83,7 @@ public class InitializerTest {
 				put("locations", new LinkedHashSet<String>(){{
 					add("/target");
 				}});
-			}})
+			}}, new LinkedHashMap<Class<?>, Class<?>>())
 			.apps()
 			.size() == 0);
 		Assert.assertTrue(new Initializer()
@@ -90,7 +92,7 @@ public class InitializerTest {
 				put("locations", new LinkedHashSet<String>(){{
 					add("/src");
 				}});
-			}})
+			}}, new LinkedHashMap<Class<?>, Class<?>>())
 			.apps()
 			.size() == 0);
 		Assert.assertTrue(new Initializer()
@@ -98,7 +100,7 @@ public class InitializerTest {
 				put("packages", new LinkedHashSet<String>(){{
 					add("com.github.flowersinthesand.portal");
 				}});
-			}})
+			}}, new LinkedHashMap<Class<?>, Class<?>>())
 			.apps()
 			.size() == 2);
 		Assert.assertTrue(new Initializer()
@@ -106,35 +108,34 @@ public class InitializerTest {
 				put("packages", new LinkedHashSet<String>(){{
 					add("org.flowersinthesand.portal");
 				}});
-			}})
+			}}, new LinkedHashMap<Class<?>, Class<?>>())
 			.apps()
 			.size() == 0);
 	}
-
+	
 	@Test
-	public void socket() {
+	public void classes() {
 		Assert.assertTrue(new Initializer()
 			.init(new LinkedHashMap<String, Object>() {{
 				put("base", ".");
 				put("locations", new LinkedHashSet<String>(){{
 					add("");
 				}});
-				put("socketManager", NoOpSocketManager.class.getName());
+			}}, new LinkedHashMap<Class<?>, Class<?>>() {{
+				put(SocketManager.class, NoOpSocketManager.class);
 			}})
 			.apps()
 			.get("/init")
 			.get(App.SOCKET_MANAGER) instanceof NoOpSocketManager);
-	}
-
-	@Test
-	public void event() {
+		
 		Assert.assertTrue(new Initializer()
 			.init(new LinkedHashMap<String, Object>() {{
 				put("base", ".");
 				put("locations", new LinkedHashSet<String>(){{
 					add("");
 				}});
-				put("dispatcher", DefaultDispatcher.class.getName());
+			}}, new LinkedHashMap<Class<?>, Class<?>>() {{
+				put(Dispatcher.class, DefaultDispatcher.class);
 			}})
 			.apps()
 			.get("/init")
@@ -149,8 +150,7 @@ public class InitializerTest {
 				put("locations", new LinkedHashSet<String>(){{
 					add("");
 				}});
-				put("dispatcher", DefaultDispatcher.class.getName());
-			}})
+			}}, new LinkedHashMap<Class<?>, Class<?>>())
 			.apps()
 			.get("/init");
 		Assert.assertNotNull(app);
@@ -168,8 +168,7 @@ public class InitializerTest {
 				put("locations", new LinkedHashSet<String>(){{
 					add("");
 				}});
-				put("dispatcher", DefaultDispatcher.class.getName());
-			}})
+			}}, new LinkedHashMap<Class<?>, Class<?>>())
 			.apps()
 			.get("/init");
 		
@@ -187,8 +186,7 @@ public class InitializerTest {
 			put("locations", new LinkedHashSet<String>(){{
 				add("");
 			}});
-			put("dispatcher", DefaultDispatcher.class.getName());
-		}});
+		}}, new LinkedHashMap<Class<?>, Class<?>>());
 		Assert.assertTrue(InitHandler.prepared);
 	}
 

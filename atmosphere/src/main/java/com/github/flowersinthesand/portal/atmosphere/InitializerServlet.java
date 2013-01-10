@@ -27,11 +27,13 @@ import javax.servlet.ServletException;
 import org.atmosphere.cpr.AtmosphereHandler;
 import org.atmosphere.cpr.AtmosphereServlet;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Initializer;
+import com.github.flowersinthesand.portal.spi.SocketManager;
 
 @SuppressWarnings("serial")
 public class InitializerServlet extends AtmosphereServlet {
@@ -40,12 +42,11 @@ public class InitializerServlet extends AtmosphereServlet {
 	private ObjectMapper mapper = new ObjectMapper();
 	protected Initializer initializer = new Initializer();
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void init(ServletConfig sc) throws ServletException {
 		super.init(sc);
 		
-		Map<String, Object> option = new LinkedHashMap<String, Object>() {{
+		Map<String, Object> options = new LinkedHashMap<String, Object>() {{
 			String base = getServletContext().getRealPath("");
 			put("base", base);
 			if (base != null) {
@@ -53,27 +54,48 @@ public class InitializerServlet extends AtmosphereServlet {
 					add("/WEB-INF/classes");
 				}});
 			}
-			put("socketManager", AtmosphereSocketManager.class.getName());
 		}};
 
-		String userJSON = getServletContext().getInitParameter("portal.options");
-		if (userJSON != null) {
-			logger.debug("Reading portal.options {}", userJSON);
+		String userOptions = getServletContext().getInitParameter("portal.options");
+		if (userOptions != null) {
+			logger.debug("Reading portal.options {}", userOptions);
 			try {
-				option.putAll(mapper.readValue(userJSON, Map.class));
+				Map<String, Object> map = mapper.readValue(userOptions, new TypeReference<Map<String, Object>>() {});
+				options.putAll(map);
 			} catch (IOException e) {
-				logger.error("Failed to read the JSON which comes from the portal.option " + userJSON, e);
+				logger.error("Failed to read the JSON which comes from the portal.option " + userOptions, e);
+			}
+		}
+		
+		Map<Class<?>, Class<?>> classes = new LinkedHashMap<Class<?>, Class<?>>() {{
+			put(SocketManager.class, AtmosphereSocketManager.class);
+		}};
+
+		String userClasses = getServletContext().getInitParameter("portal.classes");
+		if (userClasses != null) {
+			logger.debug("Reading portal.classes {}", userClasses);
+			try {
+				Map<String, String> map = mapper.readValue(userClasses, new TypeReference<Map<String, String>>() {});
+				for (Entry<String, String> entry : map.entrySet()) {
+					try {
+						classes.put(Class.forName(entry.getKey()), Class.forName(entry.getValue()));
+					} catch (ClassNotFoundException e) {
+						logger.error("Class " + e.getMessage() + "not found", e);
+					}
+				}
+			} catch (IOException e) {
+				logger.error("Failed to read the JSON which comes from the portal.classes " + userClasses, e);
 			}
 		}
 
-		configure(option);
+		configure(options, classes);
 
-		initializer.init(option);
+		initializer.init(options, classes);
 		for (Entry<String, App> entry : initializer.apps().entrySet()) {
 			framework.addAtmosphereHandler(entry.getKey(), (AtmosphereHandler) entry.getValue().socketManager());
 		}
 	}
 
-	protected void configure(Map<String, Object> option) {}
+	protected void configure(Map<String, Object> options, Map<Class<?>, Class<?>> classes) {}
 
 }

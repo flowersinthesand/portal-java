@@ -45,23 +45,25 @@ public class Initializer {
 	private final Logger logger = LoggerFactory.getLogger(Initializer.class);
 	private Map<String, App> apps = new LinkedHashMap<String, App>();
 	private List<Preparer> preparers = new ArrayList<Preparer>();
+	private Map<String, Object> options = new LinkedHashMap<String, Object>();
 	@SuppressWarnings("serial")
-	private Map<String, Object> option = new LinkedHashMap<String, Object>() {{
-		put("socketManager", NoOpSocketManager.class.getName());
-		put("dispatcher", DefaultDispatcher.class.getName());
+	private Map<Class<?>, Class<?>> classes = new LinkedHashMap<Class<?>, Class<?>>() {{
+		put(SocketManager.class, NoOpSocketManager.class);
+		put(Dispatcher.class, DefaultDispatcher.class);
 	}};
 
 	@SuppressWarnings("unchecked")
-	public Initializer init(Map<String, Object> o) {
-		option.putAll(o);
-		logger.info("Initializing the Portal application with option {}", option);
+	public Initializer init(Map<String, Object> o, Map<Class<?>, Class<?>> c) {
+		options.putAll(o);
+		classes.putAll(c);
+		logger.info("Initializing the Portal application with options {} and classes {}", options, classes);
 		
 		String base = "";
-		if (option.containsKey("base")) {
+		if (options.containsKey("base")) {
 			try {
-				base = new File((String) option.get("base")).getCanonicalPath();
+				base = new File((String) options.get("base")).getCanonicalPath();
 			} catch (IOException e) {
-				logger.error("Cannot resolve the canonical path of the base " + option.get("base"), e);
+				logger.error("Cannot resolve the canonical path of the base " + options.get("base"), e);
 			}
 		}
 
@@ -74,18 +76,18 @@ public class Initializer {
 
 			@Override
 			public void reportTypeAnnotation(Class<? extends Annotation> annotation, String className) {
-				if (!option.containsKey("controllers")) {
-					option.put("controllers", new LinkedHashSet<String>());
+				if (!options.containsKey("controllers")) {
+					options.put("controllers", new LinkedHashSet<String>());
 				}
 				
-				Set<String> controllers = (Set<String>) option.get("controllers");
+				Set<String> controllers = (Set<String>) options.get("controllers");
 				controllers.add(className);
 			}
 
 		});
 
-		if (option.containsKey("locations")) {
-			for (String location : (Collection<String>) option.get("locations")) {
+		if (options.containsKey("locations")) {
+			for (String location : (Collection<String>) options.get("locations")) {
 				location = base + ((location.length() != 0 && location.charAt(0) != '/') ? "/" : "") + location;
 				logger.debug("Scanning @Handler annotation in {}", location);
 
@@ -96,8 +98,8 @@ public class Initializer {
 				}
 			}
 		}
-		if (option.containsKey("packages")) {
-			for (String packageName : (Collection<String>) option.get("packages")) {
+		if (options.containsKey("packages")) {
+			for (String packageName : (Collection<String>) options.get("packages")) {
 				logger.debug("Scanning @Handler annotation under ", packageName);
 
 				try {
@@ -108,8 +110,8 @@ public class Initializer {
 			}
 		}
 		
-		if (option.containsKey("controllers")) {
-			for (String controller : (Collection<String>) option.get("controllers")) {
+		if (options.containsKey("controllers")) {
+			for (String controller : (Collection<String>) options.get("controllers")) {
 				try {
 					Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass(controller);
 					String name = clazz.getAnnotation(Handler.class).value();
@@ -142,17 +144,17 @@ public class Initializer {
 
 		Dispatcher dispatcher = null;
 		try {
-			dispatcher = (Dispatcher) Class.forName((String) option.get("dispatcher")).newInstance();
+			dispatcher = (Dispatcher) classes.get(Dispatcher.class).newInstance();
 		} catch (Exception e) {
-			logger.error("There is no Dispatcher implementation", e);
+			logger.error("Dispatcher implementation " + classes.get(Dispatcher.class) + " is not available", e);
 		}
 
 		SocketManager socketManager = null;
 		try {
-			socketManager = (SocketManager) Class.forName((String) option.get("socketManager")).newInstance();
+			socketManager = (SocketManager) classes.get(SocketManager.class).newInstance();
 			socketManager.setApp(app);
 		} catch (Exception e) {
-			logger.error("There is no SocketManager implementation", e);
+			logger.error("SocketManager implementation " + classes.get(SocketManager.class) + " is not available", e);
 		}
 
 		return app

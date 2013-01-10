@@ -12,7 +12,7 @@ Add the following dependency to your pom.xml:
 ```
 
 ## Options
-`Initializer` which initializes applications accepts a plain map as an option.
+`Initializer` which initializes applications accepts two maps for options and classes respectively.
 
 *  `controllers`
 
@@ -30,13 +30,12 @@ A base path for locations.
 
 Paths of files, directories and jars which will be scanned for controllers.
 
-* `dispatcher`
+### Classes
 
-A class name of the Dispatcher implementation. The default implementation is `DefaultDispatcher` which can be used in production.
-
-* `socketManager`
-
-A class name of the SocketManager implementation. The default implementation is `NoOpSocketManager` which does nothing and cannot be used in production.
+|Specification|Implementation
+|---|---
+|com.github.flowersinthesand.portal.spi.Dispatcher|com.github.flowersinthesand.portal.spi.DefaultDispatcher   
+|com.github.flowersinthesand.portal.spi.SocketManager|com.github.flowersinthesand.portal.spi.NoOpSocketManager 
 
 ## API
 Package `com.github.flowersinthesand.portal`
@@ -198,12 +197,3 @@ Amorphous functions.
 #### Callback2\<A,B\>
 
 * `void call(A arg1, B arg2)`
-
-## SPI
-Package `com.github.flowersinthesand.portal.spi`
-
-### Dispatcher
-TODO
-
-### SocketManager
-TODO

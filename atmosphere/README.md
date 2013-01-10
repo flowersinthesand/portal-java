@@ -51,7 +51,7 @@ In the declaration, the url of portal applications to be integrated with the Atm
 </web-app>
 ```
 
-## Configuring
+## Options
 The following options will override the default options of the core module.
 
 * `base`
@@ -62,12 +62,17 @@ For convenience, scanning of resources is enabled. `getServletContext().getRealP
 
 If the `base` is available, `/WEB-INF/classes` directory is added to locations.
 
-* `socketManager`
+### Classes
 
-The value is `com.github.flowersinthesand.portal.atmosphere.AtmosphereSocketManager`. In this module, implementation must implement [`AtmosphereHandler`](http://atmosphere.github.com/atmosphere/apidocs/org/atmosphere/cpr/AtmosphereHandler.html) as well as SocketManager.
+|Specification|Implementation
+|---|---
+|com.github.flowersinthesand.portal.spi.SocketManager|com.github.flowersinthesand.portal.atmosphere.AtmosphereSocketManager
 
+In this module, SocketManager implementation must implement [`AtmosphereHandler`](http://atmosphere.github.com/atmosphere/apidocs/org/atmosphere/cpr/AtmosphereHandler.html).
+
+## Configuring
 ### Using class
-Both InitializerListener and InitializerServlet have `configure(Map<String, Object>)` which can manipulate the module default options. In InitializerListener, the portal servlet definition can be accessed and modified by overriding `configure(ServletRegistration)` as well. 
+Both InitializerListener and InitializerServlet have `configure(Map<String, Object> options, Map<Class<?>, Class<?>> classes)` which can manipulate the module default options. In InitializerListener, the portal servlet definition can be accessed and modified by overriding `configure(ServletRegistration)` as well. 
 
 ```java
 @WebListener
@@ -86,7 +91,7 @@ public class PortalListener extends InitializerListener {
 ```
 
 ### Using web.xml
-The context parameter `portal.options` which is a JSON representing options is used to override the module default options.
+The context parameter `portal.options` and `portal.classes` which are JSON is used to override the module default options.
 
 ```xml
 <context-param>
@@ -97,7 +102,15 @@ The context parameter `portal.options` which is a JSON representing options is u
     }
     </param-value>
 </context-param>
+<context-param>
+    <param-name>portal.classes</param-name>
+    <param-value>
+    {
+        "com.github.flowersinthesand.portal.spi.SocketManager": "com.github.flowersinthesand.portal.spi.NoOpSocketManager"
+    }
+    </param-value>
+</context-param>
 ```
 
-### Atmosphere
+### Atmosphere options
 Since InitializerServlet extends AtmosphereServlet, Atmosphere's various options are still available. To see what can be configured and how can it be done, see the [document](http://pastehtml.com/view/cgwfei5nu.html)
