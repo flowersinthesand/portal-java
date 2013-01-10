@@ -46,15 +46,19 @@ public class InitializerServlet extends AtmosphereServlet {
 		super.init(sc);
 		
 		Map<String, Object> option = new LinkedHashMap<String, Object>() {{
-			put("base", getServletContext().getRealPath(""));
-			put("locations", new LinkedHashSet<String>() {{
-				add("/WEB-INF/classes");
-			}});
+			String base = getServletContext().getRealPath("");
+			put("base", base);
+			if (base != null) {
+				put("locations", new LinkedHashSet<String>() {{
+					add("/WEB-INF/classes");
+				}});
+			}
 			put("socketManager", AtmosphereSocketManager.class.getName());
 		}};
 
 		String userJSON = getServletContext().getInitParameter("portal.options");
 		if (userJSON != null) {
+			logger.debug("Reading portal.options {}", userJSON);
 			try {
 				option.putAll(mapper.readValue(userJSON, Map.class));
 			} catch (IOException e) {
@@ -62,10 +66,14 @@ public class InitializerServlet extends AtmosphereServlet {
 			}
 		}
 
+		configure(option);
+
 		initializer.init(option);
 		for (Entry<String, App> entry : initializer.apps().entrySet()) {
 			framework.addAtmosphereHandler(entry.getKey(), (AtmosphereHandler) entry.getValue().socketManager());
 		}
 	}
+
+	protected void configure(Map<String, Object> option) {}
 
 }

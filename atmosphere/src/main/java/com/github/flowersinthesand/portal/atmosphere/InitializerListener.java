@@ -15,6 +15,8 @@
  */
 package com.github.flowersinthesand.portal.atmosphere;
 
+import java.util.Map;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -26,6 +28,7 @@ public class InitializerListener implements ServletContextListener {
 	@SuppressWarnings("serial")
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {
+		final InitializerListener self = this;
 		ServletRegistration.Dynamic registration = sce.getServletContext().addServlet("portal", new InitializerServlet() {
 			@Override
 			public void init(ServletConfig sc) throws ServletException {
@@ -33,11 +36,21 @@ public class InitializerListener implements ServletContextListener {
 
 				ServletRegistration registration = getServletContext().getServletRegistration("portal");				
 				registration.addMapping(initializer.apps().keySet().toArray(new String[] {}));
+				self.configure(registration);
+			}
+
+			@Override
+			protected void configure(Map<String, Object> option) {
+				self.configure(option);
 			}
 		});
 
 		registration.setLoadOnStartup(0);
 	}
+
+	protected void configure(Map<String, Object> option) {}
+
+	protected void configure(ServletRegistration registration) {}
 
 	@Override
 	public void contextDestroyed(ServletContextEvent sce) {}

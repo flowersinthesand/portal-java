@@ -21,7 +21,7 @@ Copy the following into a file named `context.xml` in `META-INF` if the target s
 </Context>
 ```
 
-### Declaring InitializerListener
+### Extending InitializerListener
 The only thing left is to declare the [InitializerServlet](https://github.com/flowersinthesand/portal-java/blob/master/atmosphere/src/main/java/com/github/flowersinthesand/portal/atmosphere/InitializerServlet.java). However, if your servlet container supports the Servlet Specificiation 3.0, the [InitializerListener](https://github.com/flowersinthesand/portal-java/blob/master/atmosphere/src/main/java/com/github/flowersinthesand/portal/atmosphere/InitializerListener.java) can do that for you.
 
 ```java
@@ -52,17 +52,52 @@ In the declaration, the url of portal applications to be integrated with the Atm
 ```
 
 ## Configuring
-The following JSON represents the module's default options.
-```json
-{
-    "base": getServletContext().getRealPath(""),
-    "locations": ["/WEB-INF/classes"],
-    "socketManager": "com.github.flowersinthesand.portal.atmosphere.AtmosphereSocketManager"
+The following options will override the default options of the core module.
+
+* `base`
+
+For convenience, scanning of resources is enabled. `getServletContext().getRealPath("")` is used as a value, but it can be null in some cases. For example, the case where servlet container is Tomcat and unpackWARs option is set to false. Though you can still scan the class path by setting `packages` option. 
+
+* `locations`
+
+If the `base` is available, `/WEB-INF/classes` directory is added to locations.
+
+* `socketManager`
+
+The value is `com.github.flowersinthesand.portal.atmosphere.AtmosphereSocketManager`. In this module, implementation must implement [`AtmosphereHandler`](http://atmosphere.github.com/atmosphere/apidocs/org/atmosphere/cpr/AtmosphereHandler.html) as well as SocketManager.
+
+### Using class
+Both InitializerListener and InitializerServlet have `configure(Map<String, Object>)` which can manipulate the module default options. In InitializerListener, the portal servlet definition can be accessed and modified by overriding `configure(ServletRegistration)` as well. 
+
+```java
+@WebListener
+public class PortalListener extends InitializerListener {
+
+    @Override
+    protected void configure(Map<String, Object> option) {
+        Set<String> packages = new LinkedHashSet<String>();
+        packages.add("ch.rasc.portaldemos.chat");
+        packages.add("ch.rasc.portaldemos.scheduler");
+
+        option.put("packages", packages);
+    }
+
 }
 ```
 
-### Options
-TODO  
+### Using web.xml
+The context parameter `portal.options` which is a JSON representing options is used to override the module default options.
+
+```xml
+<context-param>
+    <param-name>portal.options</param-name>
+    <param-value>
+    {
+        "packages": ["ch.rasc.portaldemos.chat", "ch.rasc.portaldemos.scheduler"]
+    }
+    </param-value>
+</context-param>
+```
 
 ### Atmosphere
-Since InitializerServlet extends AtmosphereServlet, Atmosphere's various options are still available. For details about options, see the [document](http://pastehtml.com/view/cgwfei5nu.html)
+Since InitializerServlet extends AtmosphereServlet, Atmosphere's various options are still available. To see what can be configured and how can it be done, see the [document](http://pastehtml.com/view/cgwfei5nu.html)

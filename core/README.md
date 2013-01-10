@@ -1,5 +1,5 @@
 # Core
-`portal-core` module provides API for the the users to construct a portal application and SPI for bridge modules to run a portal application.
+`portal-core` module provides API for the the users to construct a portal application and SPI for bridge modules to run a portal application on their environment.
 
 ## Installing
 Add the following dependency to your pom.xml:
@@ -12,9 +12,9 @@ Add the following dependency to your pom.xml:
 ```
 
 ## Options
-Options to be used to initialize an application is a plain map.
+`Initializer` which initializes applications accepts a plain map as an option.
 
-* `controllers`
+*  `controllers`
 
 A Set of controller class names.
 
@@ -28,7 +28,7 @@ A base path for locations.
 
 * `locations`
 
-Paths of files, directories and jars containing controllers.
+Paths of files, directories and jars which will be scanned for controllers.
 
 * `dispatcher`
 
@@ -130,7 +130,7 @@ Adds a socket. Only opened socket can be added, and duplicate addition is not po
 
 * `Room remove(Socket socket)`
 
-Removes a socket. If one of added sockets is closed, it will be removed from the room as well automatically.
+Removes a socket. If one of added sockets is closed, it will be removed from the room as well automatically. Use this method to exclude opened socket.
 
 * `Room send(String event)`
 * `Room send(String event, Object data)`
