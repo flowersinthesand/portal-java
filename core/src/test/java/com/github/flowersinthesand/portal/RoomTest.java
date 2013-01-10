@@ -60,6 +60,30 @@ public class RoomTest {
 	}
 	
 	@Test
+	public void rooms() {
+		Room chat = new Room("chat", Mockito.mock(App.class));
+		Room hollowjan = new Room("hollowjan", Mockito.mock(App.class));
+		Room envy = new Room("envy", Mockito.mock(App.class));
+		
+		Socket socket1 = Mockito.mock(Socket.class);
+		Socket socket2 = Mockito.mock(Socket.class);
+		Socket socket3 = Mockito.mock(Socket.class);
+		Mockito.when(socket1.opened()).thenReturn(true);
+		Mockito.when(socket2.opened()).thenReturn(true);
+		Mockito.when(socket3.opened()).thenReturn(true);
+				
+		chat.add(socket1).add(socket2);
+		hollowjan.add(socket2).add(socket3);
+		envy.add(socket1).add(socket3);
+		
+		chat.add(hollowjan);
+		Assert.assertEquals(chat.size(), 3);
+		
+		chat.remove(envy);
+		Assert.assertEquals(chat.size(), 1);
+	}
+	
+	@Test
 	public void sending() {
 		Room chat = new Room("chat", Mockito.mock(App.class));
 		final List<Object> executed = new ArrayList<Object>(); 

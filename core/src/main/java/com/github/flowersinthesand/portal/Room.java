@@ -53,8 +53,22 @@ public class Room {
 		return this;
 	}
 
+	public Room add(Room room) {
+		for (Socket socket : room.sockets) {
+			add(socket);
+		}
+		return this;
+	}
+
 	public Room remove(Socket socket) {
 		sockets.remove(socket);
+		return this;
+	}
+
+	public Room remove(Room room) {
+		for (Socket socket : room.sockets) {
+			remove(socket);
+		}
 		return this;
 	}
 

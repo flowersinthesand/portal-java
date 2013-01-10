@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.flowersinthesand.portal;
+package com.github.flowersinthesand.portal.spi;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -25,13 +25,13 @@ import org.junit.Assert;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
+import com.github.flowersinthesand.portal.Fn;
+import com.github.flowersinthesand.portal.Socket;
 import com.github.flowersinthesand.portal.handler.DataBean;
 import com.github.flowersinthesand.portal.handler.EventsHandler;
-import com.github.flowersinthesand.portal.spi.DefaultDispatcher;
-import com.github.flowersinthesand.portal.spi.Dispatcher;
 import com.github.flowersinthesand.portal.spi.DefaultDispatcher.EventHandler;
 
-public class EventsTest {
+public class DispatcherTest {
 
 	@Test
 	public void staticBinding() throws SecurityException, NoSuchMethodException,
