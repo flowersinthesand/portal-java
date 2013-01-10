@@ -92,7 +92,7 @@ public class InitializerServlet extends AtmosphereServlet {
 
 		initializer.init(options, classes);
 		for (Entry<String, App> entry : initializer.apps().entrySet()) {
-			framework.addAtmosphereHandler(entry.getKey(), (AtmosphereHandler) entry.getValue().socketManager());
+			framework.addAtmosphereHandler(entry.getKey(), entry.getValue().bean(AtmosphereHandler.class));
 		}
 	}
 

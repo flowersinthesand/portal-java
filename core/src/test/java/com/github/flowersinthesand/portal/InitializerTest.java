@@ -126,7 +126,7 @@ public class InitializerTest {
 			}})
 			.apps()
 			.get("/init")
-			.get(App.SOCKET_MANAGER) instanceof NoOpSocketManager);
+			.bean(SocketManager.class) instanceof NoOpSocketManager);
 		
 		Assert.assertTrue(new Initializer()
 			.init(new LinkedHashMap<String, Object>() {{
@@ -139,7 +139,7 @@ public class InitializerTest {
 			}})
 			.apps()
 			.get("/init")
-			.get(App.DISPATCHER) instanceof DefaultDispatcher);
+			.bean(Dispatcher.class) instanceof DefaultDispatcher);
 	}
 
 	@Test
@@ -155,7 +155,7 @@ public class InitializerTest {
 			.get("/init");
 		Assert.assertNotNull(app);
 		
-		Map<String, Set<EventHandler>> eventHandlers = ((DefaultDispatcher) app.dispatcher()).eventHandlers();
+		Map<String, Set<EventHandler>> eventHandlers = ((DefaultDispatcher) app.bean(Dispatcher.class)).eventHandlers();
 		Assert.assertNotNull(eventHandlers.get("load"));
 		Assert.assertNull(eventHandlers.get("ready"));
 	}

@@ -28,6 +28,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Collection;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -139,28 +140,23 @@ public class Initializer {
 	}
 
 	private App createApp(String name) {
-		App.add(name, new App());
-		App app = App.find(name);
+		App app = App.add(new App(name));
 
-		Dispatcher dispatcher = null;
-		try {
-			dispatcher = (Dispatcher) classes.get(Dispatcher.class).newInstance();
-		} catch (Exception e) {
-			logger.error("Dispatcher implementation " + classes.get(Dispatcher.class) + " is not available", e);
+		for (Entry<Class<?>, Class<?>> entry : classes.entrySet()) {
+			try {
+				// TODO introduce ObjectFactory
+				app.set(entry.getKey().getName(), entry.getValue().newInstance());
+			} catch (Exception e) {
+				logger.error("Implementation " + entry.getValue() + " of " + entry.getKey() + " is not available", e);
+			}
+		}
+		
+		// TODO use AppAware
+		if (app.bean(SocketManager.class) != null) {
+			app.bean(SocketManager.class).setApp(app);
 		}
 
-		SocketManager socketManager = null;
-		try {
-			socketManager = (SocketManager) classes.get(SocketManager.class).newInstance();
-			socketManager.setApp(app);
-		} catch (Exception e) {
-			logger.error("SocketManager implementation " + classes.get(SocketManager.class) + " is not available", e);
-		}
-
-		return app
-			.set(App.NAME, name)
-			.set(App.DISPATCHER, dispatcher)
-			.set(App.SOCKET_MANAGER, socketManager);
+		return app;
 	}
 
 	private void process(App app, Class<?> clazz) {
@@ -216,9 +212,9 @@ public class Initializer {
 					}
 				}
 			}
-			
+
 			if (on != null) {
-				app.dispatcher().on(on, instance, method);
+				app.bean(Dispatcher.class).on(on, instance, method);
 			}
 		}
 	}

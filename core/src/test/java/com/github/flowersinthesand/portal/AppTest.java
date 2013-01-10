@@ -25,29 +25,28 @@ public class AppTest {
 		Assert.assertNull(App.find());
 		Assert.assertNull(App.find("/notfound"));
 
-		App app1 = new App();
-		App.add("/ok", app1);
+		App app1 = App.add(new App("/ok"));
 		Assert.assertSame(App.find(), app1);
 		Assert.assertSame(App.find("/ok"), app1);
 
-		App app2 = new App();
-		App.add("/ok2", app2);
+		App app2 = App.add(new App("/ok2"));
 		Assert.assertSame(App.find(), app1);
 		Assert.assertSame(App.find("/ok2"), app2);
 	}
 
 	@Test
 	public void room() {
-		App app = new App();
+		App app = new App("nothing");
 		Assert.assertNotNull(app.room("/ok"));
 	}
 
 	@Test
 	public void attr() {
-		App app = new App();
+		App app = new App("nothing");
 		Assert.assertNull(app.get("b"));
-		
+
 		String data = "data";
 		Assert.assertSame(app.set("data", data).get("data"), data);
 	}
+
 }

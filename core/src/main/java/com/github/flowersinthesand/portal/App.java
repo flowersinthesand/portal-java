@@ -20,16 +20,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.github.flowersinthesand.portal.spi.Dispatcher;
-import com.github.flowersinthesand.portal.spi.SocketManager;
-
 public class App implements Serializable {
 
-	public final static String NAME = App.class.getName() + ".name";
-	public final static String DISPATCHER = App.class.getName() + ".dispatcher";
-	public final static String SOCKET_MANAGER = App.class.getName() + ".socketManager";
-	public final static String ROOMS = App.class.getName() + ".rooms";
-	public final static String FIRST = App.class.getName() + ".first";
+	private final static String NAME = App.class.getName() + ".name";
+	private final static String ROOMS = App.class.getName() + ".rooms";
+	private final static String FIRST = App.class.getName() + ".first";
 
 	private final static long serialVersionUID = 1728426808062835850L;
 	private final static ConcurrentMap<String, App> apps = new ConcurrentHashMap<String, App>();
@@ -42,14 +37,16 @@ public class App implements Serializable {
 		return name == null ? null : apps.get(name);
 	}
 
-	static void add(String name, App app) {
+	static App add(App app) {
 		apps.putIfAbsent(FIRST, app);
-		apps.put(name, app);
+		apps.put(app.name(), app);
+		return app;
 	}
 
 	private Map<String, Object> attrs = new ConcurrentHashMap<String, Object>();
 
-	public App() {
+	public App(String name) {
+		attrs.put(NAME, name);
 		attrs.put(ROOMS, new ConcurrentHashMap<String, Room>());
 	}
 
@@ -66,12 +63,14 @@ public class App implements Serializable {
 		return (String) attrs.get(NAME);
 	}
 
-	public Dispatcher dispatcher() {
-		return (Dispatcher) attrs.get(DISPATCHER);
-	}
-
-	public SocketManager socketManager() {
-		return (SocketManager) attrs.get(SOCKET_MANAGER);
+	@SuppressWarnings("unchecked")
+	public <T> T bean(Class<? extends T> clazz) {
+		for (Object object : attrs.values()) {
+			if (clazz.isAssignableFrom(object.getClass())) {
+				return (T) object;
+			}
+		}
+		return null;
 	}
 
 	@SuppressWarnings("unchecked")

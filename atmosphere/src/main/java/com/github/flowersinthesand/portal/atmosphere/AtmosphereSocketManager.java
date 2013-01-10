@@ -45,6 +45,7 @@ import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Fn;
 import com.github.flowersinthesand.portal.Room;
 import com.github.flowersinthesand.portal.Socket;
+import com.github.flowersinthesand.portal.spi.Dispatcher;
 import com.github.flowersinthesand.portal.spi.SocketManager;
 
 public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler {
@@ -64,6 +65,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 	private BroadcasterFactory broadcasterFactory = BroadcasterFactory.getDefault();
 	private ObjectMapper mapper = new ObjectMapper();
 	private App app;
+	private Dispatcher dispatcher;
 
 	@Override
 	public void onRequest(final AtmosphereResource resource) throws IOException {
@@ -97,13 +99,13 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 							writer.print('\n');
 							writer.flush();
 						}
-						app.dispatcher().fire("open", sockets.get(id));
+						dispatcher.fire("open", sockets.get(id));
 					} else if (transport.startsWith("longpoll")) {
 						response.setContentType("text/" + ("longpolljsonp".equals(transport) ? "javascript" : "plain"));
 						if (firstLongPoll) {
 							start(id, resource);
 							resource.resume();
-							app.dispatcher().fire("open", sockets.get(id));
+							dispatcher.fire("open", sockets.get(id));
 						} else {
 							Broadcaster broadcaster = broadcasterFactory.lookup(id); 
 							broadcaster.addAtmosphereResource(resource);
@@ -156,7 +158,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 							(transport.startsWith("longpoll") && !firstLongPoll && request.getAttribute("used") == null)) {
 							Socket socket = sockets.get(id);
 							end(id);
-							app.dispatcher().fire("close", socket);
+							dispatcher.fire("close", socket);
 						}
 					}
 				}
@@ -260,9 +262,9 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		}
 
 		if (!reply) {
-			app.dispatcher().fire(type, socket, data);
+			dispatcher.fire(type, socket, data);
 		} else {
-			app.dispatcher().fire(type, socket, data, new Fn.Callback1<Object>() {
+			dispatcher.fire(type, socket, data, new Fn.Callback1<Object>() {
 				@Override
 				public void call(Object arg1) {
 					Map<String, Object> replyData = new LinkedHashMap<String, Object>();
@@ -375,6 +377,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 
 	public void setApp(App app) {
 		this.app = app;
+		this.dispatcher = app.bean(Dispatcher.class);
 	}
 
 }
