@@ -25,8 +25,7 @@ Then, open a browser and connect to `http://localhost:8080`.
 ## Applications
 ### Chat
 A simple chat application using `Room` to broadcast message which can run on servlet container.
-#### Client side
-* [index.html](https://github.com/flowersinthesand/portal-java/blob/master/samples/chat/src/main/webapp/index.html)
 
-#### Server side
-* [ChatHandler](https://github.com/flowersinthesand/portal-java/blob/master/samples/chat/src/main/java/com/github/flowersinthesand/samples/ChatHandler.java)
+## External applications
+### [Scheduler](https://github.com/ralscha/portal-demos) by [Ralph](https://github.com/ralscha)
+A scheduler application ported from Socket.IO and Node.js to Portal, Portal for Java and Atmosphere. Source codes and online demos are provided as well.
