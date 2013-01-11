@@ -52,7 +52,7 @@ public class AtmosphereSocket extends Socket {
 		}
 		try {
 			long delay = Long.valueOf(param("heartbeat"));
-			heartbeatTimer = new Timer();
+			heartbeatTimer = new Timer("Heartbeat timer for Socket#" + id());
 			heartbeatTimer.schedule(new TimerTask() {
 				@Override
 				public void run() {
