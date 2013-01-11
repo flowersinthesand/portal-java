@@ -27,5 +27,5 @@ Then, open a browser and connect to `http://localhost:8080`.
 A simple chat application using `Room` to broadcast message which can run on servlet container.
 
 ## External applications
-### [Scheduler](https://github.com/ralscha/portal-demos) by [Ralph](https://github.com/ralscha)
-A scheduler application ported from Socket.IO and Node.js to Portal, Portal for Java and Atmosphere. Source codes and online demos are provided as well.
+### [Demos](http://ha-bio.rasc.ch/portal-demos/) by [Ralph](https://github.com/ralscha)
+Source codes and online applications of chat, scheduler, twitter, snake, etc are available.

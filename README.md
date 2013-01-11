@@ -1,6 +1,8 @@
 # Portal for Java
 The **Portal for Java** is a reference implementation written in Java of the server counterpart of the [**Portal**](https://github.com/flowersinthesand/portal) project which provides useful semantics and concepts for modern web application development in the server side as well as server implementation.
 
+Thanks to [Ralph](https://github.com/ralscha), online applications and source codes of chat, scheduler, twitter, snake etc are available now at http://ha-bio.rasc.ch/portal-demos/index.html
+
 ## Installing
 Add the following dependency to your pom.xml:
 ```xml
