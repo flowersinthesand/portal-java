@@ -16,8 +16,7 @@
 package com.github.flowersinthesand.portal.atmosphere;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -33,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Initializer;
+import com.github.flowersinthesand.portal.Options;
 import com.github.flowersinthesand.portal.spi.SocketManager;
 
 @SuppressWarnings("serial")
@@ -45,57 +45,80 @@ public class InitializerServlet extends AtmosphereServlet {
 	@Override
 	public void init(ServletConfig sc) throws ServletException {
 		super.init(sc);
-		
-		Map<String, Object> options = new LinkedHashMap<String, Object>() {{
-			String base = getServletContext().getRealPath("");
-			put("base", base);
-			if (base != null) {
-				put("locations", new LinkedHashSet<String>() {{
-					add("/WEB-INF/classes");
-				}});
-			}
-		}};
+
+		Options options = new Options();
+		if (options.base(getServletContext().getRealPath("")).base() != null) {
+			options.locations("/WEB-INF/classes");
+		}
+		options.classes(SocketManager.class, AtmosphereSocketManager.class);
 
 		String userOptions = getServletContext().getInitParameter("portal.options");
 		if (userOptions != null) {
-			logger.debug("Reading portal.options {}", userOptions);
-			try {
-				Map<String, Object> map = mapper.readValue(userOptions, new TypeReference<Map<String, Object>>() {});
-				options.putAll(map);
-			} catch (IOException e) {
-				logger.error("Failed to read the JSON which comes from the portal.option " + userOptions, e);
-			}
+			applyUserOptions(options, userOptions);
 		}
 		
-		Map<Class<?>, Class<?>> classes = new LinkedHashMap<Class<?>, Class<?>>() {{
-			put(SocketManager.class, AtmosphereSocketManager.class);
-		}};
-
-		String userClasses = getServletContext().getInitParameter("portal.classes");
-		if (userClasses != null) {
-			logger.debug("Reading portal.classes {}", userClasses);
-			try {
-				Map<String, String> map = mapper.readValue(userClasses, new TypeReference<Map<String, String>>() {});
-				for (Entry<String, String> entry : map.entrySet()) {
-					try {
-						classes.put(Class.forName(entry.getKey()), Class.forName(entry.getValue()));
-					} catch (ClassNotFoundException e) {
-						logger.error("Class " + e.getMessage() + "not found", e);
-					}
-				}
-			} catch (IOException e) {
-				logger.error("Failed to read the JSON which comes from the portal.classes " + userClasses, e);
-			}
-		}
-
-		configure(options, classes);
-
-		initializer.init(options, classes);
+		configure(options);
+		initializer.init(options);
 		for (Entry<String, App> entry : initializer.apps().entrySet()) {
 			framework.addAtmosphereHandler(entry.getKey(), entry.getValue().bean(AtmosphereHandler.class));
 		}
 	}
 
-	protected void configure(Map<String, Object> options, Map<Class<?>, Class<?>> classes) {}
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	protected void applyUserOptions(Options options, String userOptions) {
+		logger.debug("Reading portal.options {}", userOptions);
+		Map<String, Object> map;
+		
+		try {
+			map = mapper.readValue(userOptions, new TypeReference<Map<String, Object>>() {});
+		} catch (IOException e) {
+			logger.error("Failed to read the JSON which comes from the portal.option " + userOptions, e);
+			return;
+		}
+		
+		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+		if (map.containsKey("controllers")) {
+			Collection<String> controllers = (Collection<String>) map.get("controllers");
+			for (String className : controllers) {
+				try {
+					options.controllers(classLoader.loadClass(className));
+				} catch (ClassNotFoundException e) {
+					logger.error("Controller class " + className + " not found", e);
+				}
+			}
+		}
+		if (map.containsKey("packages")) {
+			options.packages(((Collection<?>) map.get("packages")).toArray(new String[]{}));
+		}
+		if (map.containsKey("base")) {
+			options.base((String) map.get("base"));
+		}
+		if (map.containsKey("locations")) {
+			options.locations(((Collection<?>) map.get("locations")).toArray(new String[]{}));
+		}
+		if (map.containsKey("classes")) {
+			Map<String, String> classes = (Map<String, String>) map.get("classes");
+			for (Entry<String, String> entry : classes.entrySet()) {
+				try {
+					Class spec = null, impl = null;
+					try {
+						spec = classLoader.loadClass(entry.getKey());
+					} catch (ClassNotFoundException e) {
+						logger.error("Spec class " + entry.getKey() + " not found", e);
+						throw e;
+					}
+					try {
+						impl = classLoader.loadClass(entry.getValue());
+					} catch (ClassNotFoundException e) {
+						logger.error("Impl class " + entry.getKey() + " not found", e);
+						throw e;
+					}
+					options.classes(spec, impl);
+				} catch (ClassNotFoundException e) {}
+			}
+		}
+	}
+
+	protected void configure(Options options) {}
 
 }

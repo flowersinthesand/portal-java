@@ -56,57 +56,46 @@ The following options will override the default options of the core module.
 
 * `base`
 
-For convenience, scanning of resources is enabled. `getServletContext().getRealPath("")` is used as a value, but it can be null in some cases. For example, the case where servlet container is Tomcat and unpackWARs option is set to false. Though you can still scan the class path by setting `packages` option. 
+`getServletContext().getRealPath("")` is used as the value, but it can be null in some cases. For example, the case where servlet container is Tomcat and unpackWARs option is set to false. Though you can still scan the class path by setting `packages` option. 
 
 * `locations`
 
-If the `base` is available, `/WEB-INF/classes` directory is added to locations.
+For convenience, scanning of resources is enabled by this. If the `base` is available, `/WEB-INF/classes` directory is added.
 
-### Classes
+* `classes`
 
 |Specification|Implementation
-|---|---
+|:--|:--
 |com.github.flowersinthesand.portal.spi.SocketManager|com.github.flowersinthesand.portal.atmosphere.AtmosphereSocketManager
-
-In this module, SocketManager implementation must implement [`AtmosphereHandler`](http://atmosphere.github.com/atmosphere/apidocs/org/atmosphere/cpr/AtmosphereHandler.html).
 
 ## Configuring
 ### Using class
-Both InitializerListener and InitializerServlet have `configure(Map<String, Object> options, Map<Class<?>, Class<?>> classes)` which can manipulate the module default options. In InitializerListener, the portal servlet definition can be accessed and modified by overriding `configure(ServletRegistration)` as well. 
+Both InitializerListener and InitializerServlet have `configure(Options options)` which can manipulate the module default options. In InitializerListener, the portal servlet definition can be accessed and modified by overriding `configure(ServletRegistration)` as well. 
 
 ```java
 @WebListener
 public class PortalListener extends InitializerListener {
 
     @Override
-    protected void configure(Map<String, Object> option) {
-        Set<String> packages = new LinkedHashSet<String>();
-        packages.add("ch.rasc.portaldemos.chat");
-        packages.add("ch.rasc.portaldemos.scheduler");
-
-        option.put("packages", packages);
+    protected void configure(Options options) {
+        options.packages("ch.rasc.portaldemos");
     }
 
 }
 ```
 
 ### Using web.xml
-The context parameter `portal.options` and `portal.classes` which are JSON is used to override the module default options.
+The context parameter `portal.options` which is JSON representing Options instance is used to override the module default options.
 
 ```xml
 <context-param>
     <param-name>portal.options</param-name>
     <param-value>
     {
-        "packages": ["ch.rasc.portaldemos.chat", "ch.rasc.portaldemos.scheduler"]
-    }
-    </param-value>
-</context-param>
-<context-param>
-    <param-name>portal.classes</param-name>
-    <param-value>
-    {
-        "com.github.flowersinthesand.portal.spi.SocketManager": "com.github.flowersinthesand.portal.spi.NoOpSocketManager"
+        "locations": ["/WEB-INF/classes", "/WEB-INF/lib/myapp.jar"],
+        "classes": {
+            "com.github.flowersinthesand.portal.spi.SocketManager": "kr.ac.korea.MySecretSocketManager"
+        }
     }
     </param-value>
 </context-param>

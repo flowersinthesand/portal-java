@@ -15,13 +15,13 @@
  */
 package com.github.flowersinthesand.portal.atmosphere;
 
-import java.util.Map;
-
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
+
+import com.github.flowersinthesand.portal.Options;
 
 public class InitializerListener implements ServletContextListener {
 
@@ -30,6 +30,7 @@ public class InitializerListener implements ServletContextListener {
 	public void contextInitialized(ServletContextEvent sce) {
 		final InitializerListener self = this;
 		ServletRegistration.Dynamic registration = sce.getServletContext().addServlet("portal", new InitializerServlet() {
+			
 			@Override
 			public void init(ServletConfig sc) throws ServletException {
 				super.init(sc);
@@ -38,17 +39,18 @@ public class InitializerListener implements ServletContextListener {
 				registration.addMapping(initializer.apps().keySet().toArray(new String[] {}));
 				self.configure(registration);
 			}
-
+			
 			@Override
-			protected void configure(Map<String, Object> options, Map<Class<?>, Class<?>> classes) {
-				self.configure(options, classes);
+			protected void configure(Options options) {
+				self.configure(options);
 			}
+			
 		});
 
 		registration.setLoadOnStartup(0);
 	}
 
-	protected void configure(Map<String, Object> option, Map<Class<?>, Class<?>> classes) {}
+	protected void configure(Options options) {}
 
 	protected void configure(ServletRegistration registration) {}
 

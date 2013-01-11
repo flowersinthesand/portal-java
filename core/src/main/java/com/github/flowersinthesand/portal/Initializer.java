@@ -24,12 +24,9 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Collection;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,29 +43,25 @@ public class Initializer {
 	private final Logger logger = LoggerFactory.getLogger(Initializer.class);
 	private Map<String, App> apps = new LinkedHashMap<String, App>();
 	private List<Preparer> preparers = new ArrayList<Preparer>();
-	private Map<String, Object> options = new LinkedHashMap<String, Object>();
-	@SuppressWarnings("serial")
-	private Map<Class<?>, Class<?>> classes = new LinkedHashMap<Class<?>, Class<?>>() {{
-		put(SocketManager.class, NoOpSocketManager.class);
-		put(Dispatcher.class, DefaultDispatcher.class);
-	}};
+	private Options options = new Options().classes(SocketManager.class, NoOpSocketManager.class, Dispatcher.class, DefaultDispatcher.class);
 
 	@SuppressWarnings("unchecked")
-	public Initializer init(Map<String, Object> o, Map<Class<?>, Class<?>> c) {
-		options.putAll(o);
-		classes.putAll(c);
-		logger.info("Initializing the Portal application with options {} and classes {}", options, classes);
+	public Initializer init(Options o) {
+		options.merge(o);
+		logger.info("Initializing the Portal application with options {}", options);
 		
 		String base = "";
-		if (options.containsKey("base")) {
+		if (options.base() != null) {
 			try {
-				base = new File((String) options.get("base")).getCanonicalPath();
+				base = new File(options.base()).getCanonicalPath();
 			} catch (IOException e) {
-				logger.error("Cannot resolve the canonical path of the base " + options.get("base"), e);
+				logger.error("Cannot resolve the canonical path of the base " + options.base(), e);
 			}
 		}
 
 		AnnotationDetector detector = new AnnotationDetector(new AnnotationDetector.TypeReporter() {
+			
+			ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
 			@Override
 			public Class<? extends Annotation>[] annotations() {
@@ -77,18 +70,17 @@ public class Initializer {
 
 			@Override
 			public void reportTypeAnnotation(Class<? extends Annotation> annotation, String className) {
-				if (!options.containsKey("controllers")) {
-					options.put("controllers", new LinkedHashSet<String>());
+				try {
+					options.controllers(classLoader.loadClass(className));
+				} catch (ClassNotFoundException e) {
+					logger.error("Controller class " + className + " not found", e);
 				}
-				
-				Set<String> controllers = (Set<String>) options.get("controllers");
-				controllers.add(className);
 			}
 
 		});
 
-		if (options.containsKey("locations")) {
-			for (String location : (Collection<String>) options.get("locations")) {
+		if (options.locations() != null) {
+			for (String location : options.locations()) {
 				location = base + ((location.length() != 0 && location.charAt(0) != '/') ? "/" : "") + location;
 				logger.debug("Scanning @Handler annotation in {}", location);
 
@@ -99,8 +91,8 @@ public class Initializer {
 				}
 			}
 		}
-		if (options.containsKey("packages")) {
-			for (String packageName : (Collection<String>) options.get("packages")) {
+		if (options.packages() != null) {
+			for (String packageName : options.packages()) {
 				logger.debug("Scanning @Handler annotation under ", packageName);
 
 				try {
@@ -111,20 +103,15 @@ public class Initializer {
 			}
 		}
 		
-		if (options.containsKey("controllers")) {
-			for (String controller : (Collection<String>) options.get("controllers")) {
-				try {
-					Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass(controller);
-					String name = clazz.getAnnotation(Handler.class).value();
-					
-					if (!apps.containsKey(name)) {
-						apps.put(name, createApp(name));
-					}
-					
-					process(apps.get(name), clazz);
-				} catch (ClassNotFoundException e) {
-					logger.error("", e);
+		if (options.controllers() != null) {
+			for (Class<?> controller : options.controllers()) {
+				String name = controller.getAnnotation(Handler.class).value();
+
+				if (!apps.containsKey(name)) {
+					apps.put(name, createApp(name));
 				}
+
+				process(apps.get(name), controller);
 			}
 		}
 		
@@ -142,7 +129,7 @@ public class Initializer {
 	private App createApp(String name) {
 		App app = App.add(new App(name));
 
-		for (Entry<Class<?>, Class<?>> entry : classes.entrySet()) {
+		for (Entry<Class<?>, Class<?>> entry : options.classes().entrySet()) {
 			try {
 				// TODO introduce ObjectFactory
 				app.set(entry.getKey().getName(), entry.getValue().newInstance());

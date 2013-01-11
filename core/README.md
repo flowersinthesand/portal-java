@@ -12,28 +12,36 @@ Add the following dependency to your pom.xml:
 ```
 
 ## Options
-`Initializer` which initializes applications accepts two maps for options and classes respectively.
+[`Initializer`](https://github.com/flowersinthesand/portal-java/blob/master/core/src/main/java/com/github/flowersinthesand/portal/Initializer.java) initializes applications using [`Options`](https://github.com/flowersinthesand/portal-java/blob/master/core/src/main/java/com/github/flowersinthesand/portal/Options.java).
 
-*  `controllers`
+* `Set<Class<?>> controllers()`
+* `Options controllers(Class<?>... classes)`
 
-A Set of controller class names.
+Controller classes.
 
-* `packages`
+* `Set<String> packages()`
+* `Options packages(String... packageNames)`
 
-A Set of package names which will be scanned for controllers.
+Package names which will be scanned for controllers including sub packages.
 
-* `base`
+* `String base()`
+* `Options base(String base)`
 
 A base path for locations.
 
-* `locations`
+* `Set<String> locations()`
+* `Options locations(String... paths)`
 
 Paths of files, directories and jars which will be scanned for controllers.
 
-### Classes
+* `Map<Class<?>, Class<?>> classes()`
+* `Options classes(Class<A> spec, Class<? extends A> impl)`
+* `Options classes(Class<A> spec1, Class<? extends A> impl1, Class<B> spec2, Class<? extends B> impl2)`
+
+Classes map to be used by the application. The following table is the default classes map.
 
 |Specification|Implementation
-|---|---
+|:--|:--
 |com.github.flowersinthesand.portal.spi.Dispatcher|com.github.flowersinthesand.portal.spi.DefaultDispatcher   
 |com.github.flowersinthesand.portal.spi.SocketManager|com.github.flowersinthesand.portal.spi.NoOpSocketManager 
 
