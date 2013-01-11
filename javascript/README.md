@@ -1,8 +1,8 @@
 # JavaScript
 `portal-javascript` module provides static JavaScript resources.
-* `portal-1.x.js` - The latest portal.js that Portal for Java supports. If there is a newest version of portal.js than provided one, you can use it unless otherwise noted.
-* `portal-extension.js` - A set of extension of the browser side for integration with Portal for Java. The extension is additional resource to enable advanced functions of the Portal for Java.
-
+* `portal-1.x.js`: The latest portal.js that Portal for Java supports. If there is a newest version of portal.js than provided one, you can use it unless otherwise noted.
+* `portal-extension.js`: A set of options to fully benefit from the integration with Portal for Java, not requiring further configuration in the server side. It enables the heartbeat for every 20 seconds and transports using XDomainRequest. This is optional but recommended.
+ 
 ## Installing
 ### Updating pom.xml
 Add the following dependency to your pom.xml:
@@ -16,7 +16,7 @@ Add the following dependency to your pom.xml:
 ```
 
 ### Loading resources
-By default, resources are located in `javascripts/` directory. These files should be loaded earlier than files which uses `portal`.
+Resources are located in `javascripts/` directory. These scripts should be loaded earlier than scripts that use `portal` object.
 
 ```html
 <script src="javascripts/portal-1.x.js"></script>
