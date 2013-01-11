@@ -23,12 +23,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Fn;
 import com.github.flowersinthesand.portal.Socket;
 
 public class AtmosphereSocket extends Socket {
 
+	private final Logger logger = LoggerFactory.getLogger(AtmosphereSocket.class);
 	private Timer heartbeatTimer;
 	private AtomicInteger eventId = new AtomicInteger(0);
 	private Set<Map<String, Object>> cache = new CopyOnWriteArraySet<Map<String, Object>>();
@@ -47,15 +51,20 @@ public class AtmosphereSocket extends Socket {
 	}
 
 	public synchronized void setHeartbeatTimer() {
+		final String id = id();
+		
 		if (heartbeatTimer != null) {
+			logger.debug("Canceling heartbeat timer for Socket#{}", id);
 			heartbeatTimer.cancel();
 		}
 		try {
 			long delay = Long.valueOf(param("heartbeat"));
-			heartbeatTimer = new Timer("Heartbeat timer for Socket#" + id());
+			logger.debug("Setting heartbeat timer for Socket#{}", id);
+			heartbeatTimer = new Timer("Heartbeat timer for Socket#" + id);
 			heartbeatTimer.schedule(new TimerTask() {
 				@Override
 				public void run() {
+					logger.debug("Closing Socket#{} due to heartbeat fail", id);
 					close();
 				}
 			}, delay);
