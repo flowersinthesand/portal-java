@@ -39,10 +39,5 @@ public class ChatHandler {
 	public void message(@Data Map<String, Object> message) {
 		room.send("message", message);
 	}
-	
-	@On.close
-	public void close(Socket socket) {
-		System.out.println(socket.param("id"));
-	}
 
 }

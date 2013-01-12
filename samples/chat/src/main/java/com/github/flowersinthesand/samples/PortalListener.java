@@ -15,35 +15,9 @@
  */
 package com.github.flowersinthesand.samples;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletContextEvent;
 import javax.servlet.annotation.WebListener;
 
-import com.github.flowersinthesand.portal.Options;
 import com.github.flowersinthesand.portal.atmosphere.InitializerListener;
-import com.github.flowersinthesand.portal.spi.NewObjectFactory;
-import com.github.flowersinthesand.portal.spi.ObjectFactory;
 
 @WebListener
-public class PortalListener extends InitializerListener {
-
-	private ServletContext servletContext;
-
-	@Override
-	public void contextInitialized(ServletContextEvent sce) {
-		servletContext = sce.getServletContext();
-		super.contextInitialized(sce);
-	}
-
-	@Override
-	protected void configure(Options options) {
-		options.objectFactory(new NewObjectFactory() {
-			@Override
-			public <T> T create(Class<T> t) {
-				System.out.println(t);
-				return super.create(t);
-			}
-		});
-	}
-
-}
+public class PortalListener extends InitializerListener {}
