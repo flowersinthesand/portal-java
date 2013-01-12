@@ -34,11 +34,16 @@ A base path for locations.
 
 Paths of files, directories and jars which will be scanned for controllers.
 
+* `ObjectFactory objectFactory()`
+* `Options objectFactory(ObjectFactory objectFactory)`
+
+Factory used to create or get object with the given class. By default, NewObjectFactory which calls simply Class.newInstance is used.
+
 * `Map<Class<?>, Class<?>> classes()`
 * `Options classes(Class<A> spec, Class<? extends A> impl)`
 * `Options classes(Class<A> spec1, Class<? extends A> impl1, Class<B> spec2, Class<? extends B> impl2)`
 
-Classes map to be used by the application. The following table is the default classes map.
+Classes are instanced by ObjectFactory once per each application. The following table is the default classes map.
 
 |Specification|Implementation
 |:--|:--

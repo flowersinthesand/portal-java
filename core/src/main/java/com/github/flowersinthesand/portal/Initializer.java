@@ -33,7 +33,9 @@ import org.slf4j.LoggerFactory;
 
 import com.github.flowersinthesand.portal.spi.DefaultDispatcher;
 import com.github.flowersinthesand.portal.spi.Dispatcher;
+import com.github.flowersinthesand.portal.spi.NewObjectFactory;
 import com.github.flowersinthesand.portal.spi.NoOpSocketManager;
+import com.github.flowersinthesand.portal.spi.ObjectFactory;
 import com.github.flowersinthesand.portal.spi.SocketManager;
 
 import eu.infomas.annotation.AnnotationDetector;
@@ -43,7 +45,9 @@ public class Initializer {
 	private final Logger logger = LoggerFactory.getLogger(Initializer.class);
 	private Map<String, App> apps = new LinkedHashMap<String, App>();
 	private Set<Preparer> preparers = new LinkedHashSet<Preparer>();
-	private Options options = new Options().classes(SocketManager.class, NoOpSocketManager.class, Dispatcher.class, DefaultDispatcher.class);
+	private Options options = new Options()
+		.objectFactory(new NewObjectFactory())
+		.classes(SocketManager.class, NoOpSocketManager.class, Dispatcher.class, DefaultDispatcher.class);
 
 	public Initializer init(Options o) {
 		options.merge(o);
@@ -125,13 +129,9 @@ public class Initializer {
 		App app = App.add(new App(name));
 		apps.put(name, app);
 		
+		ObjectFactory objectFactory = options.objectFactory();
 		for (Entry<Class<?>, Class<?>> entry : options.classes().entrySet()) {
-			try {
-				// TODO introduce ObjectFactory
-				app.bean(entry.getKey(), entry.getValue().newInstance());
-			} catch (Exception e) {
-				logger.error("Failed to construct the implementation " + entry.getValue() + " of " + entry.getKey(), e);
-			}
+			app.bean(entry.getKey(), objectFactory.create(entry.getValue()));
 		}
 		
 		for (Class<?> controller : controllers) {
@@ -147,13 +147,7 @@ public class Initializer {
 	private void processController(App app, Class<?> clazz) {
 		logger.info("Processing a controller {}", clazz.getName());
 
-		Object instance;
-		try {
-			instance = clazz.newInstance();
-		} catch (Exception e) {
-			logger.error("Failed to construct the controller " + clazz.getName(), e);
-			return;
-		}
+		Object instance = options.objectFactory().create(clazz);
 		
 		for (Field field : clazz.getDeclaredFields()) {
 			if (field.isAnnotationPresent(Name.class)) {

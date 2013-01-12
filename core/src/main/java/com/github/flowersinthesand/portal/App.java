@@ -77,7 +77,17 @@ public class App implements Serializable {
 
 	@SuppressWarnings("unchecked")
 	public <T> T bean(Class<? extends T> clazz) {
-		return (T) beans.get(clazz);
+		if (beans.containsKey(clazz)) {
+			return (T) beans.get(clazz);
+		}
+
+		for (Object instance : beans.values()) {
+			if (clazz.isAssignableFrom(instance.getClass())) {
+				return (T) instance;
+			}
+		}
+
+		return null;
 	}
 
 	App bean(Class<?> clazz, Object t) {

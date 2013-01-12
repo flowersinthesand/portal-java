@@ -20,12 +20,15 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.github.flowersinthesand.portal.spi.ObjectFactory;
+
 public class Options {
 
 	private Set<Class<?>> controllers;
 	private Set<String> packages;
 	private String base;
 	private Set<String> locations;
+	private ObjectFactory objectFactory;
 	private Map<Class<?>, Class<?>> classes = new LinkedHashMap<Class<?>, Class<?>>();
 
 	public Set<Class<?>> controllers() {
@@ -96,6 +99,15 @@ public class Options {
 		return this;
 	}
 
+	public ObjectFactory objectFactory() {
+		return objectFactory;
+	}
+
+	public Options objectFactory(ObjectFactory objectFactory) {
+		this.objectFactory = objectFactory;
+		return this;
+	}
+
 	public Map<Class<?>, Class<?>> classes() {
 		return classes;
 	}
@@ -108,7 +120,7 @@ public class Options {
 	public <A, B> Options classes(Class<A> spec1, Class<? extends A> impl1, Class<B> spec2, Class<? extends B> impl2) {
 		return classes(spec1, impl1).classes(spec2, impl2);
 	}
-	
+
 	public Options merge(Options that) {
 		if (that.controllers != null) {
 			this.controllers = that.controllers;
@@ -122,6 +134,9 @@ public class Options {
 		if (that.locations != null) {
 			this.locations = that.locations;
 		}
+		if (that.objectFactory != null) {
+			this.objectFactory = that.objectFactory;
+		}
 		this.classes.putAll(that.classes);
 		return this;
 	}
@@ -133,6 +148,7 @@ public class Options {
 		map.put("packages", packages);
 		map.put("base", base);
 		map.put("locations", locations);
+		map.put("objectFactory", objectFactory);
 		map.put("classes", classes);
 		return map.toString();
 	}
