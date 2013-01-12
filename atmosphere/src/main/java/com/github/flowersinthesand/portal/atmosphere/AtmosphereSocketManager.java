@@ -372,7 +372,6 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 				logger.warn("", e);
 			}
 		}
-		sockets.remove(socket.id());
 	}
 
 	public void setApp(App app) {
