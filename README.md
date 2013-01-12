@@ -17,7 +17,7 @@ Now you can write a complete portal application, but you need to choose runtime 
 
 * [atmosphere](https://github.com/flowersinthesand/portal-java/tree/master/atmosphere/README.md) for servlet container
 
-For convenience, browser side resources such as `portal.js` and `portal-extension.js` are also provided. See the [README.md](https://github.com/flowersinthesand/portal-java/tree/master/javascript) of the javascript module.
+Browser side resources such as `portal.js` and `portal-extension.js` are also provided to fully benefit from integration. See the [javascript module](https://github.com/flowersinthesand/portal-java/tree/master/javascript).
 
 ## References
 * [API](https://github.com/flowersinthesand/portal-java/blob/master/core/README.md)

@@ -22,7 +22,6 @@
 		<dependency>
 			<groupId>com.github.flowersinthesand</groupId>
 			<artifactId>portal-javascript</artifactId>
-			<type>war</type>
 		</dependency>
 		<dependency>
 			<groupId>com.github.flowersinthesand</groupId>

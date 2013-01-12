@@ -8,6 +8,5 @@
 	<groupId>com.github.flowersinthesand</groupId>
 	<artifactId>portal-javascript</artifactId>
 	<version>0.3-SNAPSHOT</version>
-	<packaging>war</packaging>
 	<name>Portal JavaScript</name>
 </project>
