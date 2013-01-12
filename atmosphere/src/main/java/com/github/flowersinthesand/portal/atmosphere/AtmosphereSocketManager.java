@@ -45,10 +45,11 @@ import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Fn;
 import com.github.flowersinthesand.portal.Room;
 import com.github.flowersinthesand.portal.Socket;
+import com.github.flowersinthesand.portal.spi.AppAware;
 import com.github.flowersinthesand.portal.spi.Dispatcher;
 import com.github.flowersinthesand.portal.spi.SocketManager;
 
-public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler {
+public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager, AppAware {
 
 	private static final String padding2K;
 
@@ -374,6 +375,7 @@ public class AtmosphereSocketManager implements SocketManager, AtmosphereHandler
 		}
 	}
 
+	@Override
 	public void setApp(App app) {
 		this.app = app;
 		this.dispatcher = app.bean(Dispatcher.class);

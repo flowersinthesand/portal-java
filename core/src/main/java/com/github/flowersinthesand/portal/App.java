@@ -16,7 +16,9 @@
 package com.github.flowersinthesand.portal;
 
 import java.io.Serializable;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -88,6 +90,19 @@ public class App implements Serializable {
 		}
 
 		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> Set<T> beans(Class<? extends T> clazz) {
+		Set<T> set = new LinkedHashSet<T>();
+
+		for (Object instance : beans.values()) {
+			if (clazz.isAssignableFrom(instance.getClass())) {
+				set.add((T) instance);
+			}
+		}
+
+		return set;
 	}
 
 	App bean(Class<?> clazz, Object t) {

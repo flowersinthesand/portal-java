@@ -31,6 +31,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.flowersinthesand.portal.spi.AppAware;
 import com.github.flowersinthesand.portal.spi.DefaultDispatcher;
 import com.github.flowersinthesand.portal.spi.Dispatcher;
 import com.github.flowersinthesand.portal.spi.NewObjectFactory;
@@ -137,10 +138,9 @@ public class Initializer {
 		for (Class<?> controller : controllers) {
 			processController(app, controller);
 		}
-		
-		// TODO use AppAware
-		if (app.bean(SocketManager.class) != null) {
-			app.bean(SocketManager.class).setApp(app);
+
+		for (AppAware appAware : app.beans(AppAware.class)) {
+			appAware.setApp(app);
 		}
 	}
 
