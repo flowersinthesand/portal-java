@@ -93,7 +93,7 @@ public class Initializer {
 		}
 		if (options.packages() != null) {
 			for (String packageName : options.packages()) {
-				logger.debug("Scanning @Handler annotation under ", packageName);
+				logger.debug("Scanning @Handler annotation in {}", packageName);
 
 				try {
 					detector.detect(packageName);
