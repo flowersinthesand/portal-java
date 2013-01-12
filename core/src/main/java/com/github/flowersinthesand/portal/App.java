@@ -22,11 +22,8 @@ import java.util.concurrent.ConcurrentMap;
 
 public class App implements Serializable {
 
-	private final static String NAME = App.class.getName() + ".name";
-	private final static String ROOMS = App.class.getName() + ".rooms";
-	private final static String FIRST = App.class.getName() + ".first";
-
 	private final static long serialVersionUID = 1728426808062835850L;
+	private final static String FIRST = App.class.getName() + ".first";
 	private final static ConcurrentMap<String, App> apps = new ConcurrentHashMap<String, App>();
 
 	public static App find() {
@@ -43,11 +40,17 @@ public class App implements Serializable {
 		return app;
 	}
 
+	private String name;
 	private Map<String, Object> attrs = new ConcurrentHashMap<String, Object>();
+	private Map<String, Room> rooms = new ConcurrentHashMap<String, Room>();
+	private Map<Class<?>, Object> beans = new ConcurrentHashMap<Class<?>, Object>();
 
 	public App(String name) {
-		attrs.put(NAME, name);
-		attrs.put(ROOMS, new ConcurrentHashMap<String, Room>());
+		this.name = name;
+	}
+
+	public String name() {
+		return name;
 	}
 
 	public Object get(String key) {
@@ -59,32 +62,27 @@ public class App implements Serializable {
 		return this;
 	}
 
-	public String name() {
-		return (String) attrs.get(NAME);
+	public Map<String, Room> rooms() {
+		return rooms;
+	}
+
+	public Room room(String name) {
+		if (rooms.containsKey(name)) {
+			return rooms.get(name);
+		}
+
+		rooms.put(name, new Room(name, this));
+		return rooms.get(name);
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T> T bean(Class<? extends T> clazz) {
-		for (Object object : attrs.values()) {
-			if (clazz.isAssignableFrom(object.getClass())) {
-				return (T) object;
-			}
-		}
-		return null;
+		return (T) beans.get(clazz);
 	}
 
-	@SuppressWarnings("unchecked")
-	public Map<String, Room> rooms() {
-		return (Map<String, Room>) attrs.get(ROOMS);
-	}
-
-	public Room room(String name) {
-		if (rooms().containsKey(name)) {
-			return rooms().get(name);
-		}
-
-		rooms().put(name, new Room(name, this));
-		return rooms().get(name);
+	App bean(Class<?> clazz, Object t) {
+		beans.put(clazz, t);
+		return this;
 	}
 
 }

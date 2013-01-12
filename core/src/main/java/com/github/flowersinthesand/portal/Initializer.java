@@ -21,12 +21,12 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,14 +42,31 @@ public class Initializer {
 
 	private final Logger logger = LoggerFactory.getLogger(Initializer.class);
 	private Map<String, App> apps = new LinkedHashMap<String, App>();
-	private List<Preparer> preparers = new ArrayList<Preparer>();
+	private Set<Preparer> preparers = new LinkedHashSet<Preparer>();
 	private Options options = new Options().classes(SocketManager.class, NoOpSocketManager.class, Dispatcher.class, DefaultDispatcher.class);
 
-	@SuppressWarnings("unchecked")
 	public Initializer init(Options o) {
 		options.merge(o);
 		logger.info("Initializing the Portal application with options {}", options);
 		
+		scanHandler();
+		for (Entry<String, Set<Class<?>>> entry : options.controllersPerApp().entrySet()) {
+			processApp(entry.getKey(), entry.getValue());
+		}
+		
+		for (Preparer preparer : preparers) {
+			try {
+				preparer.execute();
+			} catch (Exception e) {
+				logger.error("Failed to execute @Prepare method " + preparer.method, e);
+			}
+		}
+
+		return this;
+	}
+
+	@SuppressWarnings("unchecked")
+	private void scanHandler() {
 		String base = "";
 		if (options.base() != null) {
 			try {
@@ -59,9 +76,8 @@ public class Initializer {
 			}
 		}
 
+		final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 		AnnotationDetector detector = new AnnotationDetector(new AnnotationDetector.TypeReporter() {
-			
-			ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
 			@Override
 			public Class<? extends Annotation>[] annotations() {
@@ -78,7 +94,6 @@ public class Initializer {
 			}
 
 		});
-
 		if (options.locations() != null) {
 			for (String location : options.locations()) {
 				location = base + ((location.length() != 0 && location.charAt(0) != '/') ? "/" : "") + location;
@@ -98,62 +113,45 @@ public class Initializer {
 				try {
 					detector.detect(packageName);
 				} catch (IOException e) {
-					logger.error("Failed to scan under " + packageName, e);
+					logger.error("Failed to scan in " + packageName, e);
 				}	
 			}
 		}
-		
-		if (options.controllers() != null) {
-			for (Class<?> controller : options.controllers()) {
-				String name = controller.getAnnotation(Handler.class).value();
-
-				if (!apps.containsKey(name)) {
-					apps.put(name, createApp(name));
-				}
-
-				process(apps.get(name), controller);
-			}
-		}
-		
-		for (Preparer preparer : preparers) {
-			try {
-				preparer.execute();
-			} catch (Exception e) {
-				logger.error("Failed to execute @Prepare method " + preparer.method, e);
-			}
-		}
-
-		return this;
 	}
 
-	private App createApp(String name) {
+	private void processApp(String name, Set<Class<?>> controllers) {
+		logger.info("Processing an application {}", name);
+		
 		App app = App.add(new App(name));
-
+		apps.put(name, app);
+		
 		for (Entry<Class<?>, Class<?>> entry : options.classes().entrySet()) {
 			try {
 				// TODO introduce ObjectFactory
-				app.set(entry.getKey().getName(), entry.getValue().newInstance());
+				app.bean(entry.getKey(), entry.getValue().newInstance());
 			} catch (Exception e) {
-				logger.error("Implementation " + entry.getValue() + " of " + entry.getKey() + " is not available", e);
+				logger.error("Failed to construct the implementation " + entry.getValue() + " of " + entry.getKey(), e);
 			}
+		}
+		
+		for (Class<?> controller : controllers) {
+			processController(app, controller);
 		}
 		
 		// TODO use AppAware
 		if (app.bean(SocketManager.class) != null) {
 			app.bean(SocketManager.class).setApp(app);
 		}
-
-		return app;
 	}
 
-	private void process(App app, Class<?> clazz) {
-		logger.info("Processing @Handler(\"{}\") on {}", app.name(), clazz.getName());
+	private void processController(App app, Class<?> clazz) {
+		logger.info("Processing a controller {}", clazz.getName());
 
 		Object instance;
 		try {
 			instance = clazz.newInstance();
 		} catch (Exception e) {
-			logger.error("Failed to construct " + clazz.getName(), e);
+			logger.error("Failed to construct the controller " + clazz.getName(), e);
 			return;
 		}
 		

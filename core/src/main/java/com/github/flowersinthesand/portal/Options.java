@@ -42,6 +42,23 @@ public class Options {
 		return this;
 	}
 
+	Map<String, Set<Class<?>>> controllersPerApp() {
+		Map<String, Set<Class<?>>> answer = new LinkedHashMap<String, Set<Class<?>>>();
+		if (controllers != null) {
+			for (Class<?> controller : controllers) {
+				String name = controller.getAnnotation(Handler.class).value();
+
+				if (!answer.containsKey(name)) {
+					answer.put(name, new LinkedHashSet<Class<?>>());
+				}
+
+				answer.get(name).add(controller);
+			}
+		}
+		
+		return answer;
+	}
+
 	public Set<String> packages() {
 		return packages;
 	}
