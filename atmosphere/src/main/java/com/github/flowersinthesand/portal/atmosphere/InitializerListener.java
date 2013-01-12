@@ -16,6 +16,7 @@
 package com.github.flowersinthesand.portal.atmosphere;
 
 import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.ServletException;
@@ -25,11 +26,14 @@ import com.github.flowersinthesand.portal.Options;
 
 public class InitializerListener implements ServletContextListener {
 
+	private ServletContext servletContext;
+
 	@SuppressWarnings("serial")
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {
 		final InitializerListener self = this;
-		ServletRegistration.Dynamic registration = sce.getServletContext().addServlet("portal", new InitializerServlet() {
+		servletContext = sce.getServletContext();
+		ServletRegistration.Dynamic registration = servletContext.addServlet("portal", new InitializerServlet() {
 			
 			@Override
 			public void init(ServletConfig sc) throws ServletException {
@@ -48,6 +52,10 @@ public class InitializerListener implements ServletContextListener {
 		});
 
 		registration.setLoadOnStartup(0);
+	}
+
+	protected ServletContext getServletContext() {
+		return servletContext;
 	}
 
 	protected void configure(Options options) {}
