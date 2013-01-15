@@ -18,17 +18,14 @@ package com.github.flowersinthesand.portal;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.github.flowersinthesand.portal.spi.Dispatcher;
 import com.github.flowersinthesand.portal.spi.SocketManager;
 
 public class Socket {
 
-	private Dispatcher dispatcher;
 	private SocketManager socketManager;
 	private Map<String, String> params;
 
 	public Socket(String query, App app) {
-		this.dispatcher = app.bean(Dispatcher.class);
 		this.socketManager = app.bean(SocketManager.class);
 		this.params = new LinkedHashMap<String, String>();
 		for (String entity : query.split("&")) {
@@ -43,27 +40,6 @@ public class Socket {
 
 	public String param(String key) {
 		return params.get(key);
-	}
-
-	public Socket on(String event, Fn.Callback handler) {
-		if (opened()) {
-			dispatcher.on(event, this, handler);
-		}
-		return this;
-	}
-
-	public <A> Socket on(String event, Fn.Callback1<A> handler) {
-		if (opened()) {
-			dispatcher.on(event, this, handler);
-		}
-		return this;
-	}
-
-	public <A, B> Socket on(String event, Fn.Callback2<A, B> handler) {
-		if (opened()) {
-			dispatcher.on(event, this, handler);
-		}
-		return this;
 	}
 
 	public Socket send(String event) {

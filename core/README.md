@@ -177,13 +177,6 @@ Whether the socket is opened or closed.
 
 Getter for the `params` option in the client.
 
-* `Socket on(String event, Fn.Callback handler)`
-* `Socket on(String event, Fn.Callback1<A> handler)`
-* `Socket on(String event, Fn.Callback2<A, Fn.Callback> handler)`
-* `Socket on(String event, Fn.Callback2<A, Fn.Callback1<B>> handler)`
-
-Adds a event handler for a event type. Utilize these methods only when dynamic binding is more resonable than static binding for some reason. The event data is converted and passed to the handler according to the type variable `A`, if it exists. The second generic type from `Fn.Callback2<A, Fn.Callback>)` and `Fn.Callback2<A, Fn.Callback1<B>>)` corresponds to a reply callback.
-
 * `Socket send(String event)`
 * `Socket send(String event, Object data)`
 * `Socket send(String event, Object data, Fn.Callback callback)`

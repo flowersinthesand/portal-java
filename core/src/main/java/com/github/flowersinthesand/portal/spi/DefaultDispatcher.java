@@ -17,8 +17,6 @@ package com.github.flowersinthesand.portal.spi;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -40,30 +38,12 @@ public class DefaultDispatcher implements Dispatcher {
 	private Map<String, Set<EventHandler>> eventHandlers = new ConcurrentHashMap<String, Set<EventHandler>>();
 
 	@Override
-	public void on(String event, Object handler, Method method) {
-		on(event, new StaticEventHandler(handler, method));
-	}
-	
-	@Override
-	public void on(String event, Socket socket, Fn.Callback handler) {
-		on(event, new DynamicEventHandler(socket, handler));
-	}
-
-	@Override
-	public void on(String event, Socket socket, Fn.Callback1<?> handler) {
-		on(event, new DynamicEventHandler(socket, handler));
-	}
-
-	@Override
-	public void on(String event, Socket socket, Fn.Callback2<?, ?> handler) {
-		on(event, new DynamicEventHandler(socket, handler));
-	}
-	
-	private void on(String event, EventHandler eventHandler) {
+	public void on(String event, Object controller, Method method) {
+		EventHandler eventHandler = new StaticEventHandler(controller, method);
 		if (!eventHandlers.containsKey(event)) {
 			eventHandlers.put(event, new CopyOnWriteArraySet<EventHandler>());
 		}
-		
+
 		logger.debug("Attaching the {} event handler {}", event, eventHandler);
 		try {
 			eventHandlers.get(event).add(eventHandler.init());
@@ -71,7 +51,7 @@ public class DefaultDispatcher implements Dispatcher {
 			logger.error("Event handler method signature is inappropriate", e);
 		}
 	}
-	
+
 	@Override
 	public void fire(String on, Socket socket) {
 		fire(on, socket, null);
@@ -124,15 +104,15 @@ public class DefaultDispatcher implements Dispatcher {
 		Class<?> dataType;
 		Class<?> replyType;
 		
-		Object handler;
+		Object controller;
 		Method method;
 		int length;
 		int socketIndex = -1;
 		int dataIndex = -1;
 		int replyIndex = -1;
 
-		StaticEventHandler(Object handler, Method method) {
-			this.handler = handler;
+		StaticEventHandler(Object controller, Method method) {
+			this.controller = controller;
 			this.method = method;
 			this.length = method.getParameterTypes().length;
 		}
@@ -210,92 +190,8 @@ public class DefaultDispatcher implements Dispatcher {
 				};
 			}
 
-			method.invoke(handler, args);
+			method.invoke(controller, args);
 
-			return this;
-		}
-
-	}
-
-	static class DynamicEventHandler implements EventHandler {
-
-		ObjectMapper mapper = new ObjectMapper();
-		Class<?> dataType;
-		Class<?> replyType;
-		
-		Socket socket;
-		Fn.Callback handler;
-		Fn.Callback1<?> handlerWithData;
-		Fn.Callback2<?, ?> handlerWithDataAndReply;
-
-		DynamicEventHandler(Socket socket, Fn.Callback handler) {
-			this.socket = socket;
-			this.handler = handler;
-		}
-
-		DynamicEventHandler(Socket socket, Fn.Callback1<?> handler) {
-			this.socket = socket;
-			this.handlerWithData = handler;
-		}
-
-		DynamicEventHandler(Socket socket, Fn.Callback2<?, ?> handler) {
-			this.socket = socket;
-			this.handlerWithDataAndReply = handler;
-		}
-
-		@Override
-		public EventHandler init() {
-			if (handlerWithData != null) {
-				dataType = getDataType(handlerWithData);
-			}
-			if (handlerWithDataAndReply != null) {
-				dataType = getDataType(handlerWithDataAndReply);
-				replyType = getReplyType(handlerWithDataAndReply);
-
-				if (!Fn.Callback.class.equals(replyType) && !Fn.Callback1.class.equals(replyType)) {
-					throw new EventHandlerSignatureException("Reply functon must be either Fn.Callback or Fn.Callback1");
-				}
-			}
-			return this;
-		}
-
-		// TODO enhance
-		Class<?> getDataType(Object handler) {
-			return (Class<?>) (((ParameterizedType) handler.getClass().getGenericInterfaces()[0]).getActualTypeArguments())[0];
-		}
-
-		// TODO enhance
-		Class<?> getReplyType(Object handler) {
-			Type type = (((ParameterizedType) handler.getClass().getGenericInterfaces()[0]).getActualTypeArguments())[1];
-			// Fn.Callback vs Fn.Callback1<T>
-			return (Class<?>) (type instanceof Class ? type : ((ParameterizedType) type).getRawType());
-		}
-
-		@SuppressWarnings({ "unchecked", "rawtypes" })
-		@Override
-		public EventHandler handle(Socket socket, Object data, final Fn.Callback1<Object> reply) throws Exception {
-			if (this.socket == socket) {
-				if (dataType != null) {
-					data = mapper.convertValue(data, dataType);
-				}
-				if (handler != null) {
-					handler.call();
-				} else if (handlerWithData != null) {
-					((Fn.Callback1) handlerWithData).call(data);
-				} else if (handlerWithDataAndReply != null) {
-					((Fn.Callback2) handlerWithDataAndReply).call(data, Fn.Callback.class.equals(replyType) ? new Fn.Callback() {
-						@Override
-						public void call() {
-							reply.call(null);
-						}
-					} : new Fn.Callback1<Object>() {
-						@Override
-						public void call(Object arg1) {
-							reply.call(arg1);
-						}
-					});
-				}
-			}
 			return this;
 		}
 
