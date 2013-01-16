@@ -31,11 +31,11 @@ import org.atmosphere.cpr.AtmosphereHandler;
 import org.atmosphere.cpr.AtmosphereRequest;
 import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.AtmosphereResourceEvent;
-import org.atmosphere.cpr.AtmosphereResourceEventListener;
 import org.atmosphere.cpr.AtmosphereResourceImpl;
 import org.atmosphere.cpr.AtmosphereResponse;
 import org.atmosphere.cpr.Broadcaster;
 import org.atmosphere.cpr.BroadcasterFactory;
+import org.atmosphere.websocket.WebSocketEventListener;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
@@ -82,10 +82,7 @@ public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager
 			final boolean firstLongPoll = transport.startsWith("longpoll") && "1".equals(request.getParameter("count"));
 			final PrintWriter writer = response.getWriter();
 
-			resource.addEventListener(new AtmosphereResourceEventListener() {
-				@Override
-				public void onPreSuspend(AtmosphereResourceEvent event) {}
-
+			resource.addEventListener(new WebSocketEventListener() {
 				@Override
 				public void onSuspend(AtmosphereResourceEvent event) {
 					if (transport.equals("ws") || transport.equals("sse") || transport.startsWith("stream")) {
@@ -136,24 +133,31 @@ public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager
 				}
 
 				@Override
-				public void onBroadcast(AtmosphereResourceEvent event) {}
-
-				@Override
 				public void onThrowable(AtmosphereResourceEvent event) {
-					cleanup(event);
+					cleanup();
 				}
 
 				@Override
 				public void onResume(AtmosphereResourceEvent event) {
-					cleanup(event);
+					cleanup();
 				}
 
 				@Override
 				public void onDisconnect(AtmosphereResourceEvent event) {
-					cleanup(event);
+					cleanup();
 				}
 
-				private void cleanup(AtmosphereResourceEvent event) {
+				@Override
+				public void onDisconnect(@SuppressWarnings("rawtypes") WebSocketEvent event) {
+					cleanup();
+				}
+
+				@Override
+				public void onClose(@SuppressWarnings("rawtypes") WebSocketEvent event) {
+					cleanup();
+				}
+
+				private void cleanup() {
 					if (sockets.containsKey(id)) {
 						if ((transport.equals("ws") || transport.equals("sse") || transport.startsWith("stream")) || 
 							(transport.startsWith("longpoll") && !firstLongPoll && request.getAttribute("used") == null)) {
@@ -163,6 +167,24 @@ public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager
 						}
 					}
 				}
+				
+				@Override
+				public void onPreSuspend(AtmosphereResourceEvent event) {}
+
+				@Override
+				public void onBroadcast(AtmosphereResourceEvent event) {}
+
+				@Override
+				public void onHandshake(@SuppressWarnings("rawtypes") WebSocketEvent event) {}
+
+				@Override
+				public void onMessage(@SuppressWarnings("rawtypes") WebSocketEvent event) {}
+
+				@Override
+				public void onControl(@SuppressWarnings("rawtypes") WebSocketEvent event) {}
+
+				@Override
+				public void onConnect(@SuppressWarnings("rawtypes") WebSocketEvent event) {}
 			})
 			.suspend();
 		} else if (request.getMethod().equalsIgnoreCase("POST")) {
