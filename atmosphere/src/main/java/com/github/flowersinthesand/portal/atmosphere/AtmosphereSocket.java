@@ -26,9 +26,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Fn;
 import com.github.flowersinthesand.portal.Socket;
+import com.github.flowersinthesand.portal.spi.SocketManager;
 
 public class AtmosphereSocket extends Socket {
 
@@ -38,8 +38,8 @@ public class AtmosphereSocket extends Socket {
 	private Set<Map<String, Object>> cache = new CopyOnWriteArraySet<Map<String, Object>>();
 	private Map<Integer, Fn.Callback1<Object>> callbacks = new ConcurrentHashMap<Integer, Fn.Callback1<Object>>();
 
-	public AtmosphereSocket(String query, App app) {
-		super(query, app);
+	public AtmosphereSocket(String query, SocketManager manager) {
+		super(query, manager);
 	}
 
 	public String id() {

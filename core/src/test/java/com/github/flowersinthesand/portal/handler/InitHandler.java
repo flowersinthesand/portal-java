@@ -15,7 +15,6 @@
  */
 package com.github.flowersinthesand.portal.handler;
 
-import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Handler;
 import com.github.flowersinthesand.portal.Name;
 import com.github.flowersinthesand.portal.On;
@@ -26,8 +25,6 @@ import com.github.flowersinthesand.portal.Room;
 public class InitHandler {
 
 	public static boolean prepared;
-	@Name("/init")
-	static App app;
 	@Name("privateRoom")
 	private static Room privateRoom;
 	@Name("packagePrivateRoom")
@@ -42,10 +39,6 @@ public class InitHandler {
 
 	@On("load")
 	public void onLoad() {}
-
-	public static App getApp() {
-		return app;
-	}
 
 	public static Room getPrivateRoom() {
 		return privateRoom;

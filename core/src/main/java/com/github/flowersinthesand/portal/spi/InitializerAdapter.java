@@ -15,8 +15,33 @@
  */
 package com.github.flowersinthesand.portal.spi;
 
-public interface ObjectFactory {
+import java.util.Map;
+import java.util.Set;
 
-	<T> T create(Class<T> clazz);
+import com.github.flowersinthesand.portal.App;
+import com.github.flowersinthesand.portal.Options;
+
+public abstract class InitializerAdapter implements Initializer {
+
+	@Override
+	public Options init(App app, Map<String, Object> props) {
+		return null;
+	}
+	
+	@Override
+	public Object instantiateBean(Class<?> spec, Class<?> impl) {
+		return null;
+	}
+
+	@Override
+	public void postBeansInstantiation(Map<Class<?>, Object> beans) {}
+
+	@Override
+	public Object instantiateHandler(Class<?> clazz) {
+		return null;
+	}
+
+	@Override
+	public void postHandlersInstantiation(Set<Object> handlers) {}
 
 }

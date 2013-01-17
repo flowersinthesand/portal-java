@@ -30,13 +30,13 @@ public class RoomTest {
 	
 	@Test
 	public void name() {
-		Room room = new Room("room", Mockito.mock(App.class));
+		Room room = new Room("room", new LinkedHashMap<String, Room>());
 		Assert.assertEquals(room.name(), "room");
 	}
 
 	@Test
 	public void sockets() {
-		Room chat = new Room("chat", Mockito.mock(App.class));
+		Room chat = new Room("chat", new LinkedHashMap<String, Room>());
 		
 		Socket socket1 = Mockito.mock(Socket.class);
 		Mockito.when(socket1.opened()).thenReturn(true);
@@ -61,9 +61,9 @@ public class RoomTest {
 	
 	@Test
 	public void rooms() {
-		Room chat = new Room("chat", Mockito.mock(App.class));
-		Room hollowjan = new Room("hollowjan", Mockito.mock(App.class));
-		Room envy = new Room("envy", Mockito.mock(App.class));
+		Room chat = new Room("chat", new LinkedHashMap<String, Room>());
+		Room hollowjan = new Room("hollowjan", new LinkedHashMap<String, Room>());
+		Room envy = new Room("envy", new LinkedHashMap<String, Room>());
 		
 		Socket socket1 = Mockito.mock(Socket.class);
 		Socket socket2 = Mockito.mock(Socket.class);
@@ -85,7 +85,7 @@ public class RoomTest {
 	
 	@Test
 	public void sending() {
-		Room chat = new Room("chat", Mockito.mock(App.class));
+		Room chat = new Room("chat", new LinkedHashMap<String, Room>());
 		final List<Object> executed = new ArrayList<Object>(); 
 		Answer<Object> increment = new Answer<Object>() {
 			@Override
@@ -120,7 +120,7 @@ public class RoomTest {
 	
 	@Test
 	public void closing() {
-		Room chat = new Room("chat", Mockito.mock(App.class));
+		Room chat = new Room("chat", new LinkedHashMap<String, Room>());
 		final List<Object> executed = new ArrayList<Object>(); 
 		Answer<Object> increment = new Answer<Object>() {
 			@Override
@@ -148,9 +148,7 @@ public class RoomTest {
 	@Test
 	public void deletion() {
 		Map<String, Room> rooms = new LinkedHashMap<String, Room>();
-		App app = Mockito.mock(App.class);
-		Mockito.when(app.rooms()).thenReturn(rooms);
-		rooms.put("chat", new Room("chat", app));
+		rooms.put("chat", new Room("chat", rooms));
 		Room chat = rooms.get("chat");
 
 		chat.add(Mockito.mock(Socket.class));
@@ -165,7 +163,7 @@ public class RoomTest {
 
 	@Test
 	public void attr() {
-		Room room = new Room("room", Mockito.mock(App.class));
+		Room room = new Room("room", new LinkedHashMap<String, Room>());
 		Assert.assertNull(room.get("notfound"));
 		
 		String data = "data";

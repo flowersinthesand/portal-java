@@ -15,4 +15,4 @@ Add the following dependency to your pom.xml:
 ```
 
 ### Loading resources
-Static assets are located in `META-INF/resources/javascripts/` in the jar. Serve them properly according to your environment. The [documentation](http://www.webjars.org/documentation) of WebJARS will give you some help for this. Otherwise, just copy and paste them.
+Static assets are located in `META-INF/resources/javascripts/` in the jar. Serve them properly according to your environment. The [documentation](http://www.webjars.org/documentation) of WebJARS will give you some help for this. Otherwise, just [copy and paste them](https://github.com/flowersinthesand/portal-java/tree/master/javascript/src/main/resources/META-INF/resources/javascripts).

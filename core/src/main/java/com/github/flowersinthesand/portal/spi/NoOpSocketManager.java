@@ -15,14 +15,10 @@
  */
 package com.github.flowersinthesand.portal.spi;
 
-import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Fn;
 import com.github.flowersinthesand.portal.Socket;
 
 public class NoOpSocketManager implements SocketManager {
-
-	@Override
-	public void setApp(App app) {}
 
 	@Override
 	public boolean opened(Socket socket) {

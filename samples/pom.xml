@@ -19,6 +19,8 @@
 			<plugin>
 				<groupId>org.mortbay.jetty</groupId>
 				<artifactId>jetty-maven-plugin</artifactId>
+<!-- 				<version>8.1.8.v20121106</version> for Servlet 3.0 -->
+<!-- 				<version>7.6.8.v20121106</version> for Servlet 2.5 -->
 				<version>8.1.8.v20121106</version>
 				<configuration>
 					<webAppConfig>

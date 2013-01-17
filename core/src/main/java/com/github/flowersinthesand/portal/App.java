@@ -15,40 +15,234 @@
  */
 package com.github.flowersinthesand.portal;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
+import java.lang.annotation.Annotation;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.github.flowersinthesand.portal.spi.DefaultInitializer;
+import com.github.flowersinthesand.portal.spi.Dispatcher;
+import com.github.flowersinthesand.portal.spi.Initializer;
+
+import eu.infomas.annotation.AnnotationDetector;
 
 public class App implements Serializable {
 
 	private final static long serialVersionUID = 1728426808062835850L;
 	private final static String FIRST = App.class.getName() + ".first";
-	private final static ConcurrentMap<String, App> apps = new ConcurrentHashMap<String, App>();
+
+	private static class RepositoryHolder {
+		static final ConcurrentMap<String, App> defaults = new ConcurrentHashMap<String, App>();
+	}
+
+	private static ConcurrentMap<String, App> repository() {
+		return RepositoryHolder.defaults;
+	}
 
 	public static App find() {
-		return apps.get(FIRST);
+		return find(FIRST);
 	}
 
 	public static App find(String name) {
-		return name == null ? null : apps.get(name);
+		return name == null ? null : repository().get(name);
 	}
 
-	static App add(App app) {
-		apps.putIfAbsent(FIRST, app);
-		apps.put(app.name(), app);
-		return app;
-	}
-
+	private final Logger logger = LoggerFactory.getLogger(App.class);
+	private AtomicBoolean initialized = new AtomicBoolean(false);
 	private String name;
+	private Options options;
+	private Set<Initializer> initializers;
+	private Map<Class<?>, Object> beans;
+	private Set<Object> handlers;
 	private Map<String, Object> attrs = new ConcurrentHashMap<String, Object>();
 	private Map<String, Room> rooms = new ConcurrentHashMap<String, Room>();
-	private Map<Class<?>, Object> beans = new ConcurrentHashMap<Class<?>, Object>();
+	
+	public App() {}
 
-	public App(String name) {
+	public App init(String name) {
+		return init(name, (Options) null);
+	}
+
+	public App init(String name, Options options) {
+		return init(name, options, null);
+	}
+
+	public App init(String name, Initializer initializer) {
+		return init(name, null, initializer);
+	}
+
+	public App init(String name, Options options, Initializer initializer) {
 		this.name = name;
+		this.options = options != null ? options : new Options();
+		loadInitializers(initializer);
+		doInit();
+		return this;
+	}
+
+	protected void loadInitializers(Initializer initializer) {
+		initializers = new LinkedHashSet<Initializer>();
+		initializers.add(new DefaultInitializer());
+		for (Initializer i : ServiceLoader.load(Initializer.class)) {
+			initializers.add(i);
+		}
+		if (initializer != null) {
+			initializers.add(initializer);
+		}
+	}
+	
+	protected void doInit() {
+		if (initialized.get()) {
+			throw new IllegalStateException("Already initialized");
+		}
+		logger.info("Initializing the app#{} with options {} and initializers {}", name, options, initializers);
+
+		options = resolveOptions(Collections.unmodifiableMap(options.props())).merge(options);
+		logger.info("Resovled options {}", options);
+
+		beans = Collections.unmodifiableMap(createBeans(options.classes()));
+		logger.info("Instantiated beans {}", beans);
+		
+		for (Initializer p : initializers) {
+			logger.trace("Invoking postBeansInstantiation of Initializer {}", p);
+			p.postBeansInstantiation(beans);
+		}
+
+		handlers = Collections.unmodifiableSet(createHandlers(scan(options)));
+		logger.info("Instantiated handlers {}", handlers);
+		
+		for (Initializer p : initializers) {
+			logger.trace("Invoking postHandlersInstantiation of Initializer {}", p);
+			p.postHandlersInstantiation(handlers);
+		}
+
+		initialized.set(true);
+		logger.info("Initializing the app#{} is completed", name);
+	}
+
+	protected Options resolveOptions(Map<String, Object> properties) {
+		Options options = new Options();
+
+		for (Initializer p : initializers) {
+			logger.trace("Invoking options of Initializer {}", p);
+			options.merge(p.init(this, properties));
+		}
+
+		return options;
+	}
+
+	protected Map<Class<?>, Object> createBeans(Map<Class<?>, Class<?>> classes) {
+		Map<Class<?>, Object> map = new LinkedHashMap<Class<?>, Object>();
+
+		for (Initializer p : initializers) {
+			logger.trace("Invoking instantiateBeans of Initializer {}", p);
+			for (Entry<Class<?>, Class<?>> entry : classes.entrySet()) {
+				Object bean = p.instantiateBean(entry.getKey(), entry.getValue());
+				if (bean != null) {
+					map.put(entry.getKey(), bean);
+				}
+			}
+		}
+
+		return map;
+	}
+
+	protected Set<Object> createHandlers(Set<Class<?>> classes) {
+		Map<Class<?>, Object> map = new LinkedHashMap<Class<?>, Object>();
+
+		for (Initializer p : initializers) {
+			logger.trace("Invoking instantiateHandlers of Initializer {}", p);
+			for (Class<?> clazz : classes) {
+				Object handler = p.instantiateHandler(clazz);
+				if (handler != null) {
+					map.put(clazz, handler);
+				}
+			}
+		}
+
+		return new LinkedHashSet<Object>(map.values());
+	}
+
+	protected Set<Class<?>> scan(Options options) {
+		final Set<Class<?>> handlers = new LinkedHashSet<Class<?>>(options.handlers());
+
+		String base = "";
+		if (options.base() != null) {
+			try {
+				base = new File(options.base()).getCanonicalPath();
+			} catch (IOException e) {
+				logger.error("Cannot resolve the canonical path of the base " + options.base(), e);
+			}
+		}
+
+		final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+		AnnotationDetector detector = new AnnotationDetector(new AnnotationDetector.TypeReporter() {
+
+			@SuppressWarnings("unchecked")
+			@Override
+			public Class<? extends Annotation>[] annotations() {
+				return new Class[] { Handler.class };
+			}
+
+			@Override
+			public void reportTypeAnnotation(Class<? extends Annotation> annotation, String className) {
+				try {
+					handlers.add(classLoader.loadClass(className));
+				} catch (ClassNotFoundException e) {
+					logger.error("Handler class " + className + " not found", e);
+				}
+			}
+
+		});
+		
+		for (String location : options.locations()) {
+			location = base + ((location.length() != 0 && location.charAt(0) != '/') ? "/" : "") + location;
+			logger.debug("Scanning @Handler annotation in {}", location);
+
+			try {
+				detector.detect(new File(location));
+			} catch (IOException e) {
+				logger.error("Failed to scan in " + location, e);
+			}
+		}
+		for (String packageName : options.packages()) {
+			logger.debug("Scanning @Handler annotation in {}", packageName);
+
+			try {
+				detector.detect(packageName);
+			} catch (IOException e) {
+				logger.error("Failed to scan in " + packageName, e);
+			}	
+		}
+		
+		return handlers;
+	}
+
+	public App register() {
+		return register(repository());
+	}
+
+	public App register(ConcurrentMap<String, App> repository) {
+		if (!initialized.get()) {
+			throw new IllegalStateException("Not initialized");
+		}
+		
+		repository.putIfAbsent(FIRST, this);
+		repository.put(name, this);
+		
+		return this;
 	}
 
 	public String name() {
@@ -72,42 +266,31 @@ public class App implements Serializable {
 		if (rooms.containsKey(name)) {
 			return rooms.get(name);
 		}
-
-		rooms.put(name, new Room(name, this));
+		rooms.put(name, new Room(name, rooms));
 		return rooms.get(name);
 	}
 
-	@SuppressWarnings("unchecked")
-	public <T> T bean(Class<? extends T> clazz) {
-		if (beans.containsKey(clazz)) {
-			return (T) beans.get(clazz);
-		}
-
-		for (Object instance : beans.values()) {
-			if (clazz.isAssignableFrom(instance.getClass())) {
-				return (T) instance;
-			}
-		}
-
-		return null;
-	}
-
-	@SuppressWarnings("unchecked")
-	public <T> Set<T> beans(Class<? extends T> clazz) {
-		Set<T> set = new LinkedHashSet<T>();
-
-		for (Object instance : beans.values()) {
-			if (clazz.isAssignableFrom(instance.getClass())) {
-				set.add((T) instance);
-			}
-		}
-
-		return set;
-	}
-
-	App bean(Class<?> clazz, Object t) {
-		beans.put(clazz, t);
+	public App fire(String event, Socket socket) {
+		Dispatcher dispatcher = unwrap(Dispatcher.class);
+		dispatcher.fire(event, socket);
 		return this;
+	}
+
+	public App fire(String event, Socket socket, Object data) {
+		Dispatcher dispatcher = unwrap(Dispatcher.class);
+		dispatcher.fire(event, socket, data);
+		return this;
+	}
+
+	public App fire(String event, Socket socket, Object data, Fn.Callback1<Object> reply) {
+		Dispatcher dispatcher = unwrap(Dispatcher.class);
+		dispatcher.fire(event, socket, data, reply);
+		return this;
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T unwrap(Class<? super T> clazz) {
+		return (T) beans.get(clazz);
 	}
 
 }

@@ -15,13 +15,10 @@
  */
 package com.github.flowersinthesand.portal.spi;
 
-import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Fn;
 import com.github.flowersinthesand.portal.Socket;
 
 public interface SocketManager {
-
-	void setApp(App app);
 
 	boolean opened(Socket socket);
 

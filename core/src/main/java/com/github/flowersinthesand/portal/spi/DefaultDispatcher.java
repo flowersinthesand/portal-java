@@ -38,8 +38,8 @@ public class DefaultDispatcher implements Dispatcher {
 	private Map<String, Set<EventHandler>> eventHandlers = new ConcurrentHashMap<String, Set<EventHandler>>();
 
 	@Override
-	public void on(String event, Object controller, Method method) {
-		EventHandler eventHandler = new StaticEventHandler(controller, method);
+	public void on(String event, Object handler, Method method) {
+		EventHandler eventHandler = new StaticEventHandler(handler, method);
 		if (!eventHandlers.containsKey(event)) {
 			eventHandlers.put(event, new CopyOnWriteArraySet<EventHandler>());
 		}
@@ -104,15 +104,15 @@ public class DefaultDispatcher implements Dispatcher {
 		Class<?> dataType;
 		Class<?> replyType;
 		
-		Object controller;
+		Object handler;
 		Method method;
 		int length;
 		int socketIndex = -1;
 		int dataIndex = -1;
 		int replyIndex = -1;
 
-		StaticEventHandler(Object controller, Method method) {
-			this.controller = controller;
+		StaticEventHandler(Object handler, Method method) {
+			this.handler = handler;
 			this.method = method;
 			this.length = method.getParameterTypes().length;
 		}
@@ -190,7 +190,7 @@ public class DefaultDispatcher implements Dispatcher {
 				};
 			}
 
-			method.invoke(controller, args);
+			method.invoke(handler, args);
 
 			return this;
 		}

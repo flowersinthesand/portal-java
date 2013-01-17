@@ -22,11 +22,11 @@ import com.github.flowersinthesand.portal.spi.SocketManager;
 
 public class Socket {
 
-	private SocketManager socketManager;
+	private SocketManager manager;
 	private Map<String, String> params;
 
-	public Socket(String query, App app) {
-		this.socketManager = app.bean(SocketManager.class);
+	public Socket(String query, SocketManager manager) {
+		this.manager = manager;
 		this.params = new LinkedHashMap<String, String>();
 		for (String entity : query.split("&")) {
 			String[] parts = entity.split("=", 2);
@@ -35,7 +35,7 @@ public class Socket {
 	}
 
 	public boolean opened() {
-		return socketManager.opened(this);
+		return manager.opened(this);
 	}
 
 	public String param(String key) {
@@ -44,35 +44,35 @@ public class Socket {
 
 	public Socket send(String event) {
 		if (opened()) {
-			socketManager.send(this, event, null);
+			manager.send(this, event, null);
 		}
 		return this;
 	}
 
 	public Socket send(String event, Object data) {
 		if (opened()) {
-			socketManager.send(this, event, data);
+			manager.send(this, event, data);
 		}
 		return this;
 	}
 
 	public Socket send(String event, Object data, Fn.Callback callback) {
 		if (opened()) {
-			socketManager.send(this, event, data, callback);
+			manager.send(this, event, data, callback);
 		}
 		return this;
 	}
 
 	public <A> Socket send(String event, Object data, Fn.Callback1<A> callback) {
 		if (opened()) {
-			socketManager.send(this, event, data, callback);
+			manager.send(this, event, data, callback);
 		}
 		return this;
 	}
 
 	public Socket close() {
 		if (opened()) {
-			socketManager.close(this);
+			manager.close(this);
 		}
 		return this;
 	}
