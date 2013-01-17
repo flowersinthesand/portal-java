@@ -176,8 +176,7 @@ public class App implements Serializable {
 	}
 
 	protected Set<Class<?>> scan(Options options) {
-		final Set<Class<?>> handlers = new LinkedHashSet<Class<?>>(options.handlers());
-
+		
 		String base = "";
 		if (options.base() != null) {
 			try {
@@ -188,16 +187,60 @@ public class App implements Serializable {
 		}
 
 		final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-		AnnotationDetector detector = new AnnotationDetector(new AnnotationDetector.TypeReporter() {
+		final Set<Class<?>> annotations = new LinkedHashSet<Class<?>>();
+		annotations.add(On.class);
+		annotations.add(On.open.class);
+		annotations.add(On.close.class);
+		annotations.add(On.message.class);
+		AnnotationDetector annotationDetector = new AnnotationDetector(new AnnotationDetector.TypeReporter() {
 
 			@SuppressWarnings("unchecked")
 			@Override
 			public Class<? extends Annotation>[] annotations() {
-				return new Class[] { Handler.class };
+				return new Class[] { On.class };
 			}
 
 			@Override
 			public void reportTypeAnnotation(Class<? extends Annotation> annotation, String className) {
+				try {
+					annotations.add(classLoader.loadClass(className));
+				} catch (ClassNotFoundException e) {
+					logger.error("Annotation " + className + " not found", e);
+				}
+			}
+
+		});
+		for (String location : options.locations()) {
+			location = base + ((location.length() != 0 && location.charAt(0) != '/') ? "/" : "") + location;
+			logger.debug("Scanning an annotation annotated with @On in {}", location);
+
+			try {
+				annotationDetector.detect(new File(location));
+			} catch (IOException e) {
+				logger.error("Failed to scan in " + location, e);
+			}
+		}
+		for (String packageName : options.packages()) {
+			logger.debug("Scanning an annotation annotated with @On in {}", packageName);
+
+			try {
+				annotationDetector.detect(packageName);
+			} catch (IOException e) {
+				logger.error("Failed to scan in " + packageName, e);
+			}	
+		}
+
+		final Set<Class<?>> handlers = new LinkedHashSet<Class<?>>(options.handlers());
+		AnnotationDetector handlerDetector = new AnnotationDetector(new AnnotationDetector.MethodReporter() {
+
+			@SuppressWarnings("unchecked")
+			@Override
+			public Class<? extends Annotation>[] annotations() {
+				return annotations.toArray(new Class[] {});
+			}
+
+			@Override
+			public void reportMethodAnnotation(Class<? extends Annotation> annotation, String className, String methodName) {
 				try {
 					handlers.add(classLoader.loadClass(className));
 				} catch (ClassNotFoundException e) {
@@ -209,19 +252,19 @@ public class App implements Serializable {
 		
 		for (String location : options.locations()) {
 			location = base + ((location.length() != 0 && location.charAt(0) != '/') ? "/" : "") + location;
-			logger.debug("Scanning @Handler annotation in {}", location);
+			logger.debug("Scanning {} in {}", annotations, location);
 
 			try {
-				detector.detect(new File(location));
+				handlerDetector.detect(new File(location));
 			} catch (IOException e) {
 				logger.error("Failed to scan in " + location, e);
 			}
 		}
 		for (String packageName : options.packages()) {
-			logger.debug("Scanning @Handler annotation in {}", packageName);
+			logger.debug("Scanning {} in {}", annotations, packageName);
 
 			try {
-				detector.detect(packageName);
+				handlerDetector.detect(packageName);
 			} catch (IOException e) {
 				logger.error("Failed to scan in " + packageName, e);
 			}	

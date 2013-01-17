@@ -15,13 +15,17 @@
  */
 package com.github.flowersinthesand.portal.handler;
 
-import com.github.flowersinthesand.portal.Handler;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 import com.github.flowersinthesand.portal.Name;
 import com.github.flowersinthesand.portal.On;
 import com.github.flowersinthesand.portal.Prepare;
 import com.github.flowersinthesand.portal.Room;
 
-@Handler("/init")
 public class InitHandler {
 
 	public static boolean prepared;
@@ -37,7 +41,7 @@ public class InitHandler {
 		prepared = true;
 	}
 
-	@On("load")
+	@Load
 	public void onLoad() {}
 
 	public static Room getPrivateRoom() {
@@ -51,5 +55,11 @@ public class InitHandler {
 	public static Room getPublicRoom() {
 		return publicRoom;
 	}
+
+	@Target(ElementType.METHOD)
+	@Retention(RetentionPolicy.RUNTIME)
+	@Documented
+	@On("load")
+	public static @interface Load {}
 
 }

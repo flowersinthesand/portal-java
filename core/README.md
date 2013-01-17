@@ -104,34 +104,28 @@ Return a bean instantiated from the classes option.
 
 ### Handler
 
-The application consists of traditional handlers which consist of event handlers. All declared fields on the handler must be thread-safe. Also, the handler class must have a default constructor.
-
-#### @Handler
-* `String value()`
-
-A class-level annotation for a handler. The `value` element indicates a url of the socket and is regarded as an application name. One application can consist of multiple handler classes.
-
-#### @Name
-* `String value()`
-
-A field-level annotation for injection of `App` and `Room`. According to the type of the field and the `value` element of the annotation, corresponding resource is injected regardless of the access modifier of the field. Field injection is done before execution of `@Prepare` methods.
-
-#### @Prepare
-
-A method-level annotation for preparation. Annotated methods are executed during initialization. Only public methods with no arguments can be executed.
-
-### Event handler
-
-The event handler is a plain method marked as an event handler. According to the method signature, corresponding parameters are provided.
+The application consists of handler class which consists of event handlers that are plain methods marked as event handler. All declared fields on the handler must be thread-safe.
 
 #### @On
 * `String value()`
 
 A method-level and annotation-level annotation for marking a method or an annotation as an event handler. The `value` element is an event name. The access modifier of the method must be `public` and a return type of the method signifies nothing. `On.open`, `On.message`, `On.close` are special annotations for `open`, `message`, `close` event respectively.
 
+#### @Name
+* `String value()`
+
+A field-level annotation for injection of `Room`. According to the type of the field and the `value` element of the annotation, corresponding resource is injected regardless of the access modifier of the field. Field injection is done before execution of `@Prepare` methods.
+
+#### @Prepare
+
+A method-level annotation for preparation. Annotated methods are executed during initialization. Only public methods with no arguments can be executed.
+
+### Parameter
+According to the event handler method signature, the following parameters will be provided.
+
 #### Socket
 
-If the Socket class is present on parameters in the method signature, the socket instance that sent the event will be passed.
+If the Socket type is present on parameters in the method signature, the socket instance that sent the event will be passed.
 
 #### @Data
 
