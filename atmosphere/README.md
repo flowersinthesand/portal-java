@@ -91,7 +91,7 @@ The following options will override the default options of the core module.
 
 * `base`
 
-`getServletContext().getRealPath("")` is used as the value, but it can be null in some cases. For example, the case where servlet container is Tomcat and unpackWARs option is set to false. Though you can still scan the class path by setting `packages` option. 
+`servletContext.getRealPath("")` is used as the value, but it can be null in some cases. For example, the case where servlet container is Tomcat and unpackWARs option is set to false. Though you can still scan the class path by setting `packages` option. 
 
 * `locations`
 

@@ -25,8 +25,4 @@ public abstract class Fn {
 		void call(A arg1);
 	}
 
-	public static interface Callback2<A, B> {
-		void call(A arg1, B arg2);
-	}
-
 }

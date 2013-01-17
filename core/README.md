@@ -220,7 +220,3 @@ Amorphous functions.
 #### Callback1\<A\>
 
 * `void call(A arg1)`
-
-#### Callback2\<A,B\>
-
-* `void call(A arg1, B arg2)`
