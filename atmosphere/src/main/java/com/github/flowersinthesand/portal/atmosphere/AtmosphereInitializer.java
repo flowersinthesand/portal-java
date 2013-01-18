@@ -49,7 +49,7 @@ public class AtmosphereInitializer extends InitializerAdapter {
 				throw new IllegalStateException(e);
 			}
 
-			ServletRegistration.Dynamic registration = context.addServlet("portal", servlet);
+			ServletRegistration.Dynamic registration = context.addServlet("portal#" + app.name(), servlet);
 			registration.setLoadOnStartup(0);
 			registration.addMapping(app.name());
 

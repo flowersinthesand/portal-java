@@ -27,7 +27,7 @@ Copy the following into a file named `context.xml` in `META-INF` if the target s
 The following types of beans are required. 
  * `javax.servlet.ServletContext`
  
-ServletContextListener is a recommended entry point where the application starts. The AtmosphereServlet named `portal` will be created and added to the context automatically.
+ServletContextListener is a recommended entry point where the application starts. The AtmosphereServlet will be created and added to the context per app automatically.
 
 ```java
 @WebListener
@@ -64,7 +64,7 @@ public class PortalInitializer extends AtmosphereServlet {
 
 ```
 
-In the servlet declaration, the url of the application to be integrated with the Atmosphere must be defined in the mapping and setting the `load-on-startup` to `0` is recommended for eager initialization.
+In the servlet declaration, the url of the applications to be integrated with the Atmosphere must be defined in the mapping and setting the `load-on-startup` to `0` is recommended for eager initialization.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
