@@ -15,8 +15,6 @@
  */
 package com.github.flowersinthesand.portal.atmosphere;
 
-import java.util.Map;
-
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
@@ -38,42 +36,44 @@ public class AtmosphereInitializer extends InitializerAdapter {
 	private AtmosphereFramework framework;
 
 	@Override
-	public Options init(App app, Map<String, Object> props) {
+	public void init(App app, Options options) {
 		this.app = app;
 
-		ServletContext servletContext = (ServletContext) props.get("atmosphere.servletContext");
-		if (servletContext.getMajorVersion() >= 3) {
+		ServletContext context = options.bean(ServletContext.class);
+		if (context.getMajorVersion() >= 3) {
 			AtmosphereServlet servlet = null;
 			try {
-				servlet = servletContext.createServlet(AtmosphereServlet.class);
+				servlet = context.createServlet(AtmosphereServlet.class);
 			} catch (ServletException e) {
 				logger.error("something goes wrong", e);
 				throw new IllegalStateException(e);
 			}
 
-			ServletRegistration.Dynamic registration = servletContext.addServlet("portal", servlet);
+			ServletRegistration.Dynamic registration = context.addServlet("portal", servlet);
 			registration.setLoadOnStartup(0);
 			registration.addMapping(app.name());
 
 			framework = servlet.framework();
 		} else {
-			framework = (AtmosphereFramework) props.get("atmosphere.framework");
+			framework = options.bean(AtmosphereFramework.class);
 		}
-
-		Options options = new Options();
-		if (options.base(servletContext.getRealPath("")).base() != null) {
+		
+		if (options.base() == null) {
+			options.base(context.getRealPath(""));
+		}
+		if (options.base() != null) {
 			options.locations("/WEB-INF/classes");
 		}
 
-		return options.classes(SocketManager.class, AtmosphereSocketManager.class);
+		options.classes(SocketManager.class.getName(), AtmosphereSocketManager.class);
 	}
 
 	@Override
-	public void postBeanInstantiation(Class<?> clazz, Object bean) {
-		if (clazz == SocketManager.class) {
+	public void postBeanInstantiation(String name, Object bean) {
+		if (AtmosphereSocketManager.class.isAssignableFrom(bean.getClass())) {
 			AtmosphereSocketManager manager = (AtmosphereSocketManager) bean;
 
-			manager.setApp(app);		
+			manager.setApp(app);
 			framework.addAtmosphereHandler(app.name(), manager);
 		}
 	}

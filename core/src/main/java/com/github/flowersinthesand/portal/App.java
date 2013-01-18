@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -64,9 +63,8 @@ public class App implements Serializable {
 	private final Logger logger = LoggerFactory.getLogger(App.class);
 	private AtomicBoolean initialized = new AtomicBoolean(false);
 	private String name;
-	private Options options;
-	private Set<Initializer> initializers = new LinkedHashSet<Initializer>();;
-	private Map<Class<?>, Object> beans = new LinkedHashMap<Class<?>, Object>();
+	private Set<Initializer> initializers = new LinkedHashSet<Initializer>();
+	private Map<String, Object> beans = new LinkedHashMap<String, Object>();
 	private Set<Object> handlers = new LinkedHashSet<Object>();
 	private Map<String, Object> attrs = new ConcurrentHashMap<String, Object>();
 	private Map<String, Room> rooms = new ConcurrentHashMap<String, Room>();
@@ -87,13 +85,14 @@ public class App implements Serializable {
 
 	public App init(String name, Options options, Initializer initializer) {
 		this.name = name;
-		this.options = options != null ? options : new Options();
-		loadInitializers(initializer);
-		doInit();
+		initializers.addAll(loadInitializers(initializer));
+		doInit(options != null ? options : new Options());
 		return this;
 	}
 
-	protected void loadInitializers(Initializer initializer) {
+	protected Set<Initializer> loadInitializers(Initializer initializer) {
+		Set<Initializer> initializers = new LinkedHashSet<Initializer>();
+
 		initializers.add(new DefaultInitializer());
 		for (Initializer i : ServiceLoader.load(Initializer.class)) {
 			initializers.add(i);
@@ -101,25 +100,28 @@ public class App implements Serializable {
 		if (initializer != null) {
 			initializers.add(initializer);
 		}
+		
+		return initializers;
 	}
 	
-	protected void doInit() {
+	protected void doInit(Options options) {
 		if (initialized.get()) {
 			throw new IllegalStateException("Already initialized");
 		}
 		logger.info("Initializing the app#{} with options {} and initializers {}", name, options, initializers);
 		
-		options = resolveOptions(Collections.unmodifiableMap(options.props())).merge(options);
-		logger.info("Resovled options {}", options);
+		init(options);
+		logger.info("Final options {}", options);
 
 		beans.putAll(createBeans(options.classes()));
 		logger.info("Instantiated beans {}", beans);
 		for (Initializer p : initializers) {
-			logger.trace("Invoking postBeansInstantiation of Initializer {}", p);
-			for (Entry<Class<?>, Object> entry : beans.entrySet()) {
+			logger.trace("Invoking postBeanInstantiation of Initializer {}", p);
+			for (Entry<String, Object> entry : beans.entrySet()) {
 				p.postBeanInstantiation(entry.getKey(), entry.getValue());
 			}
 		}
+		beans.putAll(options.beans());
 		
 		handlers.addAll(createHandlers(scan(options)));
 		logger.info("Instantiated handlers {}", handlers);
@@ -138,23 +140,19 @@ public class App implements Serializable {
 		logger.info("Initializing the app#{} is completed", name);
 	}
 
-	protected Options resolveOptions(Map<String, Object> properties) {
-		Options options = new Options();
-
+	protected void init(Options options) {
 		for (Initializer p : initializers) {
 			logger.trace("Invoking options of Initializer {}", p);
-			options.merge(p.init(this, properties));
+			p.init(this, options);
 		}
-
-		return options;
 	}
 
-	protected Map<Class<?>, Object> createBeans(Map<Class<?>, Class<?>> classes) {
-		Map<Class<?>, Object> map = new LinkedHashMap<Class<?>, Object>();
+	protected Map<String, Object> createBeans(Map<String, Class<?>> classes) {
+		Map<String, Object> map = new LinkedHashMap<String, Object>();
 
 		for (Initializer p : initializers) {
 			logger.trace("Invoking instantiateBeans of Initializer {}", p);
-			for (Entry<Class<?>, Class<?>> entry : classes.entrySet()) {
+			for (Entry<String, Class<?>> entry : classes.entrySet()) {
 				Object bean = p.instantiateBean(entry.getKey(), entry.getValue());
 				if (bean != null) {
 					map.put(entry.getKey(), bean);
@@ -314,26 +312,40 @@ public class App implements Serializable {
 	}
 
 	public App fire(String event, Socket socket) {
-		Dispatcher dispatcher = unwrap(Dispatcher.class);
+		Dispatcher dispatcher = bean(Dispatcher.class);
 		dispatcher.fire(event, socket);
 		return this;
 	}
 
 	public App fire(String event, Socket socket, Object data) {
-		Dispatcher dispatcher = unwrap(Dispatcher.class);
+		Dispatcher dispatcher = bean(Dispatcher.class);
 		dispatcher.fire(event, socket, data);
 		return this;
 	}
 
 	public App fire(String event, Socket socket, Object data, Fn.Callback1<Object> reply) {
-		Dispatcher dispatcher = unwrap(Dispatcher.class);
+		Dispatcher dispatcher = bean(Dispatcher.class);
 		dispatcher.fire(event, socket, data, reply);
 		return this;
 	}
 
+	public Object bean(String name) {
+		return beans.get(name);
+	}
+
 	@SuppressWarnings("unchecked")
-	public <T> T unwrap(Class<? super T> clazz) {
-		return (T) beans.get(clazz);
+	public <T> T bean(Class<? super T> clazz) {
+		for (Object object : beans.values()) {
+			if (clazz == object.getClass()) {
+				return (T) object;
+			}
+		}
+		for (Object object : beans.values()) {
+			if (clazz.isAssignableFrom(object.getClass())) {
+				return (T) object;
+			}
+		}
+		return null;
 	}
 
 }

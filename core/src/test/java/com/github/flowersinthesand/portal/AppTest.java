@@ -16,6 +16,7 @@
 package com.github.flowersinthesand.portal;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -27,11 +28,11 @@ import org.testng.annotations.Test;
 import com.github.flowersinthesand.portal.handler.EventsHandler;
 import com.github.flowersinthesand.portal.handler.InitHandler;
 import com.github.flowersinthesand.portal.spi.DefaultDispatcher;
-import com.github.flowersinthesand.portal.spi.Dispatcher;
-import com.github.flowersinthesand.portal.spi.NoOpSocketManager;
-import com.github.flowersinthesand.portal.spi.InitializerAdapter;
-import com.github.flowersinthesand.portal.spi.SocketManager;
 import com.github.flowersinthesand.portal.spi.DefaultDispatcher.EventHandler;
+import com.github.flowersinthesand.portal.spi.Dispatcher;
+import com.github.flowersinthesand.portal.spi.InitializerAdapter;
+import com.github.flowersinthesand.portal.spi.NoOpSocketManager;
+import com.github.flowersinthesand.portal.spi.SocketManager;
 
 public class AppTest {
 
@@ -44,41 +45,41 @@ public class AppTest {
 			}
 		});
 		new App().init("/t", null, new InitializerAdapter() {
-			Options options = new Options();
+			Class<?>[] handlers = { EventsHandler.class };
 			Set<Class<?>> classes = new LinkedHashSet<Class<?>>();
-			
+
 			@Override
-			public Options init(App app, Map<String, Object> props) {
-				return options.handlers(EventsHandler.class);
+			public void init(App app, Options options) {
+				options.handlers(handlers);
 			}
-			
+
 			@Override
 			public void postHandlerInstantiation(Object handler) {
 				classes.add(handler.getClass());
 			}
-			
+
 			@Override
 			public void postInitialization() {
-				Assert.assertEquals(classes, options.handlers());
+				Assert.assertEquals(classes, new LinkedHashSet<Class<?>>(Arrays.asList(handlers)));
 			}
 		});
 		new App().init("/t", null, new InitializerAdapter() {
-			Options options = new Options();
+			Class<?>[] handlers = { EventsHandler.class, InitHandler.class };
 			Set<Class<?>> classes = new LinkedHashSet<Class<?>>();
-			
+
 			@Override
-			public Options init(App app, Map<String, Object> props) {
-				return options.handlers(EventsHandler.class, InitHandler.class);
+			public void init(App app, Options options) {
+				options.handlers(handlers);
 			}
-			
+
 			@Override
 			public void postHandlerInstantiation(Object handler) {
 				classes.add(handler.getClass());
 			}
-			
+
 			@Override
 			public void postInitialization() {
-				Assert.assertEquals(classes, options.handlers());
+				Assert.assertEquals(classes, new LinkedHashSet<Class<?>>(Arrays.asList(handlers)));
 			}
 		});
 	}
@@ -167,18 +168,18 @@ public class AppTest {
 	
 	@Test
 	public void classes() {
-		new App().init("/t", new Options().base(".").locations("").classes(SocketManager.class, NoOpSocketManager.class), new InitializerAdapter() {
+		new App().init("/t", new Options().base(".").locations("").classes(SocketManager.class.getName(), NoOpSocketManager.class), new InitializerAdapter() {
 			@Override
-			public void postBeanInstantiation(Class<?> clazz, Object bean) {
-				if (clazz == SocketManager.class) {
+			public void postBeanInstantiation(String name, Object bean) {
+				if (name.equals(SocketManager.class.getName())) {
 					Assert.assertSame(NoOpSocketManager.class, bean.getClass());
 				}
 			}
 		});
-		new App().init("/t", new Options().base(".").locations("").classes(Dispatcher.class, DefaultDispatcher.class), new InitializerAdapter() {
+		new App().init("/t", new Options().base(".").locations("").classes(Dispatcher.class.getName(), DefaultDispatcher.class), new InitializerAdapter() {
 			@Override
-			public void postBeanInstantiation(Class<?> clazz, Object bean) {
-				if (clazz == Dispatcher.class) {
+			public void postBeanInstantiation(String name, Object bean) {
+				if (name.equals(Dispatcher.class.getName())) {
 					Assert.assertSame(DefaultDispatcher.class, bean.getClass());
 				}
 			}
@@ -191,7 +192,7 @@ public class AppTest {
 			DefaultDispatcher dispatcher;
 			
 			@Override
-			public void postBeanInstantiation(Class<?> clazz, Object bean) {
+			public void postBeanInstantiation(String name, Object bean) {
 				if (bean.getClass().isAssignableFrom(DefaultDispatcher.class)) {
 					dispatcher = (DefaultDispatcher) bean;
 				}

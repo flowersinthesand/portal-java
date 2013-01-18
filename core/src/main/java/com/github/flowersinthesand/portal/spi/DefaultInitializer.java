@@ -18,7 +18,6 @@ package com.github.flowersinthesand.portal.spi;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,19 +36,19 @@ public class DefaultInitializer extends InitializerAdapter {
 	private Dispatcher dispatcher;
 	
 	@Override
-	public Options init(App app, Map<String, Object> props) {
+	public void init(App app, Options options) {
 		this.app = app;
-		return new Options().classes(SocketManager.class, NoOpSocketManager.class).classes(Dispatcher.class, DefaultDispatcher.class);
+		options.classes(Dispatcher.class.getName(), DefaultDispatcher.class);
 	}
 
 	@Override
-	public Object instantiateBean(Class<?> spec, Class<?> impl) {
-		return instantiate(impl);
+	public Object instantiateBean(String name, Class<?> clazz) {
+		return instantiate(clazz);
 	}
 	
 	@Override
-	public void postBeanInstantiation(Class<?> clazz, Object bean) {
-		if (clazz == Dispatcher.class) {
+	public void postBeanInstantiation(String name, Object bean) {
+		if (Dispatcher.class.isAssignableFrom(bean.getClass())) {
 			dispatcher = (Dispatcher) bean;
 		}
 	}
@@ -57,6 +56,16 @@ public class DefaultInitializer extends InitializerAdapter {
 	@Override
 	public Object instantiateHandler(Class<?> clazz) {
 		return instantiate(clazz);
+	}
+	
+	public Object instantiate(Class<?> clazz) {
+		try {
+			return clazz.newInstance();
+		} catch (Exception e) {
+			logger.error("Failed to create the bean " + clazz.getName(), e);
+		}
+
+		return null;
 	}
 
 	@Override
@@ -114,16 +123,6 @@ public class DefaultInitializer extends InitializerAdapter {
 				}
 			}
 		}
-	}
-	
-	public <T> T instantiate(Class<T> clazz) {
-		try {
-			return (T) clazz.newInstance();
-		} catch (Exception e) {
-			logger.error("Failed to create the bean " + clazz.getName(), e);
-		}
-
-		return null;
 	}
 	
 }

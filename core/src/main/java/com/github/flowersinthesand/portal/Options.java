@@ -26,8 +26,8 @@ public class Options {
 	private Set<String> packages = new LinkedHashSet<String>();
 	private String base;
 	private Set<String> locations = new LinkedHashSet<String>();
-	private Map<Class<?>, Class<?>> classes = new LinkedHashMap<Class<?>, Class<?>>();
-	private Map<String, Object> props = new LinkedHashMap<String, Object>();
+	private Map<String, Class<?>> classes = new LinkedHashMap<String, Class<?>>();
+	private Map<String, Object> beans = new LinkedHashMap<String, Object>();
 
 	public Set<Class<?>> handlers() {
 		return handlers;
@@ -71,25 +71,51 @@ public class Options {
 		return this;
 	}
 
-	public Map<Class<?>, Class<?>> classes() {
+	public Map<String, Class<?>> classes() {
 		return classes;
 	}
 
-	public <A> Options classes(Class<A> spec, Class<? extends A> impl) {
-		classes.put(spec, impl);
+	public Options classes(String name, Class<?> clazz) {
+		classes.put(name, clazz);
 		return this;
 	}
 
-	public Map<String, Object> props() {
-		return props;
+	public Options classes(String name1, Class<?> clazz1, String name2, Class<?> clazz2) {
+		return classes(name1, clazz1).classes(name2, clazz2);
 	}
 
-	public Object prop(String key) {
-		return props.get(key);
+	public Map<String, Object> beans() {
+		return beans;
 	}
 
-	public Options prop(String key, Object value) {
-		props.put(key, value);
+	public Object bean(String key) {
+		return beans.get(key);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T bean(Class<? super T> clazz) {
+		for (Object object : beans.values()) {
+			if (clazz == object.getClass()) {
+				return (T) object;
+			}
+		}
+		for (Object object : beans.values()) {
+			if (clazz.isAssignableFrom(object.getClass())) {
+				return (T) object;
+			}
+		}
+		return null;
+	}
+
+	public Options beans(Object... objects) {
+		for (Object object : objects) {
+			beans(object.getClass().getName(), object);
+		}
+		return this;
+	}
+
+	public Options beans(String name, Object bean) {
+		beans.put(name, bean);
 		return this;
 	}
 
@@ -113,8 +139,8 @@ public class Options {
 			if (options.classes() != null) {
 				classes.putAll(options.classes());
 			}
-			if (options.props() != null) {
-				props.putAll(options.props());
+			if (options.beans() != null) {
+				beans.putAll(options.beans());
 			}
 		}
 
@@ -129,7 +155,7 @@ public class Options {
 		map.put("base", base);
 		map.put("locations", locations);
 		map.put("classes", classes);
-		map.put("props", props);
+		map.put("beans", beans);
 
 		return map.toString();
 	}

@@ -15,18 +15,17 @@
  */
 package com.github.flowersinthesand.portal.spi;
 
-import java.util.Map;
 
 import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Options;
 
 public interface Initializer {
 
-	Options init(App app, Map<String, Object> props);
+	void init(App app, Options options);
 
-	Object instantiateBean(Class<?> spec, Class<?> impl);
+	Object instantiateBean(String name, Class<?> clazz);
 
-	void postBeanInstantiation(Class<?> clazz, Object bean);
+	void postBeanInstantiation(String name, Object bean);
 
 	Object instantiateHandler(Class<?> handlerClass);
 

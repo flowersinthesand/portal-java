@@ -15,7 +15,6 @@
  */
 package com.github.flowersinthesand.portal.spi;
 
-import java.util.Map;
 
 import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Options;
@@ -23,17 +22,15 @@ import com.github.flowersinthesand.portal.Options;
 public abstract class InitializerAdapter implements Initializer {
 
 	@Override
-	public Options init(App app, Map<String, Object> props) {
-		return null;
-	}
+	public void init(App app, Options options) {}
 	
 	@Override
-	public Object instantiateBean(Class<?> spec, Class<?> impl) {
+	public Object instantiateBean(String name, Class<?> clazz) {
 		return null;
 	}
 
 	@Override
-	public void postBeanInstantiation(Class<?> clazz, Object bean) {}
+	public void postBeanInstantiation(String name, Object bean) {}
 
 	@Override
 	public Object instantiateHandler(Class<?> clazz) {
