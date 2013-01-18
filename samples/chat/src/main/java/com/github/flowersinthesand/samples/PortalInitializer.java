@@ -27,7 +27,7 @@ public class PortalInitializer implements ServletContextListener {
 
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
-		new App().init("/chat", new Options().prop("atmosphere.servletContext", event.getServletContext())).register();
+		new App().init("/chat", new Options().beans(event.getServletContext())).register();
 	}
 
 	@Override
