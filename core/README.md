@@ -11,44 +11,6 @@ Add the following dependency to your pom.xml:
 </dependency>
 ```
 
-Bootstrapping an application.
-```java
-new App().init("/events").register();
-```
-
-## Options
-
-* `Set<Class<?>> handlers()`
-* `Options handlers(Class<?>... classes)`
-
-Handler classes.
-
-* `Set<String> packages()`
-* `Options packages(String... packageNames)`
-
-Package names which will be scanned for handlers including sub packages.
-
-* `String base()`
-* `Options base(String base)`
-
-A base path for locations.
-
-* `Set<String> locations()`
-* `Options locations(String... paths)`
-
-Paths of files, directories and jars which will be scanned for handlers.
-
-* `Map<Class<?>, Class<?>> classes()`
-* `Options classes(Class<A> spec, Class<? extends A> impl)`
-
-Classes are instantiated once per each application. The following table is the default classes map.
-
-* `Map<String, Object> props()`
-* `Object prop(String key)`
-* `Options prop(String key, Object value)`
-
-Properties to configure bridge or plugin.
-
 ## API
 Package `com.github.flowersinthesand.portal`
 
@@ -62,7 +24,7 @@ Returns the first application from the default repository. Use this method only 
 
 * `static App find(String name)`
 
-Finds an application which corresponds to the given name from the default repository. Use finder functions when injection by the Name annotation is not available. These methods are static, however, app intances are created and configured during initialization. So, only if initialization is done, finder functions can work correctly.
+Finds an application which corresponds to the given name from the default repository. These methods are static, however, app intances are initialized and configured during runtime. So, only if each app's initialization is done, finder functions can work correctly.
 
 * `App init(String name)`
 * `App init(String name, Options options)`
@@ -98,9 +60,45 @@ Finds corresponding room or opens new one if it doesn't exist. Utilize this meth
 
 Fires the given event to the given socket with data and reply callback.
 
-* `<T> T unwrap(Class<? super T> class)`
+* `Object bean(String name)`
+* `<T> T bean(Class<? super T> class)`
 
-Return a bean instantiated from the classes option.
+Return the corresponding bean by name or type from the bean container of the app.
+
+### Options
+
+* `Set<Class<?>> handlers()`
+* `Options handlers(Class<?>... classes)`
+
+Handler classes.
+
+* `Set<String> packages()`
+* `Options packages(String... packageNames)`
+
+Package names which will be scanned for handlers including sub packages.
+
+* `String base()`
+* `Options base(String base)`
+
+A base path for locations.
+
+* `Set<String> locations()`
+* `Options locations(String... paths)`
+
+Paths of files, directories and jars which will be scanned for handlers.
+
+* `Map<Class<?>, Class<?>> classes()`
+* `Options classes(String name, Class<?> class)`
+
+Classes to be instantiated and stored to the bean container of the app.
+
+* `Map<String, Object> beans()`
+* `Object bean(String name)`
+* `<T> T bean(Class<? super T> class)`
+* `Options beans(String name, Object bean)`
+* `Options beans(Object... beans)`
+
+Beans to be stored the bean container of the app and usually used to configure bridge or plugin.
 
 ### Handler
 

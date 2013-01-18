@@ -21,11 +21,13 @@ Copy the following into a file named `context.xml` in `META-INF` if the target s
 </Context>
 ```
 
-### Initializing an application
+## Bootstrapping
 
-#### Servlet 3
-A Servlet 3 container requires the following properties. ServletContextListener is a recommended entry point where the application starts.
- * `atmosphere.servletContext`: ServletContext.
+### Servlet 3
+The following types of beans are required. 
+ * `javax.servlet.ServletContext`
+ 
+ServletContextListener is a recommended entry point where the application starts. The AtmosphereServlet named `portal` will be created and added to the context automatically.
 
 ```java
 @WebListener
@@ -33,9 +35,7 @@ public class PortalInitializer implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent event) {
-        new App().init("/event", new Options()
-            .prop("atmosphere.servletContext", event.getServletContext()))
-        .register();
+        new App().init("/event", new Options().beans(event.getServletContext())).register();
     }
 
     @Override
@@ -44,21 +44,20 @@ public class PortalInitializer implements ServletContextListener {
 }
 ```
 
-#### Servlet 2.x
-A Servlet 2.x container requires the following properties, and you need to write a servlet extending `AtmosphereServlet` and declare it in web.xml. You can initialize the application in `void init(ServletConfig)` in the servlet.
- * `atmosphere.servletContext`: ServletContext.
- * `atmosphere.framework`: AtmosphereFramework of AtmosphereServlet.
+### Servlet 2.x
+The following types of beans are required.
+ * `javax.servlet.ServletContext`
+ * `org.atmosphere.cpr.AtmosphereFramework`
+
+You need to write a servlet extending AtmosphereServlet and declare it in web.xml. The app's initialization can be done in `void init(ServletConfig)` method only after calling the method of the super class.
 
 ```java
 public class PortalInitializer extends AtmosphereServlet {
     
     @Override
-    public void init(ServletConfig sc) throws ServletException {
-        super.init(sc);
-        new App().init("/event", new Options()
-            .prop("atmosphere.servletContext", getServletContext())
-            .prop("atmosphere.framework", framework()))
-        .register();
+    public void init(ServletConfig servletConfig) throws ServletException {
+        super.init(servletConfig);
+        new App().init("/event", new Options().beans(getServletContext(), framework)).register();
     }
     
 }

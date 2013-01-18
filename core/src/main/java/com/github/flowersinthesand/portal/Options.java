@@ -80,16 +80,12 @@ public class Options {
 		return this;
 	}
 
-	public Options classes(String name1, Class<?> clazz1, String name2, Class<?> clazz2) {
-		return classes(name1, clazz1).classes(name2, clazz2);
-	}
-
 	public Map<String, Object> beans() {
 		return beans;
 	}
 
-	public Object bean(String key) {
-		return beans.get(key);
+	public Object bean(String name) {
+		return beans.get(name);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -107,15 +103,15 @@ public class Options {
 		return null;
 	}
 
-	public Options beans(Object... objects) {
-		for (Object object : objects) {
-			beans(object.getClass().getName(), object);
-		}
+	public Options beans(String name, Object bean) {
+		beans.put(name, bean);
 		return this;
 	}
 
-	public Options beans(String name, Object bean) {
-		beans.put(name, bean);
+	public Options beans(Object... beans) {
+		for (Object bean : beans) {
+			beans(bean.getClass().getName(), bean);
+		}
 		return this;
 	}
 
