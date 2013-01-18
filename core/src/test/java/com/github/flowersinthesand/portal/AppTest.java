@@ -39,39 +39,45 @@ public class AppTest {
 	public void handlers() {
 		new App().init("/t", null, new InitializerAdapter() {
 			@Override
-			public void postHandlersInstantiation(Set<Object> handlers) {
-				Assert.assertEquals(handlers, Collections.EMPTY_SET);
+			public void postHandlerInstantiation(Object handler) {
+				Assert.assertEquals(handler, Collections.EMPTY_SET);
 			}
 		});
 		new App().init("/t", null, new InitializerAdapter() {
 			Options options = new Options();
+			Set<Class<?>> classes = new LinkedHashSet<Class<?>>();
 			
 			@Override
 			public Options init(App app, Map<String, Object> props) {
 				return options.handlers(EventsHandler.class);
 			}
+			
 			@Override
-			public void postHandlersInstantiation(Set<Object> handlers) {
-				Set<Class<?>> classes = new LinkedHashSet<Class<?>>();
-				for (Object handler : handlers) {
-					classes.add(handler.getClass());
-				}
+			public void postHandlerInstantiation(Object handler) {
+				classes.add(handler.getClass());
+			}
+			
+			@Override
+			public void postInitialization() {
 				Assert.assertEquals(classes, options.handlers());
 			}
 		});
 		new App().init("/t", null, new InitializerAdapter() {
 			Options options = new Options();
+			Set<Class<?>> classes = new LinkedHashSet<Class<?>>();
 			
 			@Override
 			public Options init(App app, Map<String, Object> props) {
 				return options.handlers(EventsHandler.class, InitHandler.class);
 			}
+			
 			@Override
-			public void postHandlersInstantiation(Set<Object> handlers) {
-				Set<Class<?>> classes = new LinkedHashSet<Class<?>>();
-				for (Object handler : handlers) {
-					classes.add(handler.getClass());
-				}
+			public void postHandlerInstantiation(Object handler) {
+				classes.add(handler.getClass());
+			}
+			
+			@Override
+			public void postInitialization() {
 				Assert.assertEquals(classes, options.handlers());
 			}
 		});
@@ -80,39 +86,81 @@ public class AppTest {
 	@Test
 	public void scan() {
 		new App().init("/t", new Options().base("."), new InitializerAdapter() {
+			int size = 0;
+
 			@Override
-			public void postHandlersInstantiation(Set<Object> handlers) {
-				Assert.assertEquals(handlers.size(), 0);
+			public void postHandlerInstantiation(Object handler) {
+				size++;
+			}
+
+			@Override
+			public void postInitialization() {
+				Assert.assertEquals(size, 0);
 			}
 		});
 		new App().init("/t", new Options().base(".").locations("/target"), new InitializerAdapter() {
+			int size = 0;
+
 			@Override
-			public void postHandlersInstantiation(Set<Object> handlers) {
-				Assert.assertEquals(handlers.size(), 2);
+			public void postHandlerInstantiation(Object handler) {
+				size++;
+			}
+
+			@Override
+			public void postInitialization() {
+				Assert.assertEquals(size, 2);
 			}
 		});
 		new App().init("/t", new Options().base("../").locations("/target"), new InitializerAdapter() {
+			int size = 0;
+
 			@Override
-			public void postHandlersInstantiation(Set<Object> handlers) {
-				Assert.assertEquals(handlers.size(), 0);
+			public void postHandlerInstantiation(Object handler) {
+				size++;
+			}
+
+			@Override
+			public void postInitialization() {
+				Assert.assertEquals(size, 0);
 			}
 		});
 		new App().init("/t", new Options().base(".").locations("/src"), new InitializerAdapter() {
+			int size = 0;
+
 			@Override
-			public void postHandlersInstantiation(Set<Object> handlers) {
-				Assert.assertEquals(handlers.size(), 0);
+			public void postHandlerInstantiation(Object handler) {
+				size++;
+			}
+
+			@Override
+			public void postInitialization() {
+				Assert.assertEquals(size, 0);
 			}
 		});
 		new App().init("/t", new Options().packages("com.github.flowersinthesand.portal"), new InitializerAdapter() {
+			int size = 0;
+
 			@Override
-			public void postHandlersInstantiation(Set<Object> handlers) {
-				Assert.assertEquals(handlers.size(), 2);
+			public void postHandlerInstantiation(Object handler) {
+				size++;
+			}
+
+			@Override
+			public void postInitialization() {
+				Assert.assertEquals(size, 2);
 			}
 		});
 		new App().init("/t", new Options().packages("org.flowersinthesand.portal"), new InitializerAdapter() {
+			int size = 0;
+
 			@Override
-			public void postHandlersInstantiation(Set<Object> handlers) {
-				Assert.assertEquals(handlers.size(), 0);
+			public void postHandlerInstantiation(Object handler) {
+				size++;
+			}
+
+			@Override
+			public void postInitialization() {
+				Assert.assertEquals(size, 0);
 			}
 		});
 	}
@@ -121,14 +169,18 @@ public class AppTest {
 	public void classes() {
 		new App().init("/t", new Options().base(".").locations("").classes(SocketManager.class, NoOpSocketManager.class), new InitializerAdapter() {
 			@Override
-			public void postBeansInstantiation(Map<Class<?>, Object> beans) {
-				Assert.assertSame(NoOpSocketManager.class, beans.get(SocketManager.class).getClass());
+			public void postBeanInstantiation(Class<?> clazz, Object bean) {
+				if (clazz == SocketManager.class) {
+					Assert.assertSame(NoOpSocketManager.class, bean.getClass());
+				}
 			}
 		});
 		new App().init("/t", new Options().base(".").locations("").classes(Dispatcher.class, DefaultDispatcher.class), new InitializerAdapter() {
 			@Override
-			public void postBeansInstantiation(Map<Class<?>, Object> beans) {
-				Assert.assertSame(DefaultDispatcher.class, beans.get(Dispatcher.class).getClass());
+			public void postBeanInstantiation(Class<?> clazz, Object bean) {
+				if (clazz == Dispatcher.class) {
+					Assert.assertSame(DefaultDispatcher.class, bean.getClass());
+				}
 			}
 		});
 	}
@@ -139,12 +191,14 @@ public class AppTest {
 			DefaultDispatcher dispatcher;
 			
 			@Override
-			public void postBeansInstantiation(Map<Class<?>, Object> beans) {
-				dispatcher = (DefaultDispatcher) beans.get(Dispatcher.class);
+			public void postBeanInstantiation(Class<?> clazz, Object bean) {
+				if (bean.getClass().isAssignableFrom(DefaultDispatcher.class)) {
+					dispatcher = (DefaultDispatcher) bean;
+				}
 			}
 
 			@Override
-			public void postHandlersInstantiation(Set<Object> handlersandlers) {
+			public void postHandlerInstantiation(Object handlersandlers) {
 				Map<String, Set<EventHandler>> eventHandlers = dispatcher.eventHandlers();
 				Assert.assertNotNull(eventHandlers.get("load"));
 				Assert.assertNull(eventHandlers.get("ready"));

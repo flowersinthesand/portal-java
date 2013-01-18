@@ -69,11 +69,13 @@ public class AtmosphereInitializer extends InitializerAdapter {
 	}
 
 	@Override
-	public void postBeansInstantiation(Map<Class<?>, Object> beans) {
-		AtmosphereSocketManager manager = app.unwrap(SocketManager.class);
-		
-		manager.setApp(app);		
-		framework.addAtmosphereHandler(app.name(), manager);
+	public void postBeanInstantiation(Class<?> clazz, Object bean) {
+		if (clazz == SocketManager.class) {
+			AtmosphereSocketManager manager = (AtmosphereSocketManager) bean;
+
+			manager.setApp(app);		
+			framework.addAtmosphereHandler(app.name(), manager);
+		}
 	}
 
 }

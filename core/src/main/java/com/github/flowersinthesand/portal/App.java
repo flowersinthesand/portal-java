@@ -19,13 +19,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.ServiceLoader;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -64,9 +65,9 @@ public class App implements Serializable {
 	private AtomicBoolean initialized = new AtomicBoolean(false);
 	private String name;
 	private Options options;
-	private Set<Initializer> initializers;
-	private Map<Class<?>, Object> beans;
-	private Set<Object> handlers;
+	private Set<Initializer> initializers = new LinkedHashSet<Initializer>();;
+	private Map<Class<?>, Object> beans = new LinkedHashMap<Class<?>, Object>();
+	private Set<Object> handlers = new LinkedHashSet<Object>();
 	private Map<String, Object> attrs = new ConcurrentHashMap<String, Object>();
 	private Map<String, Room> rooms = new ConcurrentHashMap<String, Room>();
 	
@@ -93,7 +94,6 @@ public class App implements Serializable {
 	}
 
 	protected void loadInitializers(Initializer initializer) {
-		initializers = new LinkedHashSet<Initializer>();
 		initializers.add(new DefaultInitializer());
 		for (Initializer i : ServiceLoader.load(Initializer.class)) {
 			initializers.add(i);
@@ -108,27 +108,33 @@ public class App implements Serializable {
 			throw new IllegalStateException("Already initialized");
 		}
 		logger.info("Initializing the app#{} with options {} and initializers {}", name, options, initializers);
-
+		
 		options = resolveOptions(Collections.unmodifiableMap(options.props())).merge(options);
 		logger.info("Resovled options {}", options);
 
-		beans = Collections.unmodifiableMap(createBeans(options.classes()));
+		beans.putAll(createBeans(options.classes()));
 		logger.info("Instantiated beans {}", beans);
-		
 		for (Initializer p : initializers) {
 			logger.trace("Invoking postBeansInstantiation of Initializer {}", p);
-			p.postBeansInstantiation(beans);
+			for (Entry<Class<?>, Object> entry : beans.entrySet()) {
+				p.postBeanInstantiation(entry.getKey(), entry.getValue());
+			}
 		}
-
-		handlers = Collections.unmodifiableSet(createHandlers(scan(options)));
-		logger.info("Instantiated handlers {}", handlers);
 		
+		handlers.addAll(createHandlers(scan(options)));
+		logger.info("Instantiated handlers {}", handlers);
 		for (Initializer p : initializers) {
-			logger.trace("Invoking postHandlersInstantiation of Initializer {}", p);
-			p.postHandlersInstantiation(handlers);
+			logger.trace("Invoking postHandlerInstantiation of Initializer {}", p);
+			for (Object handler : handlers) {
+				p.postHandlerInstantiation(handler);
+			}
 		}
 
 		initialized.set(true);
+		for (Initializer p : initializers) {
+			logger.trace("Invoking postInitialization of Initializer {}", p);
+			p.postInitialization();
+		}
 		logger.info("Initializing the app#{} is completed", name);
 	}
 
@@ -175,8 +181,8 @@ public class App implements Serializable {
 		return new LinkedHashSet<Object>(map.values());
 	}
 
+	@SuppressWarnings("unchecked")
 	protected Set<Class<?>> scan(Options options) {
-		
 		String base = "";
 		if (options.base() != null) {
 			try {
@@ -187,14 +193,9 @@ public class App implements Serializable {
 		}
 
 		final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-		final Set<Class<?>> annotations = new LinkedHashSet<Class<?>>();
-		annotations.add(On.class);
-		annotations.add(On.open.class);
-		annotations.add(On.close.class);
-		annotations.add(On.message.class);
+		final Set<Class<?>> annotations = new LinkedHashSet<Class<?>>(Arrays.asList(On.class, On.open.class, On.close.class, On.message.class));
 		AnnotationDetector annotationDetector = new AnnotationDetector(new AnnotationDetector.TypeReporter() {
 
-			@SuppressWarnings("unchecked")
 			@Override
 			public Class<? extends Annotation>[] annotations() {
 				return new Class[] { On.class };
@@ -233,7 +234,6 @@ public class App implements Serializable {
 		final Set<Class<?>> handlers = new LinkedHashSet<Class<?>>(options.handlers());
 		AnnotationDetector handlerDetector = new AnnotationDetector(new AnnotationDetector.MethodReporter() {
 
-			@SuppressWarnings("unchecked")
 			@Override
 			public Class<? extends Annotation>[] annotations() {
 				return annotations.toArray(new Class[] {});

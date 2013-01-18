@@ -19,7 +19,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Map;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,8 +48,10 @@ public class DefaultInitializer extends InitializerAdapter {
 	}
 	
 	@Override
-	public void postBeansInstantiation(Map<Class<?>, Object> beans) {
-		dispatcher = app.unwrap(Dispatcher.class);
+	public void postBeanInstantiation(Class<?> clazz, Object bean) {
+		if (clazz == Dispatcher.class) {
+			dispatcher = (Dispatcher) bean;
+		}
 	}
 
 	@Override
@@ -59,59 +60,57 @@ public class DefaultInitializer extends InitializerAdapter {
 	}
 
 	@Override
-	public void postHandlersInstantiation(Set<Object> handlers) {
-		for (Object handler : handlers) {
-			logger.info("Installing a handler {}", handler);
-			
-			for (Field field : handler.getClass().getDeclaredFields()) {
-				if (field.isAnnotationPresent(Name.class)) {
-					String name = field.getAnnotation(Name.class).value();
-					Object value = null;
-					logger.debug("@Name(\"{}\") on {}", name, field);
+	public void postHandlerInstantiation(Object handler) {
+		logger.info("Installing a handler {}", handler);
+		
+		for (Field field : handler.getClass().getDeclaredFields()) {
+			if (field.isAnnotationPresent(Name.class)) {
+				String name = field.getAnnotation(Name.class).value();
+				Object value = null;
+				logger.debug("@Name(\"{}\") on {}", name, field);
 
-					field.setAccessible(true);
-					if (field.getType() == Room.class) {
-						value = app.room(name);
-					} else {
-						logger.error("@Name can be present only on the fields whose type is Room");
-					}
-
-					try {
-						field.set(handler, value);
-					} catch (Exception e) {
-						logger.error("Failed to set " + field + " to " + value, e);
-					}
-				}
-			}
-			
-			for (Method method : handler.getClass().getMethods()) {
-				String on = null;
-				if (method.isAnnotationPresent(On.class)) {
-					on = method.getAnnotation(On.class).value();
-					logger.debug("@On(\"{}\") on {}", on, method);
+				field.setAccessible(true);
+				if (field.getType() == Room.class) {
+					value = app.room(name);
 				} else {
-					for (Annotation ann : method.getAnnotations()) {
-						if (ann.annotationType().isAnnotationPresent(On.class)) {
-							on = ann.annotationType().getAnnotation(On.class).value();
-							logger.debug("@On(\"{}\") of {} on {}", on, ann, method);
-							break;
-						}
-					}
+					logger.error("@Name can be present only on the fields whose type is Room");
 				}
 
-				if (on != null) {
-					dispatcher.on(on, handler, method);
+				try {
+					field.set(handler, value);
+				} catch (Exception e) {
+					logger.error("Failed to set " + field + " to " + value, e);
 				}
 			}
-			
-			for (Method method : handler.getClass().getMethods()) {
-				if (method.isAnnotationPresent(Prepare.class)) {
-					logger.debug("@Prepare on {}", method);
-					try {
-						method.invoke(handler);
-					} catch (Exception e) {
-						logger.error("Failed to execute @Prepare method " + method, e);
+		}
+		
+		for (Method method : handler.getClass().getMethods()) {
+			String on = null;
+			if (method.isAnnotationPresent(On.class)) {
+				on = method.getAnnotation(On.class).value();
+				logger.debug("@On(\"{}\") on {}", on, method);
+			} else {
+				for (Annotation ann : method.getAnnotations()) {
+					if (ann.annotationType().isAnnotationPresent(On.class)) {
+						on = ann.annotationType().getAnnotation(On.class).value();
+						logger.debug("@On(\"{}\") of {} on {}", on, ann, method);
+						break;
 					}
+				}
+			}
+
+			if (on != null) {
+				dispatcher.on(on, handler, method);
+			}
+		}
+		
+		for (Method method : handler.getClass().getMethods()) {
+			if (method.isAnnotationPresent(Prepare.class)) {
+				logger.debug("@Prepare on {}", method);
+				try {
+					method.invoke(handler);
+				} catch (Exception e) {
+					logger.error("Failed to execute @Prepare method " + method, e);
 				}
 			}
 		}

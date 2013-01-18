@@ -16,7 +16,6 @@
 package com.github.flowersinthesand.portal.spi;
 
 import java.util.Map;
-import java.util.Set;
 
 import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Options;
@@ -27,10 +26,12 @@ public interface Initializer {
 
 	Object instantiateBean(Class<?> spec, Class<?> impl);
 
-	void postBeansInstantiation(Map<Class<?>, Object> beans);
+	void postBeanInstantiation(Class<?> clazz, Object bean);
 
 	Object instantiateHandler(Class<?> handlerClass);
 
-	void postHandlersInstantiation(Set<Object> handlers);
+	void postHandlerInstantiation(Object handler);
+	
+	void postInitialization();
 
 }
