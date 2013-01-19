@@ -67,11 +67,6 @@ Return the corresponding bean by name or type from the bean container of the app
 
 ### Options
 
-* `Set<Class<?>> handlers()`
-* `Options handlers(Class<?>... classes)`
-
-Handler classes.
-
 * `Set<String> packages()`
 * `Options packages(String... packageNames)`
 

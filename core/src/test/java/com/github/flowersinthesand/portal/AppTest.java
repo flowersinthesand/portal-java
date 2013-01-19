@@ -16,16 +16,12 @@
 package com.github.flowersinthesand.portal;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.junit.Assert;
 import org.testng.annotations.Test;
 
-import com.github.flowersinthesand.portal.handler.EventsHandler;
 import com.github.flowersinthesand.portal.handler.InitHandler;
 import com.github.flowersinthesand.portal.spi.DefaultDispatcher;
 import com.github.flowersinthesand.portal.spi.DefaultDispatcher.EventHandler;
@@ -35,54 +31,6 @@ import com.github.flowersinthesand.portal.spi.NoOpSocketManager;
 import com.github.flowersinthesand.portal.spi.SocketManager;
 
 public class AppTest {
-
-	@Test
-	public void handlers() {
-		new App().init("/t", null, new InitializerAdapter() {
-			@Override
-			public void postHandlerInstantiation(Object handler) {
-				Assert.assertEquals(handler, Collections.EMPTY_SET);
-			}
-		});
-		new App().init("/t", null, new InitializerAdapter() {
-			Class<?>[] handlers = { EventsHandler.class };
-			Set<Class<?>> classes = new LinkedHashSet<Class<?>>();
-
-			@Override
-			public void init(App app, Options options) {
-				options.handlers(handlers);
-			}
-
-			@Override
-			public void postHandlerInstantiation(Object handler) {
-				classes.add(handler.getClass());
-			}
-
-			@Override
-			public void postInitialization() {
-				Assert.assertEquals(classes, new LinkedHashSet<Class<?>>(Arrays.asList(handlers)));
-			}
-		});
-		new App().init("/t", null, new InitializerAdapter() {
-			Class<?>[] handlers = { EventsHandler.class, InitHandler.class };
-			Set<Class<?>> classes = new LinkedHashSet<Class<?>>();
-
-			@Override
-			public void init(App app, Options options) {
-				options.handlers(handlers);
-			}
-
-			@Override
-			public void postHandlerInstantiation(Object handler) {
-				classes.add(handler.getClass());
-			}
-
-			@Override
-			public void postInitialization() {
-				Assert.assertEquals(classes, new LinkedHashSet<Class<?>>(Arrays.asList(handlers)));
-			}
-		});
-	}
 
 	@Test
 	public void scan() {
@@ -147,7 +95,7 @@ public class AppTest {
 			}
 
 			@Override
-			public void postHandlerInstantiation(Object handlersandlers) {
+			public void postHandlerInstantiation(Object handler) {
 				Map<String, Set<EventHandler>> eventHandlers = dispatcher.eventHandlers();
 				Assert.assertNotNull(eventHandlers.get("load"));
 				Assert.assertNull(eventHandlers.get("ready"));

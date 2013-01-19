@@ -211,7 +211,7 @@ public class App implements Serializable {
 			}	
 		}
 
-		final Set<Class<?>> handlers = new LinkedHashSet<Class<?>>(options.handlers());
+		final Set<Class<?>> handlers = new LinkedHashSet<Class<?>>();
 		AnnotationDetector handlerDetector = new AnnotationDetector(new AnnotationDetector.MethodReporter() {
 
 			@Override

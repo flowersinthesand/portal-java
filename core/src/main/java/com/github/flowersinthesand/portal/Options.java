@@ -22,21 +22,9 @@ import java.util.Set;
 
 public class Options {
 
-	private Set<Class<?>> handlers = new LinkedHashSet<Class<?>>();
 	private Set<String> packages = new LinkedHashSet<String>();
 	private Map<String, Class<?>> classes = new LinkedHashMap<String, Class<?>>();
 	private Map<String, Object> beans = new LinkedHashMap<String, Object>();
-
-	public Set<Class<?>> handlers() {
-		return handlers;
-	}
-
-	public Options handlers(Class<?>... classes) {
-		for (Class<?> clazz : classes) {
-			handlers.add(clazz);
-		}
-		return this;
-	}
 
 	public Set<String> packages() {
 		return packages;
@@ -95,9 +83,6 @@ public class Options {
 
 	public Options merge(Options options) {
 		if (options != null) {
-			if (options.handlers() != null) {
-				handlers.addAll(options.handlers());
-			}
 			if (options.packages() != null) {
 				packages.addAll(options.packages());
 			}
@@ -118,7 +103,6 @@ public class Options {
 	public String toString() {
 		Map<String, Object> map = new LinkedHashMap<String, Object>();
 
-		map.put("handlers", handlers);
 		map.put("packages", packages);
 		map.put("classes", classes);
 		map.put("beans", beans);
