@@ -62,7 +62,7 @@ public class AtmosphereInitializer extends InitializerAdapter {
 	}
 
 	@Override
-	public void postBeanInstantiation(String name, Object bean) {
+	public void postInstantiation(String name, Object bean) {
 		if (AtmosphereSocketManager.class.isAssignableFrom(bean.getClass())) {
 			AtmosphereSocketManager manager = (AtmosphereSocketManager) bean;
 

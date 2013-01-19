@@ -25,21 +25,13 @@ public abstract class InitializerAdapter implements Initializer {
 	public void init(App app, Options options) {}
 	
 	@Override
-	public Object instantiateBean(String name, Class<?> clazz) {
+	public Object instantiate(String name, Class<?> clazz) {
 		return null;
 	}
 
 	@Override
-	public void postBeanInstantiation(String name, Object bean) {}
+	public void postInstantiation(String name, Object bean) {}
 
-	@Override
-	public Object instantiateHandler(Class<?> clazz) {
-		return null;
-	}
-
-	@Override
-	public void postHandlerInstantiation(Object handler) {}
-	
 	@Override
 	public void postInitialization() {}
 

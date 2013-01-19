@@ -38,21 +38,25 @@ public class AppTest {
 			int size = 0;
 
 			@Override
-			public void postHandlerInstantiation(Object handler) {
-				size++;
+			public void postInstantiation(String name, Object bean) {
+				if (name.startsWith("com.github.flowersinthesand.portal")) {
+					size++;
+				}
 			}
 
 			@Override
 			public void postInitialization() {
-				Assert.assertEquals(size, 2);
+				Assert.assertEquals(size, 3);
 			}
 		});
 		new App().init("/t", new Options().packages("org.flowersinthesand.portal"), new InitializerAdapter() {
 			int size = 0;
 
 			@Override
-			public void postHandlerInstantiation(Object handler) {
-				size++;
+			public void postInstantiation(String name, Object bean) {
+				if (name.startsWith("org.flowersinthesand.portal")) {
+					size++;
+				}
 			}
 
 			@Override
@@ -66,7 +70,7 @@ public class AppTest {
 	public void classes() {
 		new App().init("/t", new Options().packages("com.github.flowersinthesand.portal").classes(SocketManager.class.getName(), NoOpSocketManager.class), new InitializerAdapter() {
 			@Override
-			public void postBeanInstantiation(String name, Object bean) {
+			public void postInstantiation(String name, Object bean) {
 				if (name.equals(SocketManager.class.getName())) {
 					Assert.assertSame(NoOpSocketManager.class, bean.getClass());
 				}
@@ -74,7 +78,7 @@ public class AppTest {
 		});
 		new App().init("/t", new Options().packages("com.github.flowersinthesand.portal").classes(Dispatcher.class.getName(), DefaultDispatcher.class), new InitializerAdapter() {
 			@Override
-			public void postBeanInstantiation(String name, Object bean) {
+			public void postInstantiation(String name, Object bean) {
 				if (name.equals(Dispatcher.class.getName())) {
 					Assert.assertSame(DefaultDispatcher.class, bean.getClass());
 				}
@@ -85,20 +89,15 @@ public class AppTest {
 	@Test
 	public void init() throws IOException {
 		new App().init("/init", new Options().packages("com.github.flowersinthesand.portal"), new InitializerAdapter() {
-			DefaultDispatcher dispatcher;
-			
 			@Override
-			public void postBeanInstantiation(String name, Object bean) {
+			public void postInstantiation(String name, Object bean) {
 				if (bean.getClass().isAssignableFrom(DefaultDispatcher.class)) {
-					dispatcher = (DefaultDispatcher) bean;
+					DefaultDispatcher dispatcher = (DefaultDispatcher) bean;
+					Map<String, Set<EventHandler>> eventHandlers = dispatcher.eventHandlers();
+					
+					Assert.assertNotNull(eventHandlers.get("load"));
+					Assert.assertNull(eventHandlers.get("ready"));
 				}
-			}
-
-			@Override
-			public void postHandlerInstantiation(Object handler) {
-				Map<String, Set<EventHandler>> eventHandlers = dispatcher.eventHandlers();
-				Assert.assertNotNull(eventHandlers.get("load"));
-				Assert.assertNull(eventHandlers.get("ready"));
 			}
 		});
 	}

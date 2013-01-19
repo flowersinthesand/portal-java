@@ -33,7 +33,6 @@ public class DefaultInitializer extends InitializerAdapter {
 
 	private final Logger logger = LoggerFactory.getLogger(DefaultInitializer.class);
 	private App app;
-	private Dispatcher dispatcher;
 	
 	@Override
 	public void init(App app, Options options) {
@@ -42,23 +41,7 @@ public class DefaultInitializer extends InitializerAdapter {
 	}
 
 	@Override
-	public Object instantiateBean(String name, Class<?> clazz) {
-		return instantiate(clazz);
-	}
-	
-	@Override
-	public void postBeanInstantiation(String name, Object bean) {
-		if (Dispatcher.class.isAssignableFrom(bean.getClass())) {
-			dispatcher = (Dispatcher) bean;
-		}
-	}
-
-	@Override
-	public Object instantiateHandler(Class<?> clazz) {
-		return instantiate(clazz);
-	}
-	
-	public Object instantiate(Class<?> clazz) {
+	public Object instantiate(String name, Class<?> clazz) {
 		try {
 			return clazz.newInstance();
 		} catch (Exception e) {
@@ -67,33 +50,31 @@ public class DefaultInitializer extends InitializerAdapter {
 
 		return null;
 	}
-
+	
 	@Override
-	public void postHandlerInstantiation(Object handler) {
-		logger.info("Installing a handler {}", handler);
-		
-		for (Field field : handler.getClass().getDeclaredFields()) {
+	public void postInstantiation(String name, Object bean) {
+		for (Field field : bean.getClass().getDeclaredFields()) {
 			if (field.isAnnotationPresent(Name.class)) {
-				String name = field.getAnnotation(Name.class).value();
+				String fieldName = field.getAnnotation(Name.class).value();
 				Object value = null;
-				logger.debug("@Name(\"{}\") on {}", name, field);
+				logger.debug("@Name(\"{}\") on {}", fieldName, field);
 
 				field.setAccessible(true);
 				if (field.getType() == Room.class) {
-					value = app.room(name);
+					value = app.room(fieldName);
 				} else {
 					logger.error("@Name can be present only on the fields whose type is Room");
 				}
 
 				try {
-					field.set(handler, value);
+					field.set(bean, value);
 				} catch (Exception e) {
 					logger.error("Failed to set " + field + " to " + value, e);
 				}
 			}
 		}
 		
-		for (Method method : handler.getClass().getMethods()) {
+		for (Method method : bean.getClass().getMethods()) {
 			String on = null;
 			if (method.isAnnotationPresent(On.class)) {
 				on = method.getAnnotation(On.class).value();
@@ -107,17 +88,14 @@ public class DefaultInitializer extends InitializerAdapter {
 					}
 				}
 			}
-
 			if (on != null) {
-				dispatcher.on(on, handler, method);
+				app.bean(Dispatcher.class).on(on, bean, method);
 			}
-		}
-		
-		for (Method method : handler.getClass().getMethods()) {
+			
 			if (method.isAnnotationPresent(Prepare.class)) {
 				logger.debug("@Prepare on {}", method);
 				try {
-					method.invoke(handler);
+					method.invoke(bean);
 				} catch (Exception e) {
 					logger.error("Failed to execute @Prepare method " + method, e);
 				}

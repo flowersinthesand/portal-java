@@ -64,7 +64,6 @@ public class App implements Serializable {
 	private String name;
 	private Set<Initializer> initializers = new LinkedHashSet<Initializer>();
 	private Map<String, Object> beans = new LinkedHashMap<String, Object>();
-	private Set<Object> handlers = new LinkedHashSet<Object>();
 	private Map<String, Object> attrs = new ConcurrentHashMap<String, Object>();
 	private Map<String, Room> rooms = new ConcurrentHashMap<String, Room>();
 	
@@ -111,75 +110,36 @@ public class App implements Serializable {
 		
 		init(options);
 		logger.info("Final options {}", options);
-
-		beans.putAll(createBeans(options.classes()));
-		logger.info("Instantiated beans {}", beans);
-		for (Initializer p : initializers) {
-			logger.trace("Invoking postBeanInstantiation of Initializer {}", p);
+		
+		Map<String, Class<?>> classes = new LinkedHashMap<String, Class<?>>(options.classes());
+		classes.putAll(scan(options.packages()));
+		beans.putAll(createBeans(classes));
+		logger.info("Created beans {}", beans);
+		for (Initializer i : initializers) {
+			logger.trace("Invoking postBeanInstantiation of Initializer {}", i);
 			for (Entry<String, Object> entry : beans.entrySet()) {
-				p.postBeanInstantiation(entry.getKey(), entry.getValue());
+				i.postInstantiation(entry.getKey(), entry.getValue());
 			}
 		}
 		beans.putAll(options.beans());
 		
-		handlers.addAll(createHandlers(scan(options)));
-		logger.info("Instantiated handlers {}", handlers);
-		for (Initializer p : initializers) {
-			logger.trace("Invoking postHandlerInstantiation of Initializer {}", p);
-			for (Object handler : handlers) {
-				p.postHandlerInstantiation(handler);
-			}
-		}
-
 		initialized.set(true);
-		for (Initializer p : initializers) {
-			logger.trace("Invoking postInitialization of Initializer {}", p);
-			p.postInitialization();
+		for (Initializer i : initializers) {
+			logger.trace("Invoking postInitialization of Initializer {}", i);
+			i.postInitialization();
 		}
 		logger.info("Initializing the app#{} is completed", name);
 	}
 
 	protected void init(Options options) {
-		for (Initializer p : initializers) {
-			logger.trace("Invoking options of Initializer {}", p);
-			p.init(this, options);
+		for (Initializer i : initializers) {
+			logger.trace("Invoking options of Initializer {}", i);
+			i.init(this, options);
 		}
-	}
-
-	protected Map<String, Object> createBeans(Map<String, Class<?>> classes) {
-		Map<String, Object> map = new LinkedHashMap<String, Object>();
-
-		for (Initializer p : initializers) {
-			logger.trace("Invoking instantiateBeans of Initializer {}", p);
-			for (Entry<String, Class<?>> entry : classes.entrySet()) {
-				Object bean = p.instantiateBean(entry.getKey(), entry.getValue());
-				if (bean != null) {
-					map.put(entry.getKey(), bean);
-				}
-			}
-		}
-
-		return map;
-	}
-
-	protected Set<Object> createHandlers(Set<Class<?>> classes) {
-		Map<Class<?>, Object> map = new LinkedHashMap<Class<?>, Object>();
-
-		for (Initializer p : initializers) {
-			logger.trace("Invoking instantiateHandlers of Initializer {}", p);
-			for (Class<?> clazz : classes) {
-				Object handler = p.instantiateHandler(clazz);
-				if (handler != null) {
-					map.put(clazz, handler);
-				}
-			}
-		}
-
-		return new LinkedHashSet<Object>(map.values());
 	}
 
 	@SuppressWarnings("unchecked")
-	protected Set<Class<?>> scan(Options options) {
+	protected Map<String, Class<?>> scan(Set<String> packages) {
 		final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 		final Set<Class<?>> annotations = new LinkedHashSet<Class<?>>(Arrays.asList(On.class, On.open.class, On.close.class, On.message.class));
 		AnnotationDetector annotationDetector = new AnnotationDetector(new AnnotationDetector.TypeReporter() {
@@ -200,7 +160,7 @@ public class App implements Serializable {
 			}
 
 		});
-		for (String packageName : options.packages()) {
+		for (String packageName : packages) {
 			logger.debug("Scanning an annotation annotated with @On in {}", packageName);
 
 			try {
@@ -211,7 +171,7 @@ public class App implements Serializable {
 			}	
 		}
 
-		final Set<Class<?>> handlers = new LinkedHashSet<Class<?>>();
+		final Map<String, Class<?>> handlers = new LinkedHashMap<String, Class<?>>();
 		AnnotationDetector handlerDetector = new AnnotationDetector(new AnnotationDetector.MethodReporter() {
 
 			@Override
@@ -222,7 +182,7 @@ public class App implements Serializable {
 			@Override
 			public void reportMethodAnnotation(Class<? extends Annotation> annotation, String className, String methodName) {
 				try {
-					handlers.add(classLoader.loadClass(className));
+					handlers.put(className, classLoader.loadClass(className));
 				} catch (ClassNotFoundException e) {
 					logger.error("Handler class " + className + " not found", e);
 					throw new IllegalArgumentException(e);
@@ -230,7 +190,7 @@ public class App implements Serializable {
 			}
 
 		});
-		for (String packageName : options.packages()) {
+		for (String packageName : packages) {
 			logger.debug("Scanning {} in {}", annotations, packageName);
 
 			try {
@@ -242,6 +202,22 @@ public class App implements Serializable {
 		}
 		
 		return handlers;
+	}
+
+	protected Map<String, Object> createBeans(Map<String, Class<?>> classes) {
+		Map<String, Object> map = new LinkedHashMap<String, Object>();
+
+		for (Initializer i : initializers) {
+			logger.trace("Invoking instantiateBeans of Initializer {}", i);
+			for (Entry<String, Class<?>> entry : classes.entrySet()) {
+				Object bean = i.instantiate(entry.getKey(), entry.getValue());
+				if (bean != null) {
+					map.put(entry.getKey(), bean);
+				}
+			}
+		}
+
+		return map;
 	}
 
 	public App register() {
@@ -285,20 +261,17 @@ public class App implements Serializable {
 	}
 
 	public App fire(String event, Socket socket) {
-		Dispatcher dispatcher = bean(Dispatcher.class);
-		dispatcher.fire(event, socket);
+		bean(Dispatcher.class).fire(event, socket);
 		return this;
 	}
 
 	public App fire(String event, Socket socket, Object data) {
-		Dispatcher dispatcher = bean(Dispatcher.class);
-		dispatcher.fire(event, socket, data);
+		bean(Dispatcher.class).fire(event, socket, data);
 		return this;
 	}
 
 	public App fire(String event, Socket socket, Object data, Fn.Callback1<Object> reply) {
-		Dispatcher dispatcher = bean(Dispatcher.class);
-		dispatcher.fire(event, socket, data, reply);
+		bean(Dispatcher.class).fire(event, socket, data, reply);
 		return this;
 	}
 
@@ -307,7 +280,7 @@ public class App implements Serializable {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> T bean(Class<? super T> clazz) {
+	public <T> T bean(Class<T> clazz) {
 		for (Object object : beans.values()) {
 			if (clazz == object.getClass()) {
 				return (T) object;

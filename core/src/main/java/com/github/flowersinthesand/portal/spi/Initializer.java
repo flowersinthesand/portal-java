@@ -15,7 +15,6 @@
  */
 package com.github.flowersinthesand.portal.spi;
 
-
 import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Options;
 
@@ -23,14 +22,10 @@ public interface Initializer {
 
 	void init(App app, Options options);
 
-	Object instantiateBean(String name, Class<?> clazz);
+	Object instantiate(String name, Class<?> clazz);
 
-	void postBeanInstantiation(String name, Object bean);
+	void postInstantiation(String name, Object bean);
 
-	Object instantiateHandler(Class<?> handlerClass);
-
-	void postHandlerInstantiation(Object handler);
-	
 	void postInitialization();
 
 }
