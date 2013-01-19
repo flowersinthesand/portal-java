@@ -31,27 +31,27 @@ public class AppTest {
 
 	@Test
 	public void scan() {
-		new App().init("/t", new Options().packages("com.github.flowersinthesand.portal"), new InitializerAdapter() {
+		new App().init("/t", new Options().packages("com.github.flowersinthesand.portal.handler"), new InitializerAdapter() {
 			int size = 0;
 
 			@Override
 			public void postInstantiation(String name, Object bean) {
-				if (name.startsWith("com.github.flowersinthesand.portal")) {
+				if (name.startsWith("com.github.flowersinthesand.portal.handler")) {
 					size++;
 				}
 			}
 
 			@Override
 			public void postInitialization() {
-				Assert.assertEquals(size, 3);
+				Assert.assertEquals(size, 2);
 			}
 		});
-		new App().init("/t", new Options().packages("org.flowersinthesand.portal"), new InitializerAdapter() {
+		new App().init("/t", new Options().packages("org.flowersinthesand.portal.handler"), new InitializerAdapter() {
 			int size = 0;
 
 			@Override
 			public void postInstantiation(String name, Object bean) {
-				if (name.startsWith("org.flowersinthesand.portal")) {
+				if (name.startsWith("org.flowersinthesand.portal.handler")) {
 					size++;
 				}
 			}
@@ -87,6 +87,7 @@ public class AppTest {
 		Assert.assertEquals(InitHandler.getPrivateRoom().name(), "privateRoom");
 		Assert.assertEquals(InitHandler.getPackagePrivateRoom().name(), "packagePrivateRoom");
 		Assert.assertEquals(InitHandler.getPublicRoom().name(), "publicRoom");
+		Assert.assertNotNull(InitHandler.getDispatcher());
 	}
 
 	@Test

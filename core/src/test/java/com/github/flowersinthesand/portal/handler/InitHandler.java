@@ -22,21 +22,28 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import com.github.flowersinthesand.portal.Bean;
-import com.github.flowersinthesand.portal.Name;
 import com.github.flowersinthesand.portal.On;
 import com.github.flowersinthesand.portal.Prepare;
 import com.github.flowersinthesand.portal.Room;
+import com.github.flowersinthesand.portal.Wire;
+import com.github.flowersinthesand.portal.spi.Dispatcher;
 
 @Bean
 public class InitHandler {
 
 	public static boolean prepared;
-	@Name("privateRoom")
+
+	@Wire("privateRoom")
 	private static Room privateRoom;
-	@Name("packagePrivateRoom")
+
+	@Wire("packagePrivateRoom")
 	static Room packagePrivateRoom;
-	@Name("publicRoom")
+
+	@Wire("publicRoom")
 	public static Room publicRoom;
+	
+	@Wire
+	public static Dispatcher dispatcher;
 
 	@Prepare
 	public void prepare1() {
@@ -56,6 +63,10 @@ public class InitHandler {
 
 	public static Room getPublicRoom() {
 		return publicRoom;
+	}
+
+	public static Dispatcher getDispatcher() {
+		return dispatcher;
 	}
 
 	@Target(ElementType.METHOD)

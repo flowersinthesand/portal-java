@@ -46,6 +46,7 @@ import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.Fn;
 import com.github.flowersinthesand.portal.Room;
 import com.github.flowersinthesand.portal.Socket;
+import com.github.flowersinthesand.portal.Wire;
 import com.github.flowersinthesand.portal.spi.SocketManager;
 
 @Bean("com.github.flowersinthesand.portal.spi.SocketManager")
@@ -72,6 +73,8 @@ public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager
 	private final Logger logger = LoggerFactory.getLogger(AtmosphereSocketManager.class);
 	private ObjectMapper mapper = new ObjectMapper();
 	private Map<String, AtmosphereSocket> sockets = new ConcurrentHashMap<String, AtmosphereSocket>();
+	
+	@Wire
 	private App app;
 
 	@Override
@@ -401,10 +404,6 @@ public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager
 				logger.warn("", e);
 			}
 		}
-	}
-	
-	public void setApp(App app) {
-		this.app = app;
 	}
 
 }

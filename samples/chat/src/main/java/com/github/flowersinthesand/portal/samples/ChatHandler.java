@@ -17,15 +17,17 @@ package com.github.flowersinthesand.portal.samples;
 
 import java.util.Map;
 
+import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.Data;
-import com.github.flowersinthesand.portal.Name;
 import com.github.flowersinthesand.portal.On;
 import com.github.flowersinthesand.portal.Room;
 import com.github.flowersinthesand.portal.Socket;
+import com.github.flowersinthesand.portal.Wire;
 
+@Bean
 public class ChatHandler {
 
-	@Name("chat")
+	@Wire("chat")
 	private Room room;
 
 	@On.open

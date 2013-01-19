@@ -23,11 +23,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.flowersinthesand.portal.App;
-import com.github.flowersinthesand.portal.Name;
 import com.github.flowersinthesand.portal.On;
 import com.github.flowersinthesand.portal.Options;
 import com.github.flowersinthesand.portal.Prepare;
 import com.github.flowersinthesand.portal.Room;
+import com.github.flowersinthesand.portal.Wire;
 
 public class DefaultInitializer extends InitializerAdapter {
 
@@ -54,19 +54,32 @@ public class DefaultInitializer extends InitializerAdapter {
 	@Override
 	public void postInstantiation(String name, Object bean) {
 		for (Field field : bean.getClass().getDeclaredFields()) {
-			if (field.isAnnotationPresent(Name.class)) {
-				String fieldName = field.getAnnotation(Name.class).value();
-				Object value = null;
-				logger.debug("@Name(\"{}\") on {}", fieldName, field);
+			if (field.isAnnotationPresent(Wire.class)) {
+				String beanName = field.getAnnotation(Wire.class).value();
+				Class<?> beanType = field.getType();
+				logger.debug("@Wire(\"{}\") on {}", beanName, field);
 
-				field.setAccessible(true);
-				if (field.getType() == Room.class) {
-					value = app.room(fieldName);
+				Object value = null;
+				if (beanType.isAssignableFrom(App.class)) {
+					value = app;
+				} else if (beanType.isAssignableFrom(Room.class)) {
+					if (beanName.length() == 0) {
+						RuntimeException e = new IllegalArgumentException("Room name cannot be null");
+						logger.error(e.getMessage(), e);
+						throw e;
+					}
+					value = app.room(beanName);
 				} else {
-					logger.error("@Name can be present only on the fields whose type is Room");
+					value = beanName.length() > 0 ? app.bean(beanName) : app.bean(beanType);
+				}
+				if (value == null) {
+					RuntimeException e = new IllegalStateException("Cannot wire the field " + field);
+					logger.error(e.getMessage(), e);
+					throw e;
 				}
 
 				try {
+					field.setAccessible(true);
 					field.set(bean, value);
 				} catch (Exception e) {
 					logger.error("Failed to set " + field + " to " + value, e);
