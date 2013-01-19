@@ -15,7 +15,6 @@
  */
 package com.github.flowersinthesand.portal;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
@@ -181,15 +180,6 @@ public class App implements Serializable {
 
 	@SuppressWarnings("unchecked")
 	protected Set<Class<?>> scan(Options options) {
-		String base = "";
-		if (options.base() != null) {
-			try {
-				base = new File(options.base()).getCanonicalPath();
-			} catch (IOException e) {
-				logger.error("Cannot resolve the canonical path of the base " + options.base(), e);
-			}
-		}
-
 		final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 		final Set<Class<?>> annotations = new LinkedHashSet<Class<?>>(Arrays.asList(On.class, On.open.class, On.close.class, On.message.class));
 		AnnotationDetector annotationDetector = new AnnotationDetector(new AnnotationDetector.TypeReporter() {
@@ -205,20 +195,11 @@ public class App implements Serializable {
 					annotations.add(classLoader.loadClass(className));
 				} catch (ClassNotFoundException e) {
 					logger.error("Annotation " + className + " not found", e);
+					throw new IllegalArgumentException(e);
 				}
 			}
 
 		});
-		for (String location : options.locations()) {
-			location = base + ((location.length() != 0 && location.charAt(0) != '/') ? "/" : "") + location;
-			logger.debug("Scanning an annotation annotated with @On in {}", location);
-
-			try {
-				annotationDetector.detect(new File(location));
-			} catch (IOException e) {
-				logger.error("Failed to scan in " + location, e);
-			}
-		}
 		for (String packageName : options.packages()) {
 			logger.debug("Scanning an annotation annotated with @On in {}", packageName);
 
@@ -226,6 +207,7 @@ public class App implements Serializable {
 				annotationDetector.detect(packageName);
 			} catch (IOException e) {
 				logger.error("Failed to scan in " + packageName, e);
+				throw new IllegalStateException(e);
 			}	
 		}
 
@@ -243,21 +225,11 @@ public class App implements Serializable {
 					handlers.add(classLoader.loadClass(className));
 				} catch (ClassNotFoundException e) {
 					logger.error("Handler class " + className + " not found", e);
+					throw new IllegalArgumentException(e);
 				}
 			}
 
 		});
-		
-		for (String location : options.locations()) {
-			location = base + ((location.length() != 0 && location.charAt(0) != '/') ? "/" : "") + location;
-			logger.debug("Scanning {} in {}", annotations, location);
-
-			try {
-				handlerDetector.detect(new File(location));
-			} catch (IOException e) {
-				logger.error("Failed to scan in " + location, e);
-			}
-		}
 		for (String packageName : options.packages()) {
 			logger.debug("Scanning {} in {}", annotations, packageName);
 
@@ -265,7 +237,8 @@ public class App implements Serializable {
 				handlerDetector.detect(packageName);
 			} catch (IOException e) {
 				logger.error("Failed to scan in " + packageName, e);
-			}	
+				throw new IllegalStateException(e);
+			}
 		}
 		
 		return handlers;

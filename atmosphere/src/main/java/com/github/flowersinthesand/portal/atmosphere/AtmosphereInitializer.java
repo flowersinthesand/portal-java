@@ -57,13 +57,6 @@ public class AtmosphereInitializer extends InitializerAdapter {
 		} else {
 			framework = options.bean(AtmosphereFramework.class);
 		}
-		
-		if (options.base() == null) {
-			options.base(context.getRealPath(""));
-		}
-		if (options.base() != null) {
-			options.locations("/WEB-INF/classes");
-		}
 
 		options.classes(SocketManager.class.getName(), AtmosphereSocketManager.class);
 	}

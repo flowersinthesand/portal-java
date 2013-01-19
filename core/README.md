@@ -77,16 +77,6 @@ Handler classes.
 
 Package names which will be scanned for handlers including sub packages.
 
-* `String base()`
-* `Options base(String base)`
-
-A base path for locations.
-
-* `Set<String> locations()`
-* `Options locations(String... paths)`
-
-Paths of files, directories and jars which will be scanned for handlers.
-
 * `Map<Class<?>, Class<?>> classes()`
 * `Options classes(String name, Class<?> class)`
 

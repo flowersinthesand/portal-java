@@ -86,58 +86,6 @@ public class AppTest {
 
 	@Test
 	public void scan() {
-		new App().init("/t", new Options().base("."), new InitializerAdapter() {
-			int size = 0;
-
-			@Override
-			public void postHandlerInstantiation(Object handler) {
-				size++;
-			}
-
-			@Override
-			public void postInitialization() {
-				Assert.assertEquals(size, 0);
-			}
-		});
-		new App().init("/t", new Options().base(".").locations("/target"), new InitializerAdapter() {
-			int size = 0;
-
-			@Override
-			public void postHandlerInstantiation(Object handler) {
-				size++;
-			}
-
-			@Override
-			public void postInitialization() {
-				Assert.assertEquals(size, 2);
-			}
-		});
-		new App().init("/t", new Options().base("../").locations("/target"), new InitializerAdapter() {
-			int size = 0;
-
-			@Override
-			public void postHandlerInstantiation(Object handler) {
-				size++;
-			}
-
-			@Override
-			public void postInitialization() {
-				Assert.assertEquals(size, 0);
-			}
-		});
-		new App().init("/t", new Options().base(".").locations("/src"), new InitializerAdapter() {
-			int size = 0;
-
-			@Override
-			public void postHandlerInstantiation(Object handler) {
-				size++;
-			}
-
-			@Override
-			public void postInitialization() {
-				Assert.assertEquals(size, 0);
-			}
-		});
 		new App().init("/t", new Options().packages("com.github.flowersinthesand.portal"), new InitializerAdapter() {
 			int size = 0;
 
@@ -168,7 +116,7 @@ public class AppTest {
 	
 	@Test
 	public void classes() {
-		new App().init("/t", new Options().base(".").locations("").classes(SocketManager.class.getName(), NoOpSocketManager.class), new InitializerAdapter() {
+		new App().init("/t", new Options().packages("com.github.flowersinthesand.portal").classes(SocketManager.class.getName(), NoOpSocketManager.class), new InitializerAdapter() {
 			@Override
 			public void postBeanInstantiation(String name, Object bean) {
 				if (name.equals(SocketManager.class.getName())) {
@@ -176,7 +124,7 @@ public class AppTest {
 				}
 			}
 		});
-		new App().init("/t", new Options().base(".").locations("").classes(Dispatcher.class.getName(), DefaultDispatcher.class), new InitializerAdapter() {
+		new App().init("/t", new Options().packages("com.github.flowersinthesand.portal").classes(Dispatcher.class.getName(), DefaultDispatcher.class), new InitializerAdapter() {
 			@Override
 			public void postBeanInstantiation(String name, Object bean) {
 				if (name.equals(Dispatcher.class.getName())) {
@@ -188,7 +136,7 @@ public class AppTest {
 
 	@Test
 	public void init() throws IOException {
-		new App().init("/init", new Options().base(".").locations(""), new InitializerAdapter() {
+		new App().init("/init", new Options().packages("com.github.flowersinthesand.portal"), new InitializerAdapter() {
 			DefaultDispatcher dispatcher;
 			
 			@Override
@@ -210,7 +158,7 @@ public class AppTest {
 
 	@Test
 	public void inject() throws IOException {
-		new App().init("/init", new Options().base(".").locations(""));
+		new App().init("/init", new Options().packages("com.github.flowersinthesand.portal"));
 		
 		Assert.assertEquals(InitHandler.getPrivateRoom().name(), "privateRoom");
 		Assert.assertEquals(InitHandler.getPackagePrivateRoom().name(), "packagePrivateRoom");
@@ -219,7 +167,7 @@ public class AppTest {
 
 	@Test
 	public void preparation() throws IOException {
-		new App().init("/init", new Options().base(".").locations(""));
+		new App().init("/init", new Options().packages("com.github.flowersinthesand.portal"));
 		Assert.assertTrue(InitHandler.prepared);
 	}
 

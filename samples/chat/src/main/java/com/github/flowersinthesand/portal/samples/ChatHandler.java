@@ -13,24 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.flowersinthesand.samples;
+package com.github.flowersinthesand.portal.samples;
 
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-import javax.servlet.annotation.WebListener;
+import java.util.Map;
 
-import com.github.flowersinthesand.portal.App;
-import com.github.flowersinthesand.portal.Options;
+import com.github.flowersinthesand.portal.Data;
+import com.github.flowersinthesand.portal.Name;
+import com.github.flowersinthesand.portal.On;
+import com.github.flowersinthesand.portal.Room;
+import com.github.flowersinthesand.portal.Socket;
 
-@WebListener
-public class PortalInitializer implements ServletContextListener {
+public class ChatHandler {
 
-	@Override
-	public void contextInitialized(ServletContextEvent event) {
-		new App().init("/chat", new Options().beans(event.getServletContext())).register();
+	@Name("chat")
+	private Room room;
+
+	@On.open
+	public void open(Socket socket) {
+		room.add(socket);
 	}
 
-	@Override
-	public void contextDestroyed(ServletContextEvent sce) {}
+	@On.message
+	public void message(@Data Map<String, Object> message) {
+		room.send("message", message);
+	}
 
 }

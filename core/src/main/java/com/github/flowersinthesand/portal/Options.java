@@ -24,8 +24,6 @@ public class Options {
 
 	private Set<Class<?>> handlers = new LinkedHashSet<Class<?>>();
 	private Set<String> packages = new LinkedHashSet<String>();
-	private String base;
-	private Set<String> locations = new LinkedHashSet<String>();
 	private Map<String, Class<?>> classes = new LinkedHashMap<String, Class<?>>();
 	private Map<String, Object> beans = new LinkedHashMap<String, Object>();
 
@@ -47,26 +45,6 @@ public class Options {
 	public Options packages(String... packageNames) {
 		for (String packageName : packageNames) {
 			packages.add(packageName);
-		}
-		return this;
-	}
-
-	public String base() {
-		return base;
-	}
-
-	public Options base(String base) {
-		this.base = base;
-		return this;
-	}
-
-	public Set<String> locations() {
-		return locations;
-	}
-
-	public Options locations(String... paths) {
-		for (String path : paths) {
-			locations.add(path);
 		}
 		return this;
 	}
@@ -123,12 +101,6 @@ public class Options {
 			if (options.packages() != null) {
 				packages.addAll(options.packages());
 			}
-			if (options.base() != null) {
-				base = options.base();
-			}
-			if (options.locations() != null) {
-				locations.addAll(options.locations());
-			}
 			if (options.classes() != null) {
 				classes.putAll(options.classes());
 			}
@@ -148,8 +120,6 @@ public class Options {
 
 		map.put("handlers", handlers);
 		map.put("packages", packages);
-		map.put("base", base);
-		map.put("locations", locations);
 		map.put("classes", classes);
 		map.put("beans", beans);
 

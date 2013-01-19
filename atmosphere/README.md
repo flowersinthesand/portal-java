@@ -84,20 +84,3 @@ In the servlet declaration, the url of the applications to be integrated with th
     </servlet-mapping>
 </web-app>
 ```
-
-## Options
-The following options will override the default options of the core module.
-
-* `base`
-
-`servletContext.getRealPath("")` is used as the value, but it can be null in some cases. For example, the case where servlet container is Tomcat and unpackWARs option is set to false. Though you can still scan the class path by setting `packages` option. 
-
-* `locations`
-
-For convenience, scanning of resources is enabled by this. If the `base` is available, `/WEB-INF/classes` directory is added.
-
-* `classes`
-
-|Specification|Implementation
-|:--|:--
-|com.github.flowersinthesand.portal.spi.SocketManager|com.github.flowersinthesand.portal.atmosphere.AtmosphereSocketManager
