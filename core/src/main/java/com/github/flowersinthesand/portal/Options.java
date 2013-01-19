@@ -23,7 +23,6 @@ import java.util.Set;
 public class Options {
 
 	private Set<String> packages = new LinkedHashSet<String>();
-	private Map<String, Class<?>> classes = new LinkedHashMap<String, Class<?>>();
 	private Map<String, Object> beans = new LinkedHashMap<String, Object>();
 
 	public Set<String> packages() {
@@ -34,15 +33,6 @@ public class Options {
 		for (String packageName : packageNames) {
 			packages.add(packageName);
 		}
-		return this;
-	}
-
-	public Map<String, Class<?>> classes() {
-		return classes;
-	}
-
-	public Options classes(String name, Class<?> clazz) {
-		classes.put(name, clazz);
 		return this;
 	}
 
@@ -86,12 +76,6 @@ public class Options {
 			if (options.packages() != null) {
 				packages.addAll(options.packages());
 			}
-			if (options.classes() != null) {
-				classes.putAll(options.classes());
-			}
-			if (options.classes() != null) {
-				classes.putAll(options.classes());
-			}
 			if (options.beans() != null) {
 				beans.putAll(options.beans());
 			}
@@ -104,7 +88,6 @@ public class Options {
 		Map<String, Object> map = new LinkedHashMap<String, Object>();
 
 		map.put("packages", packages);
-		map.put("classes", classes);
 		map.put("beans", beans);
 
 		return map.toString();

@@ -27,11 +27,13 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.Data;
 import com.github.flowersinthesand.portal.Fn;
 import com.github.flowersinthesand.portal.Reply;
 import com.github.flowersinthesand.portal.Socket;
 
+@Bean("com.github.flowersinthesand.portal.spi.Dispatcher")
 public class DefaultDispatcher implements Dispatcher {
 
 	private final Logger logger = LoggerFactory.getLogger(DefaultDispatcher.class);

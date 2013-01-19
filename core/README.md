@@ -72,11 +72,6 @@ Return the corresponding bean by name or type from the bean container of the app
 
 Package names which will be scanned for handlers including sub packages.
 
-* `Map<Class<?>, Class<?>> classes()`
-* `Options classes(String name, Class<?> class)`
-
-Classes to be instantiated and stored to the bean container of the app.
-
 * `Map<String, Object> beans()`
 * `Object bean(String name)`
 * `<T> T bean(Class<? super T> class)`

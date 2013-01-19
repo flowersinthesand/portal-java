@@ -18,7 +18,6 @@ package com.github.flowersinthesand.portal;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -111,9 +110,7 @@ public class App implements Serializable {
 		init(options);
 		logger.info("Final options {}", options);
 		
-		Map<String, Class<?>> classes = new LinkedHashMap<String, Class<?>>(options.classes());
-		classes.putAll(scan(options.packages()));
-		beans.putAll(createBeans(classes));
+		beans.putAll(createBeans(scan(options.packages())));
 		logger.info("Created beans {}", beans);
 		for (Initializer i : initializers) {
 			logger.trace("Invoking postBeanInstantiation of Initializer {}", i);
@@ -141,67 +138,46 @@ public class App implements Serializable {
 	@SuppressWarnings("unchecked")
 	protected Map<String, Class<?>> scan(Set<String> packages) {
 		final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-		final Set<Class<?>> annotations = new LinkedHashSet<Class<?>>(Arrays.asList(On.class, On.open.class, On.close.class, On.message.class));
-		AnnotationDetector annotationDetector = new AnnotationDetector(new AnnotationDetector.TypeReporter() {
+		final Map<String, Class<?>> classes = new LinkedHashMap<String, Class<?>>();
+		AnnotationDetector detector = new AnnotationDetector(new AnnotationDetector.TypeReporter() {
 
 			@Override
 			public Class<? extends Annotation>[] annotations() {
-				return new Class[] { On.class };
+				return new Class[] { Bean.class };
 			}
 
 			@Override
 			public void reportTypeAnnotation(Class<? extends Annotation> annotation, String className) {
+				Class<?> clazz;
 				try {
-					annotations.add(classLoader.loadClass(className));
+					clazz = classLoader.loadClass(className);
 				} catch (ClassNotFoundException e) {
-					logger.error("Annotation " + className + " not found", e);
+					logger.error("Bean " + className + " not found", e);
 					throw new IllegalArgumentException(e);
 				}
+				
+				String name = clazz.getAnnotation(Bean.class).value();
+				if (name.length() == 0) {
+					name = clazz.getName();
+				}
+
+				classes.put(name, clazz);
 			}
 
 		});
+
 		for (String packageName : packages) {
-			logger.debug("Scanning an annotation annotated with @On in {}", packageName);
+			logger.debug("Scanning @Bean in {}", packageName);
 
 			try {
-				annotationDetector.detect(packageName);
-			} catch (IOException e) {
-				logger.error("Failed to scan in " + packageName, e);
-				throw new IllegalStateException(e);
-			}	
-		}
-
-		final Map<String, Class<?>> handlers = new LinkedHashMap<String, Class<?>>();
-		AnnotationDetector handlerDetector = new AnnotationDetector(new AnnotationDetector.MethodReporter() {
-
-			@Override
-			public Class<? extends Annotation>[] annotations() {
-				return annotations.toArray(new Class[] {});
-			}
-
-			@Override
-			public void reportMethodAnnotation(Class<? extends Annotation> annotation, String className, String methodName) {
-				try {
-					handlers.put(className, classLoader.loadClass(className));
-				} catch (ClassNotFoundException e) {
-					logger.error("Handler class " + className + " not found", e);
-					throw new IllegalArgumentException(e);
-				}
-			}
-
-		});
-		for (String packageName : packages) {
-			logger.debug("Scanning {} in {}", annotations, packageName);
-
-			try {
-				handlerDetector.detect(packageName);
+				detector.detect(packageName);
 			} catch (IOException e) {
 				logger.error("Failed to scan in " + packageName, e);
 				throw new IllegalStateException(e);
 			}
 		}
 		
-		return handlers;
+		return classes;
 	}
 
 	protected Map<String, Object> createBeans(Map<String, Class<?>> classes) {
@@ -261,17 +237,20 @@ public class App implements Serializable {
 	}
 
 	public App fire(String event, Socket socket) {
-		bean(Dispatcher.class).fire(event, socket);
+		Dispatcher dispatcher = (Dispatcher) bean(Dispatcher.class.getName());
+		dispatcher.fire(event, socket);
 		return this;
 	}
 
 	public App fire(String event, Socket socket, Object data) {
-		bean(Dispatcher.class).fire(event, socket, data);
+		Dispatcher dispatcher = (Dispatcher) bean(Dispatcher.class.getName());
+		dispatcher.fire(event, socket, data);
 		return this;
 	}
 
 	public App fire(String event, Socket socket, Object data, Fn.Callback1<Object> reply) {
-		bean(Dispatcher.class).fire(event, socket, data, reply);
+		Dispatcher dispatcher = (Dispatcher) bean(Dispatcher.class.getName());
+		dispatcher.fire(event, socket, data, reply);
 		return this;
 	}
 

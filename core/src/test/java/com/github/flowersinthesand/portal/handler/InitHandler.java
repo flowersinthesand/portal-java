@@ -21,11 +21,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.Name;
 import com.github.flowersinthesand.portal.On;
 import com.github.flowersinthesand.portal.Prepare;
 import com.github.flowersinthesand.portal.Room;
 
+@Bean
 public class InitHandler {
 
 	public static boolean prepared;

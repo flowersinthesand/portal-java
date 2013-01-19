@@ -25,10 +25,7 @@ import org.testng.annotations.Test;
 import com.github.flowersinthesand.portal.handler.InitHandler;
 import com.github.flowersinthesand.portal.spi.DefaultDispatcher;
 import com.github.flowersinthesand.portal.spi.DefaultDispatcher.EventHandler;
-import com.github.flowersinthesand.portal.spi.Dispatcher;
 import com.github.flowersinthesand.portal.spi.InitializerAdapter;
-import com.github.flowersinthesand.portal.spi.NoOpSocketManager;
-import com.github.flowersinthesand.portal.spi.SocketManager;
 
 public class AppTest {
 
@@ -62,26 +59,6 @@ public class AppTest {
 			@Override
 			public void postInitialization() {
 				Assert.assertEquals(size, 0);
-			}
-		});
-	}
-	
-	@Test
-	public void classes() {
-		new App().init("/t", new Options().packages("com.github.flowersinthesand.portal").classes(SocketManager.class.getName(), NoOpSocketManager.class), new InitializerAdapter() {
-			@Override
-			public void postInstantiation(String name, Object bean) {
-				if (name.equals(SocketManager.class.getName())) {
-					Assert.assertSame(NoOpSocketManager.class, bean.getClass());
-				}
-			}
-		});
-		new App().init("/t", new Options().packages("com.github.flowersinthesand.portal").classes(Dispatcher.class.getName(), DefaultDispatcher.class), new InitializerAdapter() {
-			@Override
-			public void postInstantiation(String name, Object bean) {
-				if (name.equals(Dispatcher.class.getName())) {
-					Assert.assertSame(DefaultDispatcher.class, bean.getClass());
-				}
 			}
 		});
 	}

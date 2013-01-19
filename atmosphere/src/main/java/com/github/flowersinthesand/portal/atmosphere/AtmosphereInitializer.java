@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Options;
 import com.github.flowersinthesand.portal.spi.InitializerAdapter;
-import com.github.flowersinthesand.portal.spi.SocketManager;
 
 public class AtmosphereInitializer extends InitializerAdapter {
 
@@ -58,7 +57,7 @@ public class AtmosphereInitializer extends InitializerAdapter {
 			framework = options.bean(AtmosphereFramework.class);
 		}
 
-		options.classes(SocketManager.class.getName(), AtmosphereSocketManager.class);
+		options.packages(this.getClass().getPackage().getName());
 	}
 
 	@Override

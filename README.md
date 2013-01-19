@@ -37,6 +37,7 @@ portal.open("/echo").send("message", "hello").message(function(data) {
 
 #### Server
 ```java
+@Bean
 public class EchoHandler {
 
     @On.message
@@ -64,6 +65,7 @@ portal.open("/chat").on({
 
 #### Server
 ```java
+@Bean
 public class ChatHandler {
 
     @Name("chat")
@@ -136,6 +138,7 @@ portal.find().send("account.save", {username: "flowersinthesand", email: "flower
 
 #### Server
 ```java
+@Bean
 public class AccountHandler {
 
     @On("account.save")
@@ -158,6 +161,7 @@ portal.find("/post").send("find", 5, function(post) {
 
 #### Server
 ```java
+@Bean
 public class PostHandler {
 
     private EntityManager em;
@@ -184,6 +188,7 @@ portal.find("/data").send("set", {key: "key", value: "value"}, function() {
 
 #### Server
 ```java
+@Bean
 public class DataHandler {
 
     @Name("data")
@@ -226,6 +231,7 @@ public interface Event {
 }
 ```
 ```java
+@Bean
 public class EventHandler {
 
     @On("custom")

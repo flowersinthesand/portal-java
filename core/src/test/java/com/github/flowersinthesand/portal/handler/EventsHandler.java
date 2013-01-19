@@ -15,12 +15,14 @@
  */
 package com.github.flowersinthesand.portal.handler;
 
+import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.Data;
 import com.github.flowersinthesand.portal.Fn;
 import com.github.flowersinthesand.portal.On;
 import com.github.flowersinthesand.portal.Reply;
 import com.github.flowersinthesand.portal.Socket;
 
+@Bean
 public class EventsHandler {
 
 	public Object[] args;

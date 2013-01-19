@@ -37,7 +37,7 @@ public class DefaultInitializer extends InitializerAdapter {
 	@Override
 	public void init(App app, Options options) {
 		this.app = app;
-		options.classes(Dispatcher.class.getName(), DefaultDispatcher.class);
+		options.packages(this.getClass().getPackage().getName());
 	}
 
 	@Override
@@ -89,7 +89,8 @@ public class DefaultInitializer extends InitializerAdapter {
 				}
 			}
 			if (on != null) {
-				app.bean(Dispatcher.class).on(on, bean, method);
+				Dispatcher dispatcher = (Dispatcher) app.bean(Dispatcher.class.getName());
+				dispatcher.on(on, bean, method);
 			}
 			
 			if (method.isAnnotationPresent(Prepare.class)) {

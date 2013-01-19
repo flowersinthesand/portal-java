@@ -42,11 +42,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.flowersinthesand.portal.App;
+import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.Fn;
 import com.github.flowersinthesand.portal.Room;
 import com.github.flowersinthesand.portal.Socket;
 import com.github.flowersinthesand.portal.spi.SocketManager;
 
+@Bean("com.github.flowersinthesand.portal.spi.SocketManager")
 public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager {
 
 	private static final String padding2K;
