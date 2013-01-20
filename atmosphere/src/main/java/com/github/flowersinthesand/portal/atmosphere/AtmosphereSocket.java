@@ -17,26 +17,16 @@ package com.github.flowersinthesand.portal.atmosphere;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.github.flowersinthesand.portal.Fn;
 import com.github.flowersinthesand.portal.Socket;
 import com.github.flowersinthesand.portal.spi.SocketManager;
 
 public class AtmosphereSocket extends Socket {
 
-	private final Logger logger = LoggerFactory.getLogger(AtmosphereSocket.class);
-	private Timer heartbeatTimer;
 	private AtomicInteger eventId = new AtomicInteger(0);
 	private Set<Map<String, Object>> cache = new CopyOnWriteArraySet<Map<String, Object>>();
-	private Map<Integer, Fn.Callback1<Object>> callbacks = new ConcurrentHashMap<Integer, Fn.Callback1<Object>>();
 
 	public AtmosphereSocket(String query, SocketManager manager) {
 		super(query, manager);
@@ -46,37 +36,8 @@ public class AtmosphereSocket extends Socket {
 		return param("id");
 	}
 
-	public synchronized Timer heartbeatTimer() {
-		return heartbeatTimer;
-	}
-
-	public synchronized void setHeartbeatTimer() {
-		final String id = id();
-		
-		if (heartbeatTimer != null) {
-			logger.debug("Canceling heartbeat timer for Socket#{}", id);
-			heartbeatTimer.cancel();
-		}
-		try {
-			long delay = Long.valueOf(param("heartbeat"));
-			logger.debug("Setting heartbeat timer for Socket#{}", id);
-			heartbeatTimer = new Timer("Heartbeat timer for Socket#" + id);
-			heartbeatTimer.schedule(new TimerTask() {
-				@Override
-				public void run() {
-					logger.debug("Closing Socket#{} due to heartbeat fail", id);
-					close();
-				}
-			}, delay);
-		} catch (NumberFormatException e) {}
-	}
-
 	public AtomicInteger eventId() {
 		return eventId;
-	}
-
-	public Map<Integer, Fn.Callback1<Object>> callbacks() {
-		return callbacks;
 	}
 
 	public Set<Map<String, Object>> cache() {

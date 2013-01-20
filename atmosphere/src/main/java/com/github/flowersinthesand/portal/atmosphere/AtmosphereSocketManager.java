@@ -24,7 +24,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.atmosphere.cpr.AtmosphereHandler;
@@ -41,13 +40,13 @@ import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.Fn;
-import com.github.flowersinthesand.portal.Room;
 import com.github.flowersinthesand.portal.Socket;
 import com.github.flowersinthesand.portal.Wire;
+import com.github.flowersinthesand.portal.spi.Dispatcher;
 import com.github.flowersinthesand.portal.spi.SocketManager;
+import com.github.flowersinthesand.portal.support.ReplyHandler;
 
 @Bean("com.github.flowersinthesand.portal.spi.SocketManager")
 public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager {
@@ -73,9 +72,10 @@ public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager
 	private final Logger logger = LoggerFactory.getLogger(AtmosphereSocketManager.class);
 	private ObjectMapper mapper = new ObjectMapper();
 	private Map<String, AtmosphereSocket> sockets = new ConcurrentHashMap<String, AtmosphereSocket>();
-	
 	@Wire
-	private App app;
+	private Dispatcher dispatcher;
+	@Wire
+	private ReplyHandler replyHandler;
 
 	@Override
 	public void onRequest(final AtmosphereResource resource) throws IOException {
@@ -106,13 +106,13 @@ public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager
 							writer.print('\n');
 							writer.flush();
 						}
-						app.fire("open", sockets.get(id));
+						dispatcher.fire("open", sockets.get(id));
 					} else if (transport.startsWith("longpoll")) {
 						response.setContentType("text/" + ("longpolljsonp".equals(transport) ? "javascript" : "plain"));
 						if (firstLongPoll) {
 							start(id, resource);
 							resource.resume();
-							app.fire("open", sockets.get(id));
+							dispatcher.fire("open", sockets.get(id));
 						} else {
 							Broadcaster broadcaster = broadcasterFactory().lookup(id); 
 							broadcaster.addAtmosphereResource(resource);
@@ -172,7 +172,7 @@ public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager
 							(transport.startsWith("longpoll") && !firstLongPoll && request.getAttribute("used") == null)) {
 							Socket socket = sockets.get(id);
 							end(id);
-							app.fire("close", socket);
+							dispatcher.fire("close", socket);
 						}
 					}
 				}
@@ -243,26 +243,14 @@ public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager
 		logger.info("Socket#{} has been opened, query: {}", id, query);
 		
 		AtmosphereSocket socket = new AtmosphereSocket(query, this);
-
 		broadcasterFactory().get(id).addAtmosphereResource(resource);
 		sockets.put(id, socket);
-		socket.setHeartbeatTimer();
 	}
 
 	private void end(String id) {
 		logger.info("Socket#{} has been closed", id);
-
-		AtmosphereSocket socket = sockets.get(id);
-
 		broadcasterFactory().lookup(id).destroy();
 		sockets.remove(id);
-		Timer heartbeatTimer = socket.heartbeatTimer();
-		if (heartbeatTimer != null) {
-			heartbeatTimer.cancel();
-		}
-		for (Room room : app.rooms().values()) {
-			room.remove(socket);
-		}
 	}
 
 	private void fire(String raw) throws IOException {
@@ -275,28 +263,10 @@ public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager
 		final AtmosphereSocket socket = sockets.get(id);
 		logger.info("Socket#{} is receiving an event {}", id, message);
 
-		if (type.equals("heartbeat")) {
-			logger.debug("Handling heartbeat");
-			if (socket.heartbeatTimer() != null) {
-				socket.setHeartbeatTimer();
-				socket.send("heartbeat");
-			}
-		} else if (type.equals("reply")) {
-			@SuppressWarnings("unchecked")
-			Map<String, Object> replyMessage = (Map<String, Object>) data;
-			Integer replyEventId = (Integer) replyMessage.get("id");
-			Object replyData = replyMessage.get("data");
-			if (socket.callbacks().containsKey(replyEventId)) {
-				logger.debug("Executing the reply function corresponding to the event#{} with the data {}", replyEventId, replyData);
-				socket.callbacks().get(replyEventId).call(replyData);
-				socket.callbacks().remove(replyEventId);
-			}
-		}
-
 		if (!reply) {
-			app.fire(type, socket, data);
+			dispatcher.fire(type, socket, data);
 		} else {
-			app.fire(type, socket, data, new Fn.Callback1<Object>() {
+			dispatcher.fire(type, socket, data, new Fn.Callback1<Object>() {
 				@Override
 				public void call(Object arg1) {
 					Map<String, Object> replyData = new LinkedHashMap<String, Object>();
@@ -348,35 +318,21 @@ public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager
 	@Override
 	public void send(Socket s, String event, Object data) {
 		AtmosphereSocket socket = (AtmosphereSocket) s;
-
 		doSend(socket, event, data, false);
 	}
 
 	@Override
 	public void send(Socket s, String event, Object data, final Fn.Callback callback) {
 		AtmosphereSocket socket = (AtmosphereSocket) s;
-
 		doSend(socket, event, data, true);
-		socket.callbacks().put(socket.eventId().get(), new Fn.Callback1<Object>() {
-			@Override
-			public void call(Object arg1) {
-				callback.call();
-			}
-		});
+		replyHandler.set(socket.id(), socket.eventId().get(), callback);
 	}
 
 	@Override
 	public <A> void send(Socket s, String event, Object data, final Fn.Callback1<A> callback) {
 		AtmosphereSocket socket = (AtmosphereSocket) s;
-
 		doSend(socket, event, data, true);
-		socket.callbacks().put(socket.eventId().get(), new Fn.Callback1<Object>() {
-			@SuppressWarnings("unchecked")
-			@Override
-			public void call(Object arg1) {
-				((Fn.Callback1<Object>) callback).call(arg1);
-			}
-		});
+		replyHandler.set(socket.id(), socket.eventId().get(), callback);
 	}
 	
 	private void doSend(AtmosphereSocket socket, String type, Object data, boolean reply) {
