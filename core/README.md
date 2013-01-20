@@ -1,6 +1,8 @@
 # Core
 `portal-core` module provides API for the the users to construct a portal application and SPI for bridge modules to run a portal application on their environment.
 
+Requires Java 6.
+
 ## Installing
 Add the following dependency to your pom.xml:
 ```xml
@@ -11,12 +13,57 @@ Add the following dependency to your pom.xml:
 </dependency>
 ```
 
-## API
-Package `com.github.flowersinthesand.portal`
+## Application
+A Portal application is a small bean container which contains beans defined by the user and beans used by the application. Here, the user can define a bean as a controller, service or repository, but the expected use case is to write a handler as a component of presentation layer.
+
+For a declarative programming, a lot of annotations are provided and defined in the package `com.github.flowersinthesand.portal`.
+
+```java
+new App().init("/event", new Options().packages("com.github"));
+```
+
+## Bean
+Bean is an application component and is instantiated once per each application like singleton. Therefore, all declared fields on the bean must be thread-safe. The following bean names are reserved to be used internally by the application.
+
+* `com.github.flowersinthesand.portal.spi.Dispatcher`
+* `com.github.flowersinthesand.portal.spi.SocketManager`
+
+### @Bean
+* `String value() default ""`
+
+Indicates that the annotated class is a bean. This annotation is required for all beans. The `value` element defines the bean name. If it is not provided, the bean name will be the class's name.
+
+### @Wire
+* `String value() default ""`
+
+Marks the annotated field as to be wired. The `value` element indicates a bean name. If it exists, the container will find a bean by the name. Otherwise, the container will find a bean by the type of the field. The field does not need to be public.
+
+Exceptionally, if the field type is `Room`, it will be wired regarding the value as the room name, even though it is not bean. If the corresponding room does not exist, it will be opened first before being wired.    
+
+### @Prepare
+Specifies that the annotated method should be be executed after dependency injection is done to perform any initialization. Only public methods with no arguments can be executed.
+
+## Event handler
+Any method annotated with `On` on any bean in the application is treated as event handler. According to the method signature, the following parameters will be provided.
+
+* `Socket`: The socket instance that sent the event.
+
+### @On
+* `String value()`
+
+Defines an annotated method or an annotated annotation as the event handler. The `value` element is an event name. The method should be `public` and a return type of the method signifies nothing. `On.open`, `On.message`, `On.close` are provided as special annotations for `open`, `message`, `close` event respectively.
+
+### @Data
+Specifies that the event data will be converted to the annotated parameter's type and set to the annotated parameter. By default, [Jackson](http://wiki.fasterxml.com/JacksonHome) library is used to create an instance from a JSON string. Any object the client sent can be converted into the `Map<String, Object>` type.
+
+### @Reply
+Specifies that the annotated parameter is a reply callback. The parameter's type should be `Fn.Callback` or `Fn.Callback1`.
+
+## Model 
 
 ### App
 
-The App is the context where an application is run.
+The App is the standalone application context.
 
 * `static App find()`
 
@@ -63,14 +110,14 @@ Fires the given event to the given socket with data and reply callback.
 * `Object bean(String name)`
 * `<T> T bean(Class<? super T> class)`
 
-Return the corresponding bean by name or type from the bean container of the app.
+Returns the corresponding bean by name or type from the bean container.
 
 ### Options
 
 * `Set<String> packages()`
 * `Options packages(String... packageNames)`
 
-Package names which will be scanned for handlers including sub packages.
+Package names which will be scanned for beans.
 
 * `Map<String, Object> beans()`
 * `Object bean(String name)`
@@ -78,40 +125,7 @@ Package names which will be scanned for handlers including sub packages.
 * `Options beans(String name, Object bean)`
 * `Options beans(Object... beans)`
 
-Beans to be stored the bean container of the app and usually used to configure bridge or plugin.
-
-### Handler
-
-The application consists of handler class which consists of event handlers that are plain methods marked as event handler. All declared fields on the handler must be thread-safe.
-
-#### @On
-* `String value()`
-
-A method-level and annotation-level annotation for marking a method or an annotation as an event handler. The `value` element is an event name. The access modifier of the method must be `public` and a return type of the method signifies nothing. `On.open`, `On.message`, `On.close` are special annotations for `open`, `message`, `close` event respectively.
-
-#### @Name
-* `String value()`
-
-A field-level annotation for injection of `Room`. According to the type of the field and the `value` element of the annotation, corresponding resource is injected regardless of the access modifier of the field. Field injection is done before execution of `@Prepare` methods.
-
-#### @Prepare
-
-A method-level annotation for preparation. Annotated methods are executed during initialization. Only public methods with no arguments can be executed.
-
-### Parameter
-According to the event handler method signature, the following parameters will be provided.
-
-#### Socket
-
-If the Socket type is present on parameters in the method signature, the socket instance that sent the event will be passed.
-
-#### @Data
-
-A parameter-level annotation for specifying and converting the event data. If this annotation is present on parameters in the method signature, the event data will be converted to the declared parameter's type and provided. By default, [Jackson](http://wiki.fasterxml.com/JacksonHome) library is used to create an instance from a JSON string. Any object the client sent can be converted into the `Map<String, Object>` type.
-
-#### @Reply
-
-A parameter-level annotation for a reply callback for the client. The parameter's type must be `Fn.Callback` or `Fn.Callback1`.
+Beans to be stored to the application and usually used to configuration.
 
 ### Room
 
@@ -130,12 +144,14 @@ Returns a value bound with the specified key.
 Binds a value to this room using the given key.
 
 * `Room add(Socket socket)`
+* `Room add(Room room)`
 
-Adds a socket. Only opened socket can be added, and duplicate addition is not possible on account of the Set semantics.
+Adds a socket or sockets in the given room. Only opened socket can be added, and duplicate addition is not possible on account of the Set semantics.
 
 * `Room remove(Socket socket)`
+* `Room remove(Room room)`
 
-Removes a socket. If one of added sockets is closed, it will be removed from the room as well automatically. Use this method to exclude opened socket.
+Removes a socket or sockets in the given room. If one of added sockets is closed, it will be removed from the room as well automatically. Use this method to exclude opened socket.
 
 * `Room send(String event)`
 * `Room send(String event, Object data)`
@@ -148,7 +164,7 @@ Closes all the connections of the sockets.
 
 * `Set<Socket> sockets()`
 
-Returns a cloned set of the sockets contained in the room. Modifications on the returned set don't affect the internal set of the original room.
+Returns a cloned set of the sockets contained in the room. Modification on the returned set is not allowed.
 
 * `int size()`
 
@@ -160,7 +176,7 @@ Clears all sockets and attributes and deletes the room from the application.
 
 ### Socket
 
-The Socket is a physical bidirectional connectivity between the client and the server.
+The Socket is a physical bidirectional connectivity between the client and the server and also where the event occurs.
 
 * `boolean opened()`
 
