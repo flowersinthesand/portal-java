@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.flowersinthesand.portal.samples;
+package com.github.flowersinthesand.portal.samples.chat;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -27,7 +27,7 @@ public class PortalInitializer implements ServletContextListener {
 
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
-		new App().init("/chat", new Options().packages("com.github.flowersinthesand.portal").beans(event.getServletContext())).register();
+		new App().init("/chat", new Options().packages("com.github.flowersinthesand.portal.samples.chat").beans(event.getServletContext())).register();
 	}
 
 	@Override

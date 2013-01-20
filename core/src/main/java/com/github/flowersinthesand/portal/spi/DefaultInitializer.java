@@ -37,7 +37,7 @@ public class DefaultInitializer extends InitializerAdapter {
 	@Override
 	public void init(App app, Options options) {
 		this.app = app;
-		options.packages(this.getClass().getPackage().getName());
+		options.packages("com.github.flowersinthesand.portal");
 	}
 
 	@Override

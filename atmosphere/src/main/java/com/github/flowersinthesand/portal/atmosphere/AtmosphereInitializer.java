@@ -56,8 +56,6 @@ public class AtmosphereInitializer extends InitializerAdapter {
 		} else {
 			framework = options.bean(AtmosphereFramework.class);
 		}
-
-		options.packages(this.getClass().getPackage().getName());
 	}
 
 	@Override

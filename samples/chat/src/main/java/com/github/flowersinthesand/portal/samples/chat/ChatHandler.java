@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.flowersinthesand.portal.samples;
+package com.github.flowersinthesand.portal.samples.chat;
 
 import java.util.Map;
 
@@ -39,5 +39,5 @@ public class ChatHandler {
 	public void message(@Data Map<String, Object> message) {
 		room.send("message", message);
 	}
-
+	
 }
