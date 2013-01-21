@@ -36,7 +36,9 @@ public class AtmosphereInitializer implements Initializer {
 		ServletContext context = options.bean(ServletContext.class);
 		if (context != null && context.getMajorVersion() >= 3) {
 			installAtmosphereServlet(context, options);
-		} else if (options.bean(AtmosphereFramework.class) == null) {
+		}
+
+		if (options.bean(AtmosphereFramework.class) == null) {
 			throw new IllegalArgumentException("There is no AtmosphereFramework");
 		}
 	}
