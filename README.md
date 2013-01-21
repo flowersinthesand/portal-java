@@ -68,7 +68,7 @@ portal.open("/chat").on({
 @Bean
 public class ChatHandler {
 
-    @Name("chat")
+    @Wire("chat")
     private Room room;
 
     @On.open
@@ -191,7 +191,7 @@ portal.find("/data").send("set", {key: "key", value: "value"}, function() {
 @Bean
 public class DataHandler {
 
-    @Name("data")
+    @Wire("data")
     private Room room;
     
     @On("set")
