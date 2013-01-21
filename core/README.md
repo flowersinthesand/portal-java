@@ -19,7 +19,7 @@ A Portal application is a small bean container which contains beans defined by t
 For a declarative programming, a lot of annotations are provided and defined in the package `com.github.flowersinthesand.portal`.
 
 ```java
-new App().init(new Options().url("/event"));
+new App(new Options().url("/event"));
 ```
 
 ## Bean
@@ -85,7 +85,7 @@ Registers the applicaton to the default repository.
 
 * `String name()`
 
-The application name. If the given options' name is null, the url will be the name.
+The application name.
 
 * `Object get(String key)`
 
@@ -120,7 +120,7 @@ The mapping url. This is required.
 * `String name()`
 * `Options name(String name)`
 
-The application name.
+The application name. If it is null, the url will be returned instead.
 
 * `Set<String> packages()`
 * `Options packages(String... packageNames)`
