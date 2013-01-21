@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.atmosphere.cpr.AtmosphereFramework;
 import org.atmosphere.cpr.AtmosphereHandler;
 import org.atmosphere.cpr.AtmosphereRequest;
 import org.atmosphere.cpr.AtmosphereResource;
@@ -42,6 +43,7 @@ import org.slf4j.LoggerFactory;
 
 import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.Fn;
+import com.github.flowersinthesand.portal.Prepare;
 import com.github.flowersinthesand.portal.Socket;
 import com.github.flowersinthesand.portal.Wire;
 import com.github.flowersinthesand.portal.spi.Dispatcher;
@@ -72,10 +74,19 @@ public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager
 	private final Logger logger = LoggerFactory.getLogger(AtmosphereSocketManager.class);
 	private ObjectMapper mapper = new ObjectMapper();
 	private Map<String, AtmosphereSocket> sockets = new ConcurrentHashMap<String, AtmosphereSocket>();
+	@Wire("url")
+	private String mapping;
+	@Wire
+	private AtmosphereFramework framework;
 	@Wire
 	private Dispatcher dispatcher;
 	@Wire
 	private ReplyHandler replyHandler;
+
+	@Prepare
+	public void prepare() {
+		framework.addAtmosphereHandler(mapping, this);
+	}
 
 	@Override
 	public void onRequest(final AtmosphereResource resource) throws IOException {

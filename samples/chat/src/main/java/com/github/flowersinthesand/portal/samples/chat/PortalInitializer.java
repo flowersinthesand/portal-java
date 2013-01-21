@@ -27,7 +27,7 @@ public class PortalInitializer implements ServletContextListener {
 
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
-		new App().init("/chat", new Options().packages("com.github.flowersinthesand.portal.samples.chat").beans(event.getServletContext())).register();
+		new App(new Options().url("/chat").packages("com.github.flowersinthesand.portal.samples.chat").beans(event.getServletContext())).register();
 	}
 
 	@Override

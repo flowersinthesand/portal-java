@@ -15,10 +15,8 @@
  */
 package com.github.flowersinthesand.portal.spi;
 
-import com.github.flowersinthesand.portal.Options;
+public interface ObjectFactory {
 
-public interface Initializer {
-
-	void init(Options options);
+	<T> T create(String name, Class<T> clazz);
 
 }

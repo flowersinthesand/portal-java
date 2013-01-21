@@ -15,24 +15,22 @@
  */
 package com.github.flowersinthesand.portal.spi;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.github.flowersinthesand.portal.App;
-import com.github.flowersinthesand.portal.Options;
+public class NewObjectFactory implements ObjectFactory {
 
-public abstract class InitializerAdapter implements Initializer {
+	private final Logger logger = LoggerFactory.getLogger(NewObjectFactory.class);
 
 	@Override
-	public void init(App app, Options options) {}
-	
-	@Override
-	public Object instantiate(String name, Class<?> clazz) {
+	public <T> T create(String name, Class<T> clazz) {
+		try {
+			return (T) clazz.newInstance();
+		} catch (Exception e) {
+			logger.error("Failed to create the bean " + clazz.getName(), e);
+		}
+
 		return null;
 	}
-
-	@Override
-	public void postInstantiation(String name, Object bean) {}
-
-	@Override
-	public void postInitialization() {}
 
 }

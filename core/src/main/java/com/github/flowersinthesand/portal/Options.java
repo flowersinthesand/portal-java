@@ -30,7 +30,7 @@ public class Options {
 	private Map<String, Object> beans = new LinkedHashMap<String, Object>();
 
 	public String name() {
-		return name;
+		return name != null ? name : url;
 	}
 
 	public Options name(String name) {
@@ -106,10 +106,10 @@ public class Options {
 	public String toString() {
 		Map<String, Object> map = new LinkedHashMap<String, Object>();
 
-		map.put("name", name);
-		map.put("url", url);
-		map.put("packages", packages);
-		map.put("beans", beans);
+		map.put("name", name());
+		map.put("url", url());
+		map.put("packages", packages());
+		map.put("beans", beans());
 
 		return map.toString();
 	}

@@ -24,45 +24,37 @@ import org.atmosphere.cpr.AtmosphereServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Options;
-import com.github.flowersinthesand.portal.spi.InitializerAdapter;
+import com.github.flowersinthesand.portal.spi.Initializer;
 
-public class AtmosphereInitializer extends InitializerAdapter {
+public class AtmosphereInitializer implements Initializer {
 
 	private final Logger logger = LoggerFactory.getLogger(AtmosphereInitializer.class);
-	private App app;
-	private AtmosphereFramework framework;
 
 	@Override
-	public void init(App app, Options options) {
-		this.app = app;
-
+	public void init(Options options) {
 		ServletContext context = options.bean(ServletContext.class);
-		if (context.getMajorVersion() >= 3) {
-			AtmosphereServlet servlet = null;
-			try {
-				servlet = context.createServlet(AtmosphereServlet.class);
-			} catch (ServletException e) {
-				logger.error("something goes wrong", e);
-				throw new IllegalStateException(e);
-			}
-
-			ServletRegistration.Dynamic registration = context.addServlet("portal#" + app.name(), servlet);
-			registration.setLoadOnStartup(0);
-			registration.addMapping(app.name());
-
-			framework = servlet.framework();
-		} else {
-			framework = options.bean(AtmosphereFramework.class);
+		if (context != null && context.getMajorVersion() >= 3) {
+			installAtmosphereServlet(context, options);
+		} else if (options.bean(AtmosphereFramework.class) == null) {
+			throw new IllegalArgumentException("There is no AtmosphereFramework");
 		}
 	}
 
-	@Override
-	public void postInstantiation(String name, Object bean) {
-		if (AtmosphereSocketManager.class.isAssignableFrom(bean.getClass())) {
-			framework.addAtmosphereHandler(app.name(), (AtmosphereSocketManager) bean);
+	private void installAtmosphereServlet(ServletContext context, Options options) {
+		AtmosphereServlet servlet = null;
+		try {
+			servlet = context.createServlet(AtmosphereServlet.class);
+		} catch (ServletException e) {
+			throw new IllegalStateException(e);
 		}
+
+		ServletRegistration.Dynamic registration = context.addServlet("portal#" + options.name(), servlet);
+		registration.setLoadOnStartup(0);
+		registration.addMapping(options.url());
+		logger.info("AtmosphereServlet '{}' is installed in accordance with the registration '{}'", servlet, registration);
+
+		options.beans("url", options.url()).beans(servlet.framework());
 	}
 
 }

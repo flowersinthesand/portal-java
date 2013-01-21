@@ -1,5 +1,5 @@
 # Atmosphere
-`portal-atmosphere` module integrates the portal application with the [Atmosphere framework](https://github.com/atmosphere/atmosphere/) which makes the application run on most servlet containers that support the Servlet Specification 2.3. 
+`portal-atmosphere` module integrates the portal application with the [Atmosphere framework](https://github.com/atmosphere/atmosphere/) which makes the application run on most servlet containers that support the Servlet Specification 2.3.
 
 ## Installing
 ### Updating pom.xml
@@ -35,7 +35,7 @@ public class PortalInitializer implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent event) {
-        new App().init("/event", new Options().beans(event.getServletContext())).register();
+        new App(new Options().url("/event").beans(event.getServletContext())).register();
     }
 
     @Override
@@ -46,7 +46,6 @@ public class PortalInitializer implements ServletContextListener {
 
 ### Servlet 2.x
 The following types of beans are required.
- * `javax.servlet.ServletContext`
  * `org.atmosphere.cpr.AtmosphereFramework`
 
 You need to write a servlet extending AtmosphereServlet and declare it in web.xml. The app's initialization can be done in `void init(ServletConfig)` method only after calling the method of the super class.
@@ -57,7 +56,7 @@ public class PortalInitializer extends AtmosphereServlet {
     @Override
     public void init(ServletConfig servletConfig) throws ServletException {
         super.init(servletConfig);
-        new App().init("/event", new Options().beans(getServletContext(), framework)).register();
+        new App(new Options().url("/event").beans(framework)).register();
     }
     
 }

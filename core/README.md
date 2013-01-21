@@ -25,6 +25,7 @@ new App().init(new Options().url("/event"));
 ## Bean
 Bean is an application component and is instantiated once per each application like singleton. Therefore, all declared fields on the bean must be thread-safe. The following bean names are reserved to be used internally by the application.
 
+* `com.github.flowersinthesand.portal.spi.ObjectFactory`
 * `com.github.flowersinthesand.portal.spi.Dispatcher`
 * `com.github.flowersinthesand.portal.spi.SocketManager`
 
@@ -73,8 +74,8 @@ Returns the first application from the default repository. Use this method only 
 
 Finds an application which corresponds to the given name from the default repository. These methods are static, however, app intances are initialized and configured during runtime. So, only if each app's initialization is done, finder functions can work correctly.
 
-* `App init(Options options)`
-* `App init(Options options, Initializer initializer)`
+* `App(Options options)`
+* `App(Options options, Initializer initializer)`
 
 Initializes the application.
 
