@@ -17,6 +17,7 @@ package com.github.flowersinthesand.portal.atmosphere;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -53,7 +54,7 @@ import com.github.flowersinthesand.portal.support.ReplyHandler;
 @Bean("com.github.flowersinthesand.portal.spi.SocketManager")
 public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager {
 
-	private static final String padding2K;
+	private static final String padding2K = CharBuffer.allocate(2048).toString().replace('\0', ' ');
 	
 	private static class BroadcasterFactoryHolder {
 		static BroadcasterFactory defaults = BroadcasterFactory.getDefault();
@@ -61,14 +62,6 @@ public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager
 	
 	private static BroadcasterFactory broadcasterFactory() {
 		return BroadcasterFactoryHolder.defaults;
-	}
-	
-	static {
-		StringBuffer pad = new StringBuffer();
-		for (int i = 0; i < 2048; i++) {
-			pad.append(' ');
-		}
-		padding2K = pad.toString();
 	}
 
 	private final Logger logger = LoggerFactory.getLogger(AtmosphereSocketManager.class);
