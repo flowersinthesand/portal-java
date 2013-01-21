@@ -19,7 +19,7 @@ A Portal application is a small bean container which contains beans defined by t
 For a declarative programming, a lot of annotations are provided and defined in the package `com.github.flowersinthesand.portal`.
 
 ```java
-new App().init("/event", new Options().packages("com.github"));
+new App().init(new Options().url("/event"));
 ```
 
 ## Bean
@@ -73,21 +73,18 @@ Returns the first application from the default repository. Use this method only 
 
 Finds an application which corresponds to the given name from the default repository. These methods are static, however, app intances are initialized and configured during runtime. So, only if each app's initialization is done, finder functions can work correctly.
 
-* `App init(String name)`
-* `App init(String name, Options options)`
-* `App init(String name, Initializer initializer)`
-* `App init(String name, Options options, Initializer initializer)`
+* `App init(Options options)`
+* `App init(Options options, Initializer initializer)`
 
 Initializes the application.
 
 * `App register()`
-* `App register(ConcurrentMap<String, App> repository)`
 
-Registers the applicaton to the given repository or the default repository.
+Registers the applicaton to the default repository.
 
 * `String name()`
 
-The application name.
+The application name. If the given options' name is null, the url will be the name.
 
 * `Object get(String key)`
 
@@ -114,6 +111,16 @@ Returns the corresponding bean by name or type from the bean container.
 
 ### Options
 
+* `String url()`
+* `Options url(String url)`
+
+The mapping url. This is required.
+
+* `String name()`
+* `Options name(String name)`
+
+The application name.
+
 * `Set<String> packages()`
 * `Options packages(String... packageNames)`
 
@@ -125,7 +132,7 @@ Package names which will be scanned for beans.
 * `Options beans(String name, Object bean)`
 * `Options beans(Object... beans)`
 
-Beans to be stored to the application and usually used to configuration.
+Beans to be stored to the application usually used for configuration.
 
 ### Room
 

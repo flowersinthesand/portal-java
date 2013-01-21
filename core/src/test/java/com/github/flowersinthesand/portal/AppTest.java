@@ -31,7 +31,7 @@ public class AppTest {
 
 	@Test
 	public void scan() {
-		new App().init("/t", new Options().packages("com.github.flowersinthesand.portal.handler"), new InitializerAdapter() {
+		new App().init(new Options().url("/t").packages("com.github.flowersinthesand.portal.handler"), new InitializerAdapter() {
 			int size = 0;
 
 			@Override
@@ -46,7 +46,7 @@ public class AppTest {
 				Assert.assertEquals(size, 2);
 			}
 		});
-		new App().init("/t", new Options().packages("org.flowersinthesand.portal.handler"), new InitializerAdapter() {
+		new App().init(new Options().url("/t").packages("org.flowersinthesand.portal.handler"), new InitializerAdapter() {
 			int size = 0;
 
 			@Override
@@ -65,7 +65,7 @@ public class AppTest {
 
 	@Test
 	public void init() throws IOException {
-		new App().init("/init", new Options().packages("com.github.flowersinthesand.portal"), new InitializerAdapter() {
+		new App().init(new Options().url("/init").packages("com.github.flowersinthesand.portal"), new InitializerAdapter() {
 			@Override
 			public void postInstantiation(String name, Object bean) {
 				if (bean.getClass().isAssignableFrom(DefaultDispatcher.class)) {
@@ -82,7 +82,7 @@ public class AppTest {
 
 	@Test
 	public void inject() throws IOException {
-		new App().init("/init", new Options().packages("com.github.flowersinthesand.portal"));
+		new App().init(new Options().url("/init").packages("com.github.flowersinthesand.portal"));
 		
 		Assert.assertEquals(InitHandler.getPrivateRoom().name(), "privateRoom");
 		Assert.assertEquals(InitHandler.getPackagePrivateRoom().name(), "packagePrivateRoom");
@@ -92,37 +92,39 @@ public class AppTest {
 
 	@Test
 	public void preparation() throws IOException {
-		new App().init("/init", new Options().packages("com.github.flowersinthesand.portal"));
+		new App().init(new Options().url("/init").packages("com.github.flowersinthesand.portal"));
 		Assert.assertTrue(InitHandler.prepared);
 	}
 
 	@Test
 	public void finding() {
-		try {
-			
 		Assert.assertNull(App.find());
 		Assert.assertNull(App.find("/notfound"));
 
-		App app1 = new App().init("/ok").register();
+		App app1 = new App().init(new Options().url("/ok"));
+		Assert.assertNull(App.find());
+		Assert.assertNull(App.find("/ok"));
+		
+		app1.register();
 		Assert.assertSame(App.find(), app1);
 		Assert.assertSame(App.find("/ok"), app1);
 
-		App app2 = new App().init("/ok2").register();
+		App app2 = new App().init(new Options().url("/ok2")).register();
 		Assert.assertSame(App.find(), app1);
 		Assert.assertSame(App.find("/ok2"), app2);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		
+		App app3 = new App().init(new Options().name("ok3").url("/ok3")).register();
+		Assert.assertSame(App.find("ok3"), app3);
 	}
 
 	@Test
 	public void room() {
-		Assert.assertEquals(new App().init("nothing").room("/ok").name(), "/ok");
+		Assert.assertEquals(new App().init(new Options().url("nothing")).room("/ok").name(), "/ok");
 	}
 
 	@Test
 	public void attr() {
-		App app = new App().init("nothing");
+		App app = new App().init(new Options().url("nothing"));
 		Assert.assertNull(app.get("b"));
 
 		String data = "data";

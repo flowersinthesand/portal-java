@@ -61,30 +61,36 @@ public class App implements Serializable {
 	private final Logger logger = LoggerFactory.getLogger(App.class);
 	private AtomicBoolean initialized = new AtomicBoolean(false);
 	private String name;
-	private Set<Initializer> initializers = new LinkedHashSet<Initializer>();
 	private Map<String, Object> beans = new LinkedHashMap<String, Object>();
 	private Map<String, Object> attrs = new ConcurrentHashMap<String, Object>();
 	private Map<String, Room> rooms = new ConcurrentHashMap<String, Room>();
 	
 	public App() {}
 
-	public App init(String name) {
-		return init(name, (Options) null);
+	public App init(Options options) {
+		return init(options, null);
 	}
 
-	public App init(String name, Options options) {
-		return init(name, options, null);
-	}
+	public App init(Options options, Initializer initializer) {
+		if (initialized.get()) {
+			throw new IllegalStateException("Already initialized");
+		}
+		if (options.url() == null) {
+			throw new IllegalArgumentException("Option's url cannot be null");
+		}
+		
+		setName(options);
+		doInit(options, loadInitializers(initializer));
 
-	public App init(String name, Initializer initializer) {
-		return init(name, null, initializer);
-	}
-
-	public App init(String name, Options options, Initializer initializer) {
-		this.name = name;
-		initializers.addAll(loadInitializers(initializer));
-		doInit(options != null ? options : new Options());
 		return this;
+	}
+	
+	public String name() {
+		return name;
+	}
+
+	protected void setName(Options options) {
+		this.name = options.name() != null ? options.name() : options.url();
 	}
 
 	protected Set<Initializer> loadInitializers(Initializer initializer) {
@@ -97,41 +103,40 @@ public class App implements Serializable {
 		if (initializer != null) {
 			initializers.add(initializer);
 		}
-		
+
 		return initializers;
 	}
-	
-	protected void doInit(Options options) {
-		if (initialized.get()) {
-			throw new IllegalStateException("Already initialized");
+
+	protected void doInit(Options options, Set<Initializer> initializers) {
+		logger.info("Initializing the Portal application with options {} and initializers {}", options, initializers);
+
+		for (Initializer i : initializers) {
+			i.init(this, options);
 		}
-		logger.info("Initializing the app#{} with options {} and initializers {}", name, options, initializers);
-		
-		init(options);
 		logger.info("Final options {}", options);
 		
-		beans.putAll(createBeans(scan(options.packages())));
-		logger.info("Created beans {}", beans);
+		Map<String, Class<?>> classes = scan(options.packages());
 		for (Initializer i : initializers) {
-			logger.trace("Invoking postBeanInstantiation of Initializer {}", i);
+			for (Entry<String, Class<?>> entry : classes.entrySet()) {
+				Object bean = i.instantiate(entry.getKey(), entry.getValue());
+				if (bean != null) {
+					beans.put(entry.getKey(), bean);
+				}
+			}
+		}
+		beans.putAll(options.beans());
+		for (Initializer i : initializers) {
 			for (Entry<String, Object> entry : beans.entrySet()) {
 				i.postInstantiation(entry.getKey(), entry.getValue());
 			}
 		}
-		beans.putAll(options.beans());
+		logger.info("Final beans {}", beans);
 		
 		initialized.set(true);
+		logger.info("Initializing the application {} is completed", this);
+		
 		for (Initializer i : initializers) {
-			logger.trace("Invoking postInitialization of Initializer {}", i);
 			i.postInitialization();
-		}
-		logger.info("Initializing the app#{} is completed", name);
-	}
-
-	protected void init(Options options) {
-		for (Initializer i : initializers) {
-			logger.trace("Invoking options of Initializer {}", i);
-			i.init(this, options);
 		}
 	}
 
@@ -157,13 +162,14 @@ public class App implements Serializable {
 				}
 				
 				String name = clazz.getAnnotation(Bean.class).value();
+				logger.debug("Scanned @Bean(\"{}\") on {}", name, className);
+				
 				if (name.length() == 0) {
-					name = clazz.getName();
+					name = className;
 				}
-
+				
 				classes.put(name, clazz);
 			}
-
 		});
 
 		for (String packageName : packages) {
@@ -180,39 +186,15 @@ public class App implements Serializable {
 		return classes;
 	}
 
-	protected Map<String, Object> createBeans(Map<String, Class<?>> classes) {
-		Map<String, Object> map = new LinkedHashMap<String, Object>();
-
-		for (Initializer i : initializers) {
-			logger.trace("Invoking instantiateBeans of Initializer {}", i);
-			for (Entry<String, Class<?>> entry : classes.entrySet()) {
-				Object bean = i.instantiate(entry.getKey(), entry.getValue());
-				if (bean != null) {
-					map.put(entry.getKey(), bean);
-				}
-			}
-		}
-
-		return map;
-	}
-
 	public App register() {
-		return register(repository());
-	}
-
-	public App register(ConcurrentMap<String, App> repository) {
 		if (!initialized.get()) {
 			throw new IllegalStateException("Not initialized");
 		}
 		
-		repository.putIfAbsent(FIRST, this);
-		repository.put(name, this);
+		repository().putIfAbsent(FIRST, this);
+		repository().put(name, this);
 		
 		return this;
-	}
-
-	public String name() {
-		return name;
 	}
 
 	public Object get(String key) {
@@ -260,17 +242,27 @@ public class App implements Serializable {
 
 	@SuppressWarnings("unchecked")
 	public <T> T bean(Class<T> clazz) {
-		for (Object object : beans.values()) {
-			if (clazz == object.getClass()) {
-				return (T) object;
+		Set<String> names = new LinkedHashSet<String>();
+
+		for (Entry<String, Object> entry : beans.entrySet()) {
+			if (clazz == entry.getValue().getClass()) {
+				names.add(entry.getKey());
 			}
 		}
-		for (Object object : beans.values()) {
-			if (clazz.isAssignableFrom(object.getClass())) {
-				return (T) object;
+
+		if (names.isEmpty()) {
+			for (Entry<String, Object> entry : beans.entrySet()) {
+				if (clazz.isAssignableFrom(entry.getValue().getClass())) {
+					names.add(entry.getKey());
+				}
 			}
 		}
-		return null;
+
+		if (names.size() > 1) {
+			throw new IllegalArgumentException("Multiple beans found " + names + " for " + clazz);
+		}
+
+		return names.isEmpty() ? null : (T) bean(names.iterator().next());
 	}
 
 }

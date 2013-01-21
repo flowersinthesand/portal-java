@@ -64,18 +64,15 @@ public class DefaultInitializer extends InitializerAdapter {
 					value = app;
 				} else if (beanType.isAssignableFrom(Room.class)) {
 					if (beanName.length() == 0) {
-						RuntimeException e = new IllegalArgumentException("Room name cannot be null");
-						logger.error(e.getMessage(), e);
-						throw e;
+						throw new IllegalArgumentException("Room has no name in @Wire(\"\") " + field);
 					}
 					value = app.room(beanName);
 				} else {
 					value = beanName.length() > 0 ? app.bean(beanName) : app.bean(beanType);
 				}
+				
 				if (value == null) {
-					RuntimeException e = new IllegalStateException("Cannot wire the field " + field);
-					logger.error(e.getMessage(), e);
-					throw e;
+					throw new IllegalStateException("No value to wire the field @Wire(\"" + beanName + "\")" + field);
 				}
 
 				try {
@@ -83,6 +80,7 @@ public class DefaultInitializer extends InitializerAdapter {
 					field.set(bean, value);
 				} catch (Exception e) {
 					logger.error("Failed to set " + field + " to " + value, e);
+					throw new RuntimeException(e);
 				}
 			}
 		}
@@ -112,6 +110,7 @@ public class DefaultInitializer extends InitializerAdapter {
 					method.invoke(bean);
 				} catch (Exception e) {
 					logger.error("Failed to execute @Prepare method " + method, e);
+					throw new RuntimeException(e);
 				}
 			}
 		}

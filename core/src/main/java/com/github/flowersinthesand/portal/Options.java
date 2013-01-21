@@ -15,18 +15,40 @@
  */
 package com.github.flowersinthesand.portal;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 public class Options {
 
+	private String name;
+	private String url;
 	private Set<String> packages = new LinkedHashSet<String>();
 	private Map<String, Object> beans = new LinkedHashMap<String, Object>();
 
+	public String name() {
+		return name;
+	}
+
+	public Options name(String name) {
+		this.name = name;
+		return this;
+	}
+
+	public String url() {
+		return url;
+	}
+
+	public Options url(String url) {
+		this.url = url;
+		return this;
+	}
+
 	public Set<String> packages() {
-		return packages;
+		return Collections.unmodifiableSet(packages);
 	}
 
 	public Options packages(String... packageNames) {
@@ -37,7 +59,7 @@ public class Options {
 	}
 
 	public Map<String, Object> beans() {
-		return beans;
+		return Collections.unmodifiableMap(beans);
 	}
 
 	public Object bean(String name) {
@@ -46,17 +68,27 @@ public class Options {
 
 	@SuppressWarnings("unchecked")
 	public <T> T bean(Class<? super T> clazz) {
-		for (Object object : beans.values()) {
-			if (clazz == object.getClass()) {
-				return (T) object;
+		Set<String> names = new LinkedHashSet<String>();
+
+		for (Entry<String, Object> entry : beans.entrySet()) {
+			if (clazz == entry.getValue().getClass()) {
+				names.add(entry.getKey());
 			}
 		}
-		for (Object object : beans.values()) {
-			if (clazz.isAssignableFrom(object.getClass())) {
-				return (T) object;
+
+		if (names.isEmpty()) {
+			for (Entry<String, Object> entry : beans.entrySet()) {
+				if (clazz.isAssignableFrom(entry.getValue().getClass())) {
+					names.add(entry.getKey());
+				}
 			}
 		}
-		return null;
+
+		if (names.size() > 1) {
+			throw new IllegalArgumentException("Multiple beans found " + names + " for " + clazz);
+		}
+
+		return names.isEmpty() ? null : (T) bean(names.iterator().next());
 	}
 
 	public Options beans(String name, Object bean) {
@@ -71,22 +103,11 @@ public class Options {
 		return this;
 	}
 
-	public Options merge(Options options) {
-		if (options != null) {
-			if (options.packages() != null) {
-				packages.addAll(options.packages());
-			}
-			if (options.beans() != null) {
-				beans.putAll(options.beans());
-			}
-		}
-
-		return this;
-	}
-
 	public String toString() {
 		Map<String, Object> map = new LinkedHashMap<String, Object>();
 
+		map.put("name", name);
+		map.put("url", url);
 		map.put("packages", packages);
 		map.put("beans", beans);
 
