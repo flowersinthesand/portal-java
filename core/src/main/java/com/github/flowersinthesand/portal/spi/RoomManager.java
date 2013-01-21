@@ -13,26 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.flowersinthesand.portal.support;
+package com.github.flowersinthesand.portal.spi;
 
-import com.github.flowersinthesand.portal.Bean;
-import com.github.flowersinthesand.portal.On;
+import java.util.Set;
+
 import com.github.flowersinthesand.portal.Room;
-import com.github.flowersinthesand.portal.Socket;
-import com.github.flowersinthesand.portal.Wire;
-import com.github.flowersinthesand.portal.spi.RoomManager;
 
-@Bean
-public class RoomCleanupHandler {
+// TODO enhance
+public interface RoomManager {
 
-	@Wire
-	private RoomManager roomManager;
+	Set<Room> all();
 
-	@On.close
-	public void close(Socket socket) {
-		for (Room room : roomManager.all()) {
-			room.remove(socket);
-		}
-	}
+	Room open(String name);
+
+	Room find(String name);
+
+	void close(String name);
 
 }

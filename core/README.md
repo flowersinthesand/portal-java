@@ -27,6 +27,7 @@ Bean is an application component and is instantiated once per each application l
 
 * `com.github.flowersinthesand.portal.spi.ObjectFactory`
 * `com.github.flowersinthesand.portal.spi.Dispatcher`
+* `com.github.flowersinthesand.portal.spi.RoomManager`
 * `com.github.flowersinthesand.portal.spi.SocketManager`
 
 ### @Bean
@@ -173,10 +174,6 @@ Removes a socket or sockets in the given room. If one of added sockets is closed
 
 Sends an event with data to all sockets in the room.
 
-* `Room close()`
-
-Closes all the connections of the sockets.
-
 * `Set<Socket> sockets()`
 
 Returns a cloned set of the sockets contained in the room. Modification on the returned set is not allowed.
@@ -185,9 +182,9 @@ Returns a cloned set of the sockets contained in the room. Modification on the r
 
 The number of sockets.
 
-* `Room delete()`
+* `Room close()`
 
-Clears all sockets and attributes and deletes the room from the application.
+Closes all the connections of the sockets, clears all sockets and attributes and deletes the room from the application.
 
 ### Socket
 

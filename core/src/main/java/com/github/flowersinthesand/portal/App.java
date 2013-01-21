@@ -35,6 +35,7 @@ import com.github.flowersinthesand.portal.spi.Dispatcher;
 import com.github.flowersinthesand.portal.spi.Initializer;
 import com.github.flowersinthesand.portal.spi.NewObjectFactory;
 import com.github.flowersinthesand.portal.spi.ObjectFactory;
+import com.github.flowersinthesand.portal.spi.RoomManager;
 
 import eu.infomas.annotation.AnnotationDetector;
 
@@ -62,7 +63,6 @@ public final class App {
 	private String name;
 	private Map<String, Object> beans = new LinkedHashMap<String, Object>();
 	private Map<String, Object> attrs = new ConcurrentHashMap<String, Object>();
-	private Map<String, Room> rooms = new ConcurrentHashMap<String, Room>();
 	
 	public App() {}
 
@@ -253,16 +253,14 @@ public final class App {
 		return this;
 	}
 
-	public Map<String, Room> rooms() {
-		return rooms;
-	}
-
 	public Room room(String name) {
-		if (rooms.containsKey(name)) {
-			return rooms.get(name);
+		RoomManager roomManager = (RoomManager) bean(RoomManager.class.getName());
+		Room room = roomManager.find(name);
+		if (room == null) {
+			room = roomManager.open(name);
 		}
-		rooms.put(name, new Room(name, rooms));
-		return rooms.get(name);
+		
+		return room;
 	}
 
 	public App fire(String event, Socket socket) {

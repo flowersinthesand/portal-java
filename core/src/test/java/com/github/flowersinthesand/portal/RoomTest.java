@@ -120,7 +120,8 @@ public class RoomTest {
 	
 	@Test
 	public void closing() {
-		Room chat = new Room("chat", new LinkedHashMap<String, Room>());
+		Map<String, Room> rooms = new LinkedHashMap<String, Room>();
+		Room chat = new Room("chat", rooms);
 		final List<Object> executed = new ArrayList<Object>(); 
 		Answer<Object> increment = new Answer<Object>() {
 			@Override
@@ -136,27 +137,14 @@ public class RoomTest {
 		Socket socket2 = Mockito.mock(Socket.class);
 		Mockito.when(socket2.opened()).thenReturn(true);
 
-		chat.add(socket1).add(socket2);
+		chat.add(socket1).add(socket2).set("data", new Object());
 
 		Mockito.when(socket1.close()).then(increment);
 		Mockito.when(socket2.close()).then(increment);
 
 		chat.close();
 		Assert.assertEquals(executed.size(), 2);
-	}
-	
-	@Test
-	public void deletion() {
-		Map<String, Room> rooms = new LinkedHashMap<String, Room>();
-		rooms.put("chat", new Room("chat", rooms));
-		Room chat = rooms.get("chat");
-
-		chat.add(Mockito.mock(Socket.class));
-		chat.set("data", new Object());
-
-		Assert.assertEquals(rooms.size(), 1);
-		chat.delete();
-		Assert.assertEquals(chat.sockets().size(), 0);
+		Assert.assertEquals(chat.size(), 0);
 		Assert.assertNull(chat.get("data"));
 		Assert.assertEquals(rooms.size(), 0);
 	}

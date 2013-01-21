@@ -18,6 +18,7 @@ package com.github.flowersinthesand.portal.spi;
 import com.github.flowersinthesand.portal.Fn;
 import com.github.flowersinthesand.portal.Socket;
 
+// TODO enhance
 public interface SocketManager {
 
 	boolean opened(Socket socket);
