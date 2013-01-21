@@ -333,7 +333,7 @@ public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager
 	}
 
 	@Override
-	public <A> void send(Socket s, String event, Object data, final Fn.Callback1<A> callback) {
+	public void send(Socket s, String event, Object data, final Fn.Callback1<?> callback) {
 		AtmosphereSocket socket = (AtmosphereSocket) s;
 		doSend(socket, event, data, true);
 		replyHandler.set(socket.id(), socket.eventId().get(), callback);

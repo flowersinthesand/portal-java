@@ -63,7 +63,7 @@ public class Socket {
 		return this;
 	}
 
-	public <A> Socket send(String event, Object data, Fn.Callback1<A> callback) {
+	public Socket send(String event, Object data, Fn.Callback1<?> callback) {
 		if (opened()) {
 			manager.send(this, event, data, callback);
 		}

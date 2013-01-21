@@ -67,7 +67,7 @@ public class Options {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> T bean(Class<? super T> clazz) {
+	public <T> T bean(Class<T> clazz) {
 		Set<String> names = new LinkedHashSet<String>();
 
 		for (Entry<String, Object> entry : beans.entrySet()) {

@@ -26,7 +26,7 @@ public interface SocketManager {
 
 	void send(Socket socket, String event, Object data, Fn.Callback callback);
 
-	<A> void send(Socket socket, String event, Object data, Fn.Callback1<A> callback);
+	void send(Socket socket, String event, Object data, Fn.Callback1<?> callback);
 
 	void close(Socket socket);
 
