@@ -16,7 +16,6 @@
 package com.github.flowersinthesand.portal;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -39,9 +38,8 @@ import com.github.flowersinthesand.portal.spi.ObjectFactory;
 
 import eu.infomas.annotation.AnnotationDetector;
 
-public final class App implements Serializable {
+public final class App {
 
-	private final static long serialVersionUID = 1728426808062835850L;
 	private final static String FIRST = App.class.getName() + ".first";
 
 	private static class RepositoryHolder {
@@ -65,34 +63,20 @@ public final class App implements Serializable {
 	private Map<String, Object> beans = new LinkedHashMap<String, Object>();
 	private Map<String, Object> attrs = new ConcurrentHashMap<String, Object>();
 	private Map<String, Room> rooms = new ConcurrentHashMap<String, Room>();
+	
+	public App() {}
 
 	public App(Options options) {
-		this(options, null);
+		init(options);
 	}
 
-	public App(Options options, Initializer initializer) {
+	public void init(Options options) {
 		if (options.url() == null) {
 			throw new IllegalArgumentException("Option's url cannot be null");
 		}
 
 		this.name = options.name();
-		init(options, loadInitializers(initializer));
-	}
-
-	private Set<Initializer> loadInitializers(Initializer initializer) {
-		Set<Initializer> initializers = new LinkedHashSet<Initializer>();
-
-		for (Initializer i : ServiceLoader.load(Initializer.class)) {
-			initializers.add(i);
-		}
-		if (initializer != null) {
-			initializers.add(initializer);
-		}
-
-		return initializers;
-	}
-
-	private void init(Options options, Set<Initializer> initializers) {
+		Set<Initializer> initializers = loadInitializers();
 		logger.info("Initializing Portal application with options {} and initializers {}", options, initializers);
 
 		for (Initializer i : initializers) {
@@ -132,6 +116,15 @@ public final class App implements Serializable {
 		}
 	}
 
+	private Set<Initializer> loadInitializers() {
+		Set<Initializer> initializers = new LinkedHashSet<Initializer>();
+
+		for (Initializer i : ServiceLoader.load(Initializer.class)) {
+			initializers.add(i);
+		}
+
+		return initializers;
+	}
 
 	@SuppressWarnings("unchecked")
 	private Map<String, Class<?>> scan(Set<String> packages) {

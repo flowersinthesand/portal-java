@@ -74,8 +74,15 @@ Returns the first application from the default repository. Use this method only 
 
 Finds an application which corresponds to the given name from the default repository. These methods are static, however, app intances are initialized and configured during runtime. So, only if each app's initialization is done, finder functions can work correctly.
 
+* `App()`
+
+Creates a new application that needs to be initialized manually.
+
 * `App(Options options)`
-* `App(Options options, Initializer initializer)`
+
+Creates a new application and automatically initializes it.
+
+* `void init(Options options)`
 
 Initializes the application.
 
