@@ -13,24 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.flowersinthesand.portal.samples.chat;
+package com.github.flowersinthesand.portal.spring;
 
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-import javax.servlet.annotation.WebListener;
+import org.springframework.beans.factory.BeanFactory;
 
-import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Options;
+import com.github.flowersinthesand.portal.spi.Initializer;
+import com.github.flowersinthesand.portal.spi.ObjectFactory;
 
-@WebListener
-public class PortalInitializer implements ServletContextListener {
+public class SpringInitializer implements Initializer {
 
 	@Override
-	public void contextInitialized(ServletContextEvent event) {
-		new App(new Options().url("/chat").packages("com.github.flowersinthesand.portal.samples.chat").beans(event.getServletContext())).register();
+	public void init(Options options) {
+		options.beans(ObjectFactory.class.getName(), new SpringObjectFactory(options.bean(BeanFactory.class)));
 	}
-
-	@Override
-	public void contextDestroyed(ServletContextEvent sce) {}
 
 }

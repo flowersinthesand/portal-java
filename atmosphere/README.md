@@ -2,7 +2,6 @@
 `portal-atmosphere` module integrates the portal application with the [Atmosphere framework](https://github.com/atmosphere/atmosphere/) which makes the application run on most servlet containers that support the Servlet Specification 2.3.
 
 ## Installing
-### Updating pom.xml
 Add the following dependency to your pom.xml:
 ```xml
 <dependency>
@@ -12,30 +11,24 @@ Add the following dependency to your pom.xml:
 </dependency>
 ```
 
-### Adding context.xml
-Copy the following into a file named `context.xml` in `META-INF` if the target server is Tomcat or in `WEB-INF` if the target server is JBoss. If the target server supports Servlet Specification 3.0, you don't need to add it. This is required by the Atmosphere.
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<Context>
-    <Loader delegate="true"/>
-</Context>
-```
+## Beans
+ * `org.atmosphere.cpr.AtmosphereFramework`
+
+AtmosphereFramework is required, and can be obtained from [framework](http://atmosphere.github.com/atmosphere/apidocs/org/atmosphere/cpr/AtmosphereServlet.html#framework(\)) method of AtmosphereServlet which you need to declare in the web.xml to install the Atmosphere.
 
 ## Bootstrapping
 
 ### Servlet 3
-The following types of beans are required. 
- * `javax.servlet.ServletContext`
- 
-ServletContextListener is a recommended entry point where the application starts. The AtmosphereServlet will be created and added to the context per app automatically.
+Thanks to dynamic registration support in Servlet 3, you don't need to install the Atmosphere and find AtmosphereFramework manually. Instead, only `javax.servlet.ServletContext` is required. The Atmosphere will be installed automatically per app. In this case, ServletContextListener is a recommended entry point where the application starts. 
 
 ```java
 @WebListener
-public class PortalInitializer implements ServletContextListener {
+public class Initializer implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent event) {
-        new App(new Options().url("/event").beans(event.getServletContext())).register();
+        ServletContext servletContext = event.getServletContext();
+        new App(new Options().url("/event").packages("ch.rasc.portaldemos").beans(servletContext)).register();
     }
 
     @Override
@@ -45,18 +38,15 @@ public class PortalInitializer implements ServletContextListener {
 ```
 
 ### Servlet 2.x
-The following types of beans are required.
- * `org.atmosphere.cpr.AtmosphereFramework`
-
-You need to write a servlet extending AtmosphereServlet and declare it in web.xml. The app's initialization can be done in `void init(ServletConfig)` method only after calling the method of the super class.
+To install Atmosphere and initialize application, you have to write a servlet extending AtmosphereServlet and declare it in web.xml. The initialization can be done in `void init(ServletConfig)` method only after calling the method of the super class.
 
 ```java
-public class PortalInitializer extends AtmosphereServlet {
+public class Initializer extends AtmosphereServlet {
     
     @Override
     public void init(ServletConfig servletConfig) throws ServletException {
         super.init(servletConfig);
-        new App(new Options().url("/event").beans(framework)).register();
+        new App(new Options().url("/event").packages("ch.rasc.portaldemos").beans(framework)).register();
     }
     
 }
@@ -74,7 +64,7 @@ In the servlet declaration, the url of the applications to be integrated with th
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
     <servlet>
         <servlet-name>portal</servlet-name>
-        <servlet-class>kr.ac.korea.eku.PortalInitializer</servlet-class>
+        <servlet-class>ch.rasc.portaldemos.twitter.Initializer</servlet-class>
         <load-on-startup>0</load-on-startup>
     </servlet>
     <servlet-mapping>

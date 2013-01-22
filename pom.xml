@@ -16,6 +16,7 @@
 		<module>core</module>
 		<module>javascript</module>
 		<module>atmosphere</module>
+		<module>spring</module>
 		<module>samples</module>
 	</modules>
 	<licenses>
@@ -29,8 +30,8 @@
 		<url>http://github.com/flowersinthesand/portal-java</url>
 		<connection>scm:git:git@github.com:flowersinthesand/portal-java.git</connection>
 		<developerConnection>scm:git:git@github.com:flowersinthesand/portal-java.git</developerConnection>
-	  <tag>HEAD</tag>
-  </scm>
+		<tag>HEAD</tag>
+	</scm>
 	<developers>
 		<developer>
 			<id>flowersinthesand</id>
@@ -53,6 +54,11 @@
 			<dependency>
 				<groupId>com.github.flowersinthesand</groupId>
 				<artifactId>portal-atmosphere</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.flowersinthesand</groupId>
+				<artifactId>portal-spring</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
@@ -80,6 +86,11 @@
 				<groupId>org.atmosphere</groupId>
 				<artifactId>atmosphere-runtime</artifactId>
 				<version>1.1.0.beta2</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-beans</artifactId>
+				<version>3.2.0.RELEASE</version>
 			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>

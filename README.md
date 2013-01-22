@@ -1,27 +1,20 @@
 # Portal for Java
 The **Portal for Java** is a reference implementation written in Java of the server counterpart of the [**Portal**](https://github.com/flowersinthesand/portal) project which provides useful semantics and concepts for modern web application development in the server side as well as server implementation.
 
-Thanks to [Ralph](https://github.com/ralscha), online applications and source codes of chat, scheduler, twitter, snake etc are available now at http://ha-bio.rasc.ch/portal-demos/index.html
+The **Portal** and **Portal for Java** project is developed and maintained by [Donghwan Kim](http://twitter.com/flowersits). If you are interested, please subscribe to the [discussion group](https://groups.google.com/d/forum/portal_project).
 
-## Installing
-Add the following dependency to your pom.xml:
-```xml
-<dependency>
-    <groupId>com.github.flowersinthesand</groupId>
-    <artifactId>portal-core</artifactId>
-    <version>${portal.version}</version>
-</dependency>
-```
+## Modules
+The following list of modules are available, and **bold** modules are required.
 
-Now you can write a complete portal application, but you need to choose runtime environment where your application will be run such as servlet container or stand-alone server and a corresponding module for the integration.
+* [**`core`**](https://github.com/flowersinthesand/portal-java/tree/master/core): provides API and SPI.
+* **`bridges`**: makes the application run in the following runtime environments.
+ * [`atmosphere`](https://github.com/flowersinthesand/portal-java/tree/master/atmosphere): supports servlet container.
+*  `plugins`: supports the following frameworks. 
+ * [**`javascript`**](https://github.com/flowersinthesand/portal-java/tree/master/javascript): provides static JavaScript resources.
+ * [`spring`](https://github.com/flowersinthesand/portal-java/tree/master/spring): delegates bean creation to Spring.
 
-* [atmosphere](https://github.com/flowersinthesand/portal-java/tree/master/atmosphere/README.md) for servlet container
-
-Browser side resources such as `portal.js` and `portal-extension.js` are also provided to fully benefit from integration. See the [javascript module](https://github.com/flowersinthesand/portal-java/tree/master/javascript).
-
-## References
-* [API](https://github.com/flowersinthesand/portal-java/blob/master/core/README.md)
-* [Samples](https://github.com/flowersinthesand/portal-java/tree/master/samples/README.md)
+## Demos
+The easiest way to get started with Portal is to try out and look at examples. Thanks to [Ralph](https://github.com/ralscha), various online demos and source codes are available now at http://ha-bio.rasc.ch/portal-demos Try out!
 
 ## Snippets
 
@@ -105,7 +98,7 @@ public class NotificationEventListener implements ApplicationListener<Notificati
 }
 ```
 
-### Notifying change of model
+### Notifying changes of model
 Changes in domain layer can be applied to presentation layer in real time as well.
 
 #### Browser
@@ -174,37 +167,27 @@ public class PostHandler {
 }
 ```
 
-### Sharing a data store
-Room can be used as a shared data store.
+### Calling a service bean method remotely
+Service bean can be executed directly via the portal.
 
 #### Browser
 ```js
-portal.find("/data").send("set", {key: "key", value: "value"}, function() {
-    this.send("get", "key", function(value) {
-        console.log(value);
-    });
-});
+portal.find("/account").send("remove", 45);
 ```
 
 #### Server
 ```java
 @Bean
-public class DataHandler {
+@Component
+public class AccountServiceImpl implements AccountService {
 
-    @Wire("data")
-    private Room room;
-    
-    @On("set")
-    public void set(@Data Entity e, @Reply Fn.Callback reply) {
-        room.set(e.key(), e.data());
-        if (reply != null) {
-            reply.call();
-        }
-    }
+    @Autowired
+    private AccountDao dao;
 
-    @On("get")
-    public void get(@Data String key, @Reply Fn.Callback1<Object> reply) {
-        reply.call(room.get(key));
+    @Override
+    @On("remove")
+    public void remove(@Data long id) {
+        dao.remove(id);
     }
     
 }
