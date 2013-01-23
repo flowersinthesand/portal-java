@@ -147,7 +147,11 @@ Using reply callback, the client can retrieve data from the server asynchronousl
 
 #### Browser
 ```js
-portal.find("/post").send("find", 5, function(post) {
+portal.find("/post")
+.send("find", 123, function(post) {
+    console.log(post);
+})
+.send("load", 700, function(post) {
     console.log(post);
 });
 ```
@@ -159,8 +163,18 @@ public class PostHandler {
 
     private EntityManager em;
     
+    @Prepare
+    public void prepare() {
+        em = Persistence.createEntityManagerFactory("app1").createEntityManager(); 
+    }
+    
     @On("find")
-    public void find(@Data Integer id, @Reply Fn.Callback1<Post> reply) {
+    public Post find(@Data Integer id) {
+        return em.find(Post.class, id);
+    }
+    
+    @On("load")
+    public void load(@Data Integer id, @Reply Fn.Callback1<Post> reply) {
         reply.call(em.find(Post.class, id));
     }
 
@@ -172,7 +186,10 @@ Service bean can be executed directly via the portal.
 
 #### Browser
 ```js
-portal.find("/account").send("remove", 45);
+portal.find("/account").send("remove", 45).send("find", 23, function(account) {
+    console.log(account);
+})
+;
 ```
 
 #### Server
@@ -183,6 +200,12 @@ public class AccountServiceImpl implements AccountService {
 
     @Autowired
     private AccountDao dao;
+    
+    @Override
+    @On("find")
+    public Account find(@Data long id) {
+        return dao.find(id);
+    }
 
     @Override
     @On("remove")

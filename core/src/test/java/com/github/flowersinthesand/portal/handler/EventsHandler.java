@@ -52,6 +52,12 @@ public class EventsHandler {
 		reply.call(data);
 	}
 
+	@On("repli-data-return")
+	public Object onRepliDataReturn(@Data DataBean data) {
+		args = new Object[] { data };
+		return data;
+	}
+
 	@On("socket-data-repli")
 	public void onSocketDataRepli(Socket socket, @Data DataBean data, @Reply Fn.Callback1<Object> reply) {
 		args = new Object[] { socket, data, reply };

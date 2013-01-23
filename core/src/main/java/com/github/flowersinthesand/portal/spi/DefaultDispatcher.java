@@ -112,6 +112,7 @@ public class DefaultDispatcher implements Dispatcher {
 		int socketIndex = -1;
 		int dataIndex = -1;
 		int replyIndex = -1;
+		boolean replied;
 
 		StaticEventHandler(Object handler, Method method) {
 			this.handler = handler;
@@ -168,6 +169,7 @@ public class DefaultDispatcher implements Dispatcher {
 		@Override
 		public EventHandler handle(Socket socket, Object data, final Fn.Callback1<Object> reply) throws Exception {
 			Object[] args = new Object[length];
+			Object result = null;
 			
 			if (socketIndex > -1) {
 				args[socketIndex] = socket;
@@ -182,17 +184,23 @@ public class DefaultDispatcher implements Dispatcher {
 				args[replyIndex] = Fn.Callback.class.equals(replyType) ? new Fn.Callback() {
 					@Override
 					public void call() {
+						replied = true;
 						reply.call(null);
 					}
 				} : new Fn.Callback1<Object>() {
 					@Override
 					public void call(Object arg1) {
+						replied = true;
 						reply.call(arg1);
 					}
 				};
 			}
 
-			method.invoke(handler, args);
+			result = method.invoke(handler, args);
+			if (reply != null && !replied && method.getReturnType() != Void.TYPE) {
+				replied = true;
+				reply.call(result);
+			}
 
 			return this;
 		}

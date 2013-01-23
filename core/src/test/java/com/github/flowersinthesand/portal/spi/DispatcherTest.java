@@ -48,6 +48,7 @@ public class DispatcherTest {
 		EventsHandler h = new EventsHandler();
 		Class<?> clazz = h.getClass(); 
 		Socket socket = Mockito.mock(Socket.class);
+		MyCallback callback = null;
 		
 		Map<String, Object> before = new LinkedHashMap<String, Object>();
 		before.put("number", 100);
@@ -66,33 +67,43 @@ public class DispatcherTest {
 		Assert.assertArrayEquals(new Object[] { after }, h.args);
 
 		dispatcher.on("repli", h, clazz.getMethod("onRepli", Fn.Callback.class));
-		dispatcher.fire("repli", socket, before, new Fn.Callback1<Object>() {
-			@Override
-			public void call(Object arg1) {
-				Assert.assertNull(arg1);
-			}
-		});
+		callback = new MyCallback();
+		dispatcher.fire("repli", socket, before, callback);
+		Assert.assertTrue(callback.called);
+		Assert.assertNull(callback.arg1);
 		Assert.assertTrue(h.args[0] instanceof Fn.Callback);
 
 		dispatcher.on("repli-data", h, clazz.getMethod("onRepliData", Fn.Callback1.class, DataBean.class));
-		dispatcher.fire("repli-data", socket, before, new Fn.Callback1<Object>() {
-			@Override
-			public void call(Object arg1) {
-				Assert.assertEquals(after, arg1);
-			}
-		});
+		callback = new MyCallback();
+		dispatcher.fire("repli-data", socket, before, callback);
+		Assert.assertTrue(callback.called);
+		Assert.assertEquals(after, callback.arg1);
 		Assert.assertTrue(h.args[0] instanceof Fn.Callback1);
 
+		dispatcher.on("repli-data-return", h, clazz.getMethod("onRepliDataReturn", DataBean.class));
+		callback = new MyCallback();
+		dispatcher.fire("repli-data-return", socket, before, callback);
+		Assert.assertTrue(callback.called);
+		Assert.assertEquals(after, callback.arg1);
+		
 		dispatcher.on("socket-data-repli", h, clazz.getMethod("onSocketDataRepli", Socket.class, DataBean.class, Fn.Callback1.class));
-		dispatcher.fire("socket-data-repli", socket, before, new Fn.Callback1<Object>() {
-			@Override
-			public void call(Object arg1) {
-				Assert.assertEquals(after, arg1);
-			}
-		});
+		callback = new MyCallback();
+		dispatcher.fire("socket-data-repli", socket, before, callback);
+		Assert.assertTrue(callback.called);
+		Assert.assertEquals(after, callback.arg1);
 		Assert.assertSame(socket, h.args[0]);
-		Assert.assertEquals(after, h.args[1]);
 		Assert.assertTrue(h.args[2] instanceof Fn.Callback1);
 	}
-	
+
+	static class MyCallback implements Fn.Callback1<Object> {
+		boolean called;
+		Object arg1;
+
+		@Override
+		public void call(Object arg1) {
+			this.arg1 = arg1;
+			called = true;
+		}
+	}
+
 }

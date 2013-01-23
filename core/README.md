@@ -53,13 +53,13 @@ Any method annotated with `On` on any bean in the application is treated as even
 ### @On
 * `String value()`
 
-Defines an annotated method or an annotated annotation as the event handler. The `value` element is an event name. The method should be `public` and a return type of the method signifies nothing. `On.open`, `On.message`, `On.close` are provided as special annotations for `open`, `message`, `close` event respectively.
+Defines an annotated method or an annotated annotation as the event handler. The `value` element is an event name. The method should be `public` and a return type of the method doesn't matter. `On.open`, `On.message`, `On.close` are provided as special annotations for `open`, `message`, `close` event respectively.
 
 ### @Data
 Specifies that the event data will be converted to the annotated parameter's type and set to the annotated parameter. By default, [Jackson](http://wiki.fasterxml.com/JacksonHome) library is used to create an instance from a JSON string. Any object the client sent can be converted into the `Map<String, Object>` type.
 
 ### @Reply
-Specifies that the annotated parameter is a reply callback. The parameter's type should be `Fn.Callback` or `Fn.Callback1`.
+Specifies that the annotated parameter is a reply callback. The parameter's type should be `Fn.Callback` or `Fn.Callback1` and the method's return type should be `void`. If the reply is requested and the method's return type is not void, the result is used as the callback data, and the callback is executed accordingly. So, use this way when you need to execute the callback asynchronously.
 
 ## Model 
 
