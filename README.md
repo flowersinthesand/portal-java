@@ -195,7 +195,7 @@ portal.find("/account").send("remove", 45).send("find", 23, function(account) {
 #### Server
 ```java
 @Bean
-@Component
+@Service
 public class AccountServiceImpl implements AccountService {
 
     @Autowired
