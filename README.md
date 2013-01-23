@@ -188,8 +188,7 @@ Service bean can be executed directly via the portal.
 ```js
 portal.find("/account").send("remove", 45).send("find", 23, function(account) {
     console.log(account);
-})
-;
+});
 ```
 
 #### Server
