@@ -2,43 +2,38 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.github.flowersinthesand</groupId>
-		<artifactId>portal-samples</artifactId>
+		<artifactId>portal-parent</artifactId>
 		<version>0.4-SNAPSHOT</version>
 	</parent>
 	<groupId>com.github.flowersinthesand</groupId>
-	<artifactId>portal-chat</artifactId>
+	<artifactId>portal-guice</artifactId>
 	<version>0.4-SNAPSHOT</version>
-	<packaging>war</packaging>
-	<name>Chat webapp</name>
+	<packaging>jar</packaging>
+	<name>Portal Guice</name>
 	<dependencies>
-		<dependency>
-			<groupId>org.apache.geronimo.specs</groupId>
-			<artifactId>geronimo-servlet_3.0_spec</artifactId>
-		</dependency>
 		<dependency>
 			<groupId>com.github.flowersinthesand</groupId>
 			<artifactId>portal-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.github.flowersinthesand</groupId>
-			<artifactId>portal-javascript</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.github.flowersinthesand</groupId>
-			<artifactId>portal-atmosphere</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.github.flowersinthesand</groupId>
-			<artifactId>portal-guice</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>com.google.inject</groupId>
+			<artifactId>guice</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
-			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
 		</dependency>
 	</dependencies>
 </project>

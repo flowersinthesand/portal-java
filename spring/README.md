@@ -14,8 +14,6 @@ Add the following dependency to your pom.xml:
 ## Beans
  * `org.springframework.beans.factory.BeanFactory`
 
-BeanFactory is required, and can be obtained from a direct construction of [AnnotationConfigApplicationContext](http://static.springsource.org/spring/docs/3.2.x/javadoc-api/org/springframework/context/annotation/AnnotationConfigApplicationContext.html) or [ClassPathXmlApplicationContext](http://static.springsource.org/spring/docs/3.2.x/javadoc-api/org/springframework/context/support/ClassPathXmlApplicationContext.html), or through an utility function such as [ContextLoader.getCurrentWebApplicationContext](http://static.springsource.org/spring/docs/3.2.x/javadoc-api/org/springframework/web/context/ContextLoader.html#getCurrentWebApplicationContext(\)) or [WebApplicationContextUtils.getWebApplicationContext](http://static.springsource.org/spring/docs/3.2.x/javadoc-api/org/springframework/web/context/support/WebApplicationContextUtils.html#getWebApplicationContext(javax.servlet.ServletContext\)). 
-
 ## Usage
 ### Definition
 A bean to be managed by Spring and Portal should be declared as both Spring bean and Portal bean. Namely, such bean should be annotated with `@org.springframework.stereotype.Component` and `@com.github.flowersinthesand.portal.Bean` together.

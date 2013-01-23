@@ -17,6 +17,7 @@
 		<module>javascript</module>
 		<module>atmosphere</module>
 		<module>spring</module>
+		<module>guice</module>
 		<module>samples</module>
 	</modules>
 	<licenses>
@@ -62,6 +63,11 @@
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
+				<groupId>com.github.flowersinthesand</groupId>
+				<artifactId>portal-guice</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>org.apache.geronimo.specs</groupId>
 				<artifactId>geronimo-servlet_3.0_spec</artifactId>
 				<version>1.0</version>
@@ -91,6 +97,11 @@
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-beans</artifactId>
 				<version>3.2.0.RELEASE</version>
+			</dependency>
+			<dependency>
+				<groupId>com.google.inject</groupId>
+				<artifactId>guice</artifactId>
+				<version>3.0</version>
 			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>

@@ -14,8 +14,6 @@ Add the following dependency to your pom.xml:
 ## Beans
  * `org.atmosphere.cpr.AtmosphereFramework`
 
-AtmosphereFramework is required, and can be obtained from [framework](http://atmosphere.github.com/atmosphere/apidocs/org/atmosphere/cpr/AtmosphereServlet.html#framework(\)) method of AtmosphereServlet which you need to declare in the web.xml to install the Atmosphere.
-
 ## Bootstrapping
 
 ### Servlet 3
