@@ -81,10 +81,10 @@ public final class App {
 
 		for (Module module : modules) {
 			logger.debug("Configuring the module '{}'", module);
-			module.configure(options.packages(module.getClass().getPackage().getName()));
+			module.configure(options.packageOf(module));
 		}
 		
-		options.packages("com.github.flowersinthesand.portal.support");
+		options.packageOf("com.github.flowersinthesand.portal.support");
 		logger.info("Final options {}", options);
 
 		List<String> packages = new ArrayList<String>(options.packages());

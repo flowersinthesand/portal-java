@@ -31,18 +31,18 @@ public class AppTest {
 
 	@Test
 	public void scan() {
-		App app1 = new App(new Options().url("/t").packages("com.github.flowersinthesand.portal.handler"));
+		App app1 = new App(new Options().url("/t").packageOf(new EventsHandler()));
 		Assert.assertNotNull(app1.bean(EventsHandler.class));
 		Assert.assertNotNull(app1.bean(InitHandler.class));
 		
-		App app2 = new App(new Options().url("/t").packages("org.flowersinthesand.portal.handler"));
+		App app2 = new App(new Options().url("/t").packageOf("org.flowersinthesand.portal.handler"));
 		Assert.assertNull(app2.bean(EventsHandler.class));
 		Assert.assertNull(app2.bean(InitHandler.class));
 	}
 
 	@Test
 	public void init() throws IOException {
-		App app = new App(new Options().url("/init").packages("com.github.flowersinthesand.portal.handler"));
+		App app = new App(new Options().url("/init").packageOf("com.github.flowersinthesand.portal.handler"));
 
 		DefaultDispatcher dispatcher = app.bean(DefaultDispatcher.class);
 		Map<String, Set<EventHandler>> eventHandlers = dispatcher.eventHandlers();
@@ -53,7 +53,7 @@ public class AppTest {
 
 	@Test
 	public void inject() throws IOException {
-		new App(new Options().url("/init").packages("com.github.flowersinthesand.portal.handler"));
+		new App(new Options().url("/init").packageOf("com.github.flowersinthesand.portal.handler"));
 		
 		Assert.assertEquals(InitHandler.getPrivateRoom().name(), "privateRoom");
 		Assert.assertEquals(InitHandler.getPackagePrivateRoom().name(), "packagePrivateRoom");
@@ -63,7 +63,7 @@ public class AppTest {
 
 	@Test
 	public void preparation() throws IOException {
-		new App(new Options().url("/init").packages("com.github.flowersinthesand.portal.handler"));
+		new App(new Options().url("/init").packageOf("com.github.flowersinthesand.portal.handler"));
 		Assert.assertTrue(InitHandler.prepared);
 	}
 

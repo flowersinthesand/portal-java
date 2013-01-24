@@ -121,9 +121,11 @@ The mapping url. This is required.
 The application name. If it is null, the url will be returned instead.
 
 * `Set<String> packages()`
-* `Options packages(String... packageNames)`
+* `Options packageOf(String... packages)`
+* `Options packageOf(Class<?>... classes)`
+* `Options packageOf(Object... objects)`
 
-Package names which will be scanned for beans. Actually required.
+Package names that given classes and objects belong to which will be scanned for beans. Actually required.
 
 ### Room
 

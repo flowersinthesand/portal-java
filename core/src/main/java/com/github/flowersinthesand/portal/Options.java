@@ -50,9 +50,23 @@ public class Options {
 		return Collections.unmodifiableSet(packages);
 	}
 
-	public Options packages(String... packageNames) {
+	public Options packageOf(String... packageNames) {
 		for (String packageName : packageNames) {
 			packages.add(packageName);
+		}
+		return this;
+	}
+
+	public Options packageOf(Class<?>... classes) {
+		for (Class<?> clazz : classes) {
+			packageOf(clazz.getPackage().getName());
+		}
+		return this;
+	}
+
+	public Options packageOf(Object... objects) {
+		for (Object object : objects) {
+			packageOf(object.getClass());
 		}
 		return this;
 	}

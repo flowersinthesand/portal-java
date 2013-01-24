@@ -28,7 +28,7 @@ public class ChatInitializer implements ServletContextListener {
 
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
-		new App(new Options().url("/chat").packages("com.github.flowersinthesand.portal.samples.chat"), new AtmosphereModule(event.getServletContext())).register();
+		new App(new Options().url("/chat").packageOf(this), new AtmosphereModule(event.getServletContext())).register();
 	}
 
 	@Override
