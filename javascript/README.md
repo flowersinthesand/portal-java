@@ -5,6 +5,7 @@
 * [`portal-extension.js`](https://github.com/flowersinthesand/portal-java/blob/master/javascript/src/main/resources/META-INF/resources/javascripts/portal-extension.js), [`portal-extension.min.js`](https://github.com/flowersinthesand/portal-java/blob/master/javascript/src/main/resources/META-INF/resources/javascripts/portal-extension.min.js): A set of options to fully benefit from the integration with Portal for Java, not requiring further configuration in the server side. It enables the heartbeat for every 20 seconds and transports using XDomainRequest. This is optional but recommended.
  
 ## Installing
+### Updating pom.xml
 Add the following dependency to your pom.xml:
 ```xml
 <dependency>
@@ -14,6 +15,7 @@ Add the following dependency to your pom.xml:
 </dependency>
 ```
 
+### WebJars
 Or use [WebJar for Portal](https://github.com/webjars/portal) and [WebJar for Portal for Java](https://github.com/webjars/portal-java). 
 
 ```xml
@@ -29,6 +31,7 @@ Or use [WebJar for Portal](https://github.com/webjars/portal) and [WebJar for Po
 </dependency>
 ```
 
+### Copy and Paste
 Or just copy and paste [them](https://github.com/flowersinthesand/portal-java/tree/master/javascript/src/main/resources/META-INF/resources/javascripts).
 
 ## Loading resources
