@@ -17,7 +17,7 @@ Add the following dependency:
 ### Running the app
 Simply, create a `App` with options and modules:
 ```java
-new App(new Options().url("/event").packages("ch.rasc.portaldemos"), new AtmosphereModule(servletContext));
+new App(new Options().url("/event").packageOf("ch.rasc.portaldemos"), new AtmosphereModule(servletContext));
 ```
 
 ## Application

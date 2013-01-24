@@ -28,7 +28,7 @@ public class Initializer implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent event) {
         ServletContext servletContext = event.getServletContext();
-        new App(new Options().url("/event").packages("ch.rasc.portaldemos"), new AtmosphereModule(servletContext)).register();
+        new App(new Options().url("/event").packageOf(this), new AtmosphereModule(servletContext)).register();
     }
 
     @Override
@@ -50,7 +50,7 @@ public class Initializer extends AtmosphereServlet {
     @Override
     public void init(ServletConfig servletConfig) throws ServletException {
         super.init(servletConfig);
-        new App(new Options().url("/event").packages("ch.rasc.portaldemos"), new AtmosphereModule(framework)).register();
+        new App(new Options().url("/event").packageOf(this), new AtmosphereModule(framework)).register();
     }
     
 }
