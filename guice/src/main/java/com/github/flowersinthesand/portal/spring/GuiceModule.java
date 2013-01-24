@@ -13,12 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.flowersinthesand.portal.spi;
+package com.github.flowersinthesand.portal.spring;
 
 import com.github.flowersinthesand.portal.Options;
+import com.github.flowersinthesand.portal.spi.Module;
+import com.github.flowersinthesand.portal.spi.ObjectFactory;
+import com.google.inject.Injector;
 
-public interface Initializer {
+public class GuiceModule implements Module {
 
-	void init(Options options);
+	private Injector injector;
+
+	public GuiceModule(Injector injector) {
+		this.injector = injector;
+	}
+
+	@Override
+	public void configure(Options options) {
+		options.bean(ObjectFactory.class.getName(), new GuiceObjectFactory(injector));
+	}
 
 }

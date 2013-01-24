@@ -18,14 +18,20 @@ package com.github.flowersinthesand.portal.spring;
 import org.springframework.beans.factory.BeanFactory;
 
 import com.github.flowersinthesand.portal.Options;
-import com.github.flowersinthesand.portal.spi.Initializer;
+import com.github.flowersinthesand.portal.spi.Module;
 import com.github.flowersinthesand.portal.spi.ObjectFactory;
 
-public class SpringInitializer implements Initializer {
+public class SpringModule implements Module {
+
+	private BeanFactory beanFactory;
+
+	public SpringModule(BeanFactory beanFactory) {
+		this.beanFactory = beanFactory;
+	}
 
 	@Override
-	public void init(Options options) {
-		options.beans(ObjectFactory.class.getName(), new SpringObjectFactory(options.bean(BeanFactory.class)));
+	public void configure(Options options) {
+		options.bean(ObjectFactory.class.getName(), new SpringObjectFactory(beanFactory));
 	}
 
 }

@@ -2,6 +2,7 @@
 `portal-atmosphere` module integrates the portal application with the [Atmosphere framework](https://github.com/atmosphere/atmosphere/) which makes the application run on most servlet containers that support the Servlet Specification 2.3.
 
 ## Installing
+### Updating pom.xml
 Add the following dependency to your pom.xml:
 ```xml
 <dependency>
@@ -11,12 +12,13 @@ Add the following dependency to your pom.xml:
 </dependency>
 ```
 
-## Beans
- * `org.atmosphere.cpr.AtmosphereFramework`
+### Creating the module
+Use the following constructor in accordance with your servlet container
 
-## Bootstrapping
-
-### Servlet 3
+#### Servlet 3
+```java
+AtmosphereModule(ServletContext)
+```
 Thanks to dynamic registration support in Servlet 3, you don't need to install the Atmosphere and find AtmosphereFramework manually. Instead, only `javax.servlet.ServletContext` is required. The Atmosphere will be installed automatically per app. In this case, ServletContextListener is a recommended entry point where the application starts. 
 
 ```java
@@ -26,7 +28,7 @@ public class Initializer implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent event) {
         ServletContext servletContext = event.getServletContext();
-        new App(new Options().url("/event").packages("ch.rasc.portaldemos").beans(servletContext)).register();
+        new App(new Options().url("/event").packages("ch.rasc.portaldemos"), new AtmosphereModule(servletContext)).register();
     }
 
     @Override
@@ -35,7 +37,11 @@ public class Initializer implements ServletContextListener {
 }
 ```
 
-### Servlet 2.x
+#### Servlet 2.x
+```java
+AtmosphereModule(AtmosphereFramework)
+```
+
 To install Atmosphere and initialize application, you have to write a servlet extending AtmosphereServlet and declare it in web.xml. The initialization can be done in `void init(ServletConfig)` method only after calling the method of the super class.
 
 ```java
@@ -44,7 +50,7 @@ public class Initializer extends AtmosphereServlet {
     @Override
     public void init(ServletConfig servletConfig) throws ServletException {
         super.init(servletConfig);
-        new App(new Options().url("/event").packages("ch.rasc.portaldemos").beans(framework)).register();
+        new App(new Options().url("/event").packages("ch.rasc.portaldemos"), new AtmosphereModule(framework)).register();
     }
     
 }

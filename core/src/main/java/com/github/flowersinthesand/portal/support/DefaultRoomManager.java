@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.flowersinthesand.portal.spi;
+package com.github.flowersinthesand.portal.support;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.Room;
+import com.github.flowersinthesand.portal.spi.RoomManager;
 
 @Bean("com.github.flowersinthesand.portal.spi.RoomManager")
 public class DefaultRoomManager implements RoomManager {

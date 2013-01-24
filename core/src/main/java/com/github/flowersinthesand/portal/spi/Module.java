@@ -13,18 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.flowersinthesand.portal.spring;
+package com.github.flowersinthesand.portal.spi;
 
 import com.github.flowersinthesand.portal.Options;
-import com.github.flowersinthesand.portal.spi.Initializer;
-import com.github.flowersinthesand.portal.spi.ObjectFactory;
-import com.google.inject.Injector;
 
-public class GuiceInitializer implements Initializer {
+public interface Module {
 
-	@Override
-	public void init(Options options) {
-		options.beans(ObjectFactory.class.getName(), new GuiceObjectFactory(options.bean(Injector.class)));
-	}
+	void configure(Options options);
 
 }

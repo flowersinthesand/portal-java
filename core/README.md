@@ -4,7 +4,8 @@
 Requires Java 6.
 
 ## Installing
-Add the following dependency to your pom.xml:
+### Updating pom.xml
+Add the following dependency:
 ```xml
 <dependency>
     <groupId>com.github.flowersinthesand</groupId>
@@ -13,22 +14,19 @@ Add the following dependency to your pom.xml:
 </dependency>
 ```
 
+### Running the app
+Simply, create a `App` with options and modules:
+```java
+new App(new Options().url("/event").packages("ch.rasc.portaldemos"), new AtmosphereModule(servletContext));
+```
+
 ## Application
 A Portal application is a small bean container which contains beans defined by the user and beans used by the application. Here, the user can define a bean as a controller, service or repository, but the expected use case is to write a handler as a component of presentation layer.
 
 For a declarative programming, a lot of annotations are provided and defined in the package `com.github.flowersinthesand.portal`.
 
-```java
-new App(new Options().url("/event").packages("ch.rasc.portaldemos"));
-```
-
 ## Bean
-Bean is an application component and is instantiated once per each application like singleton. Therefore, all declared fields on the bean must be thread-safe. The following bean names are reserved to be used internally by the application.
-
-* `com.github.flowersinthesand.portal.spi.ObjectFactory`
-* `com.github.flowersinthesand.portal.spi.Dispatcher`
-* `com.github.flowersinthesand.portal.spi.RoomManager`
-* `com.github.flowersinthesand.portal.spi.SocketManager`
+Bean is an application component and is instantiated once per each application like singleton. Therefore, all declared fields on the bean must be thread-safe.
 
 ### @Bean
 * `String value() default ""`
@@ -75,21 +73,9 @@ Returns the first application from the default repository. Use this method only 
 
 Finds an application which corresponds to the given name from the default repository. These methods are static, however, app intances are initialized and configured during runtime. So, only if each app's initialization is done, finder functions can work correctly.
 
-* `App()`
+* `App(Options options, Modules... modules)`
 
-Creates a new application that needs to be initialized manually.
-
-* `App(Options options)`
-
-Creates a new application and automatically initializes it.
-
-* `void init(Options options)`
-
-Initializes the application.
-
-* `App register()`
-
-Registers the applicaton to the default repository.
+Creates a new application with modules. 
 
 * `String name()`
 
@@ -105,7 +91,7 @@ Binds a value to this application using the given key.
 
 * `Room room(String name)`
 
-Finds corresponding room or opens new one if it doesn't exist. Utilize this method when trying to access  rooms which are supposed to be created in runtime.
+Finds corresponding room or opens new one if it doesn't exist. Utilize this method when trying to access rooms which are not available by injection, namely, are supposed to be created in runtime.
 
 * `App fire(String event, Socket socket)`
 * `App fire(String event, Socket socket, Object data)`
@@ -117,6 +103,10 @@ Fires the given event to the given socket with data and reply callback.
 * `<T> T bean(Class<? super T> class)`
 
 Returns the corresponding bean by name or type from the bean container.
+
+* `App register()`
+
+Registers the application to the default repository. Then, the app can be retrieved by `App.find(String name)`. However, injection by container like the Spring or the Guice is more preferred than calling this method and static methods.
 
 ### Options
 
@@ -134,14 +124,6 @@ The application name. If it is null, the url will be returned instead.
 * `Options packages(String... packageNames)`
 
 Package names which will be scanned for beans. Actually required.
-
-* `Map<String, Object> beans()`
-* `Object bean(String name)`
-* `<T> T bean(Class<? super T> class)`
-* `Options beans(String name, Object bean)`
-* `Options beans(Object... beans)`
-
-Beans to be stored to the application usually used for configuration.
 
 ### Room
 

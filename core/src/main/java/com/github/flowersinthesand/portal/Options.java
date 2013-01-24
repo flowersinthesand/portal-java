@@ -20,7 +20,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
 
 public class Options {
 
@@ -66,40 +65,8 @@ public class Options {
 		return beans.get(name);
 	}
 
-	@SuppressWarnings("unchecked")
-	public <T> T bean(Class<T> clazz) {
-		Set<String> names = new LinkedHashSet<String>();
-
-		for (Entry<String, Object> entry : beans.entrySet()) {
-			if (clazz == entry.getValue().getClass()) {
-				names.add(entry.getKey());
-			}
-		}
-
-		if (names.isEmpty()) {
-			for (Entry<String, Object> entry : beans.entrySet()) {
-				if (clazz.isAssignableFrom(entry.getValue().getClass())) {
-					names.add(entry.getKey());
-				}
-			}
-		}
-
-		if (names.size() > 1) {
-			throw new IllegalArgumentException("Multiple beans found " + names + " for " + clazz);
-		}
-
-		return names.isEmpty() ? null : (T) bean(names.iterator().next());
-	}
-
-	public Options beans(String name, Object bean) {
+	public Options bean(String name, Object bean) {
 		beans.put(name, bean);
-		return this;
-	}
-
-	public Options beans(Object... beans) {
-		for (Object bean : beans) {
-			beans(bean.getClass().getName(), bean);
-		}
 		return this;
 	}
 

@@ -25,25 +25,36 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.flowersinthesand.portal.Options;
-import com.github.flowersinthesand.portal.spi.Initializer;
+import com.github.flowersinthesand.portal.spi.Module;
 
-public class AtmosphereInitializer implements Initializer {
+public class AtmosphereModule implements Module {
 
-	private final Logger logger = LoggerFactory.getLogger(AtmosphereInitializer.class);
+	private final Logger logger = LoggerFactory.getLogger(AtmosphereModule.class);
 
-	@Override
-	public void init(Options options) {
-		ServletContext context = options.bean(ServletContext.class);
-		if (context != null && context.getMajorVersion() >= 3) {
-			installAtmosphereServlet(context, options);
-		}
+	private ServletContext servletContext;
+	private AtmosphereFramework framework;
 
-		if (options.bean(AtmosphereFramework.class) == null) {
-			throw new IllegalArgumentException("There is no AtmosphereFramework");
-		}
+	public AtmosphereModule(ServletContext servletContext) {
+		this.servletContext = servletContext;
 	}
 
-	private void installAtmosphereServlet(ServletContext context, Options options) {
+	public AtmosphereModule(AtmosphereFramework framework) {
+		this.framework = framework;
+	}
+
+	@Override
+	public void configure(Options options) {
+		if (servletContext != null) {
+			installAtmosphere(servletContext, options);
+		}
+		if (framework == null) {
+			throw new IllegalArgumentException("There is no AtmosphereFramework");
+		}
+
+		options.bean("url", options.url()).bean(AtmosphereFramework.class.getName(), framework);
+	}
+
+	private void installAtmosphere(ServletContext context, Options options) {
 		AtmosphereServlet servlet = null;
 		try {
 			servlet = context.createServlet(AtmosphereServlet.class);
@@ -56,7 +67,7 @@ public class AtmosphereInitializer implements Initializer {
 		registration.addMapping(options.url());
 		logger.info("AtmosphereServlet '{}' is installed in accordance with the registration '{}'", servlet, registration);
 
-		options.beans("url", options.url()).beans(servlet.framework());
+		framework = servlet.framework();
 	}
 
 }

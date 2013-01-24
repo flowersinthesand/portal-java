@@ -19,11 +19,14 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -32,10 +35,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.flowersinthesand.portal.spi.Dispatcher;
-import com.github.flowersinthesand.portal.spi.Initializer;
-import com.github.flowersinthesand.portal.spi.NewObjectFactory;
+import com.github.flowersinthesand.portal.spi.Module;
 import com.github.flowersinthesand.portal.spi.ObjectFactory;
 import com.github.flowersinthesand.portal.spi.RoomManager;
+import com.github.flowersinthesand.portal.support.NewObjectFactory;
 
 import eu.infomas.annotation.AnnotationDetector;
 
@@ -64,27 +67,30 @@ public final class App {
 	private Map<String, Object> beans = new LinkedHashMap<String, Object>();
 	private Map<String, Object> attrs = new ConcurrentHashMap<String, Object>();
 	
-	public App() {}
-
-	public App(Options options) {
-		init(options);
+	public App(Options options, Module... modules) {
+		init(options, Arrays.asList(modules));
 	}
 
-	public void init(Options options) {
+	private void init(Options options, List<Module> modules) {
 		if (options.url() == null) {
 			throw new IllegalArgumentException("Option's url cannot be null");
 		}
 
 		this.name = options.name();
-		Set<Initializer> initializers = loadInitializers();
-		logger.info("Initializing Portal application with options {} and initializers {}", options, initializers);
+		logger.info("Initializing Portal application with options {} and modules {}", options, modules);
 
-		for (Initializer i : initializers) {
-			i.init(options);
+		for (Module module : modules) {
+			logger.debug("Configuring the module '{}'", module);
+			module.configure(options.packages(module.getClass().getPackage().getName()));
 		}
+		
+		options.packages("com.github.flowersinthesand.portal.support");
 		logger.info("Final options {}", options);
 
-		Map<String, Class<?>> classes = scan(options.packages("com.github.flowersinthesand.portal").packages());
+		List<String> packages = new ArrayList<String>(options.packages());
+		Collections.reverse(packages);
+		
+		Map<String, Class<?>> classes = scan(packages);
 		beans.putAll(options.beans());
 		
 		if (!beans.containsKey(ObjectFactory.class.getName())) {
@@ -98,6 +104,7 @@ public final class App {
 			logger.debug("Bean '{}' is instantiated '{}'", entry.getKey(), bean);
 			beans.put(entry.getKey(), bean);
 		}
+
 		for (Entry<String, Object> entry : beans.entrySet()) {
 			logger.debug("Processing bean '{}'", entry.getKey());
 			Object bean = entry.getValue();
@@ -116,18 +123,8 @@ public final class App {
 		}
 	}
 
-	private Set<Initializer> loadInitializers() {
-		Set<Initializer> initializers = new LinkedHashSet<Initializer>();
-
-		for (Initializer i : ServiceLoader.load(Initializer.class)) {
-			initializers.add(i);
-		}
-
-		return initializers;
-	}
-
 	@SuppressWarnings("unchecked")
-	private Map<String, Class<?>> scan(Set<String> packages) {
+	private Map<String, Class<?>> scan(List<String> packages) {
 		final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 		final Map<String, Class<?>> classes = new LinkedHashMap<String, Class<?>>();
 		AnnotationDetector detector = new AnnotationDetector(new AnnotationDetector.TypeReporter() {
@@ -253,34 +250,6 @@ public final class App {
 		return this;
 	}
 
-	public Room room(String name) {
-		RoomManager roomManager = (RoomManager) bean(RoomManager.class.getName());
-		Room room = roomManager.find(name);
-		if (room == null) {
-			room = roomManager.open(name);
-		}
-		
-		return room;
-	}
-
-	public App fire(String event, Socket socket) {
-		Dispatcher dispatcher = (Dispatcher) bean(Dispatcher.class.getName());
-		dispatcher.fire(event, socket);
-		return this;
-	}
-
-	public App fire(String event, Socket socket, Object data) {
-		Dispatcher dispatcher = (Dispatcher) bean(Dispatcher.class.getName());
-		dispatcher.fire(event, socket, data);
-		return this;
-	}
-
-	public App fire(String event, Socket socket, Object data, Fn.Callback1<Object> reply) {
-		Dispatcher dispatcher = (Dispatcher) bean(Dispatcher.class.getName());
-		dispatcher.fire(event, socket, data, reply);
-		return this;
-	}
-
 	public Object bean(String name) {
 		return beans.get(name);
 	}
@@ -308,6 +277,31 @@ public final class App {
 		}
 
 		return names.isEmpty() ? null : (T) bean(names.iterator().next());
+	}
+
+	public Room room(String name) {
+		RoomManager roomManager = bean(RoomManager.class);
+		Room room = roomManager.find(name);
+		if (room == null) {
+			room = roomManager.open(name);
+		}
+		
+		return room;
+	}
+
+	public App fire(String event, Socket socket) {
+		bean(Dispatcher.class).fire(event, socket);
+		return this;
+	}
+
+	public App fire(String event, Socket socket, Object data) {
+		bean(Dispatcher.class).fire(event, socket, data);
+		return this;
+	}
+
+	public App fire(String event, Socket socket, Object data, Fn.Callback1<Object> reply) {
+		bean(Dispatcher.class).fire(event, socket, data, reply);
+		return this;
 	}
 
 }

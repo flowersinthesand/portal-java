@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
-import com.github.flowersinthesand.portal.spi.NewObjectFactory;
+import com.github.flowersinthesand.portal.support.NewObjectFactory;
 
 public class SpringObjectFactory extends NewObjectFactory {
 

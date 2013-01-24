@@ -27,7 +27,8 @@ import com.github.flowersinthesand.portal.Fn;
 import com.github.flowersinthesand.portal.Socket;
 import com.github.flowersinthesand.portal.handler.DataBean;
 import com.github.flowersinthesand.portal.handler.EventsHandler;
-import com.github.flowersinthesand.portal.spi.DefaultDispatcher.EventHandler;
+import com.github.flowersinthesand.portal.support.DefaultDispatcher;
+import com.github.flowersinthesand.portal.support.DefaultDispatcher.EventHandler;
 
 public class DispatcherTest {
 

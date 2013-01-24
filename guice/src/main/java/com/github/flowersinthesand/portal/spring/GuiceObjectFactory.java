@@ -18,7 +18,7 @@ package com.github.flowersinthesand.portal.spring;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.flowersinthesand.portal.spi.NewObjectFactory;
+import com.github.flowersinthesand.portal.support.NewObjectFactory;
 import com.google.inject.ConfigurationException;
 import com.google.inject.Injector;
 

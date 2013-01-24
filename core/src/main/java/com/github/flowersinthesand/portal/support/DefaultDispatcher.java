@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.flowersinthesand.portal.spi;
+package com.github.flowersinthesand.portal.support;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -32,6 +32,7 @@ import com.github.flowersinthesand.portal.Data;
 import com.github.flowersinthesand.portal.Fn;
 import com.github.flowersinthesand.portal.Reply;
 import com.github.flowersinthesand.portal.Socket;
+import com.github.flowersinthesand.portal.spi.Dispatcher;
 
 @Bean("com.github.flowersinthesand.portal.spi.Dispatcher")
 public class DefaultDispatcher implements Dispatcher {

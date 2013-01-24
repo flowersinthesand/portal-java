@@ -24,8 +24,8 @@ import org.testng.annotations.Test;
 
 import com.github.flowersinthesand.portal.handler.EventsHandler;
 import com.github.flowersinthesand.portal.handler.InitHandler;
-import com.github.flowersinthesand.portal.spi.DefaultDispatcher;
-import com.github.flowersinthesand.portal.spi.DefaultDispatcher.EventHandler;
+import com.github.flowersinthesand.portal.support.DefaultDispatcher;
+import com.github.flowersinthesand.portal.support.DefaultDispatcher.EventHandler;
 
 public class AppTest {
 
@@ -36,13 +36,13 @@ public class AppTest {
 		Assert.assertNotNull(app1.bean(InitHandler.class));
 		
 		App app2 = new App(new Options().url("/t").packages("org.flowersinthesand.portal.handler"));
-		Assert.assertNotNull(app2.bean(EventsHandler.class));
-		Assert.assertNotNull(app2.bean(InitHandler.class));
+		Assert.assertNull(app2.bean(EventsHandler.class));
+		Assert.assertNull(app2.bean(InitHandler.class));
 	}
 
 	@Test
 	public void init() throws IOException {
-		App app = new App(new Options().url("/init"));
+		App app = new App(new Options().url("/init").packages("com.github.flowersinthesand.portal.handler"));
 
 		DefaultDispatcher dispatcher = app.bean(DefaultDispatcher.class);
 		Map<String, Set<EventHandler>> eventHandlers = dispatcher.eventHandlers();
@@ -50,7 +50,6 @@ public class AppTest {
 		Assert.assertNotNull(eventHandlers.get("load"));
 		Assert.assertNull(eventHandlers.get("ready"));
 	}
-	
 
 	@Test
 	public void inject() throws IOException {
