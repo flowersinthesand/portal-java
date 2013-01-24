@@ -18,12 +18,22 @@ GuiceModule(Injector)
 ```
 
 ## Usage
-### Definition
+### Declaration
 A bean to be managed by Guice and Portal should be declared as both Guice bean and Portal bean.
 
 ```java
 @Bean
-public class TwitterHandler {}
+public class AccountHandler {
+
+    @Inject
+    private AccountService service;
+    
+    @On("get")
+    public Account get(@Data long id) {
+        return service.get(id);
+    }
+
+}
 ```
 
 ### Scope

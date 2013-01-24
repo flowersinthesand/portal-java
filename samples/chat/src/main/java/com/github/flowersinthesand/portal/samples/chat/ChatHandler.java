@@ -39,5 +39,5 @@ public class ChatHandler {
 	public void message(@Data Map<String, Object> message) {
 		room.send("message", message);
 	}
-	
+
 }
