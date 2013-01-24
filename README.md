@@ -12,6 +12,7 @@ The following list of modules are available, and **bold** modules are required.
 *  `plugins`: supports the following frameworks. 
  * [**`javascript`**](https://github.com/flowersinthesand/portal-java/tree/master/javascript): provides static JavaScript resources.
  * [`spring`](https://github.com/flowersinthesand/portal-java/tree/master/spring): delegates bean creation to Spring.
+ * [`guice`](https://github.com/flowersinthesand/portal-java/tree/master/guice): delegates bean creation to Guice.
 
 ## Demos
 The easiest way to get started with Portal is to try out and look at examples. Thanks to [Ralph](https://github.com/ralscha), various online demos and source codes are available now at http://ha-bio.rasc.ch/portal-demos Try out!

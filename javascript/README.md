@@ -35,4 +35,4 @@ Or use [WebJar for Portal](https://github.com/webjars/portal) and [WebJar for Po
 Or just copy and paste [them](https://github.com/flowersinthesand/portal-java/tree/master/javascript/src/main/resources/META-INF/resources/javascripts).
 
 ## Loading resources
-Static assets are located in `META-INF/resources/javascripts/` in the jar. Serve them properly according to your environment. The [documentation](http://www.webjars.org/documentation) of WebJARS will give you some help for this.
+Static assets are located in `META-INF/resources/javascripts/` in the jar. Serve them properly according to your environment. The [documentation](http://www.webjars.org/documentation) of WebJarS will give you some help for this.
