@@ -7,12 +7,12 @@ The **Portal** and **Portal for Java** project is developed and maintained by [D
 The following list of modules are available, and **bold** modules are required.
 
 * [**`core`**](https://github.com/flowersinthesand/portal-java/tree/master/core): provides API and SPI.
-* **`bridges`**: makes the application run in the following runtime environments.
- * [`atmosphere`](https://github.com/flowersinthesand/portal-java/tree/master/atmosphere): supports servlet container.
-*  `plugins`: supports the following frameworks. 
- * [**`javascript`**](https://github.com/flowersinthesand/portal-java/tree/master/javascript): provides static JavaScript resources.
- * [`spring`](https://github.com/flowersinthesand/portal-java/tree/master/spring): delegates bean creation to Spring.
- * [`guice`](https://github.com/flowersinthesand/portal-java/tree/master/guice): delegates bean creation to Guice.
+* [**`javascript`**](https://github.com/flowersinthesand/portal-java/tree/master/javascript): provides static JavaScript resources.
+* **`bridge`**: makes the application run in the following runtime environment.
+    * [`atmosphere`](https://github.com/flowersinthesand/portal-java/tree/master/atmosphere): Servlet container.
+* `objectfactory`: delegates bean creation to the following framework.
+    * [`spring`](https://github.com/flowersinthesand/portal-java/tree/master/spring): Spring.
+    * [`guice`](https://github.com/flowersinthesand/portal-java/tree/master/guice): Guice.
 
 ## Demos
 The easiest way to get started with Portal is to try out and look at examples. Thanks to [Ralph](https://github.com/ralscha), various online demos and source codes are available now at http://ha-bio.rasc.ch/portal-demos Try out!
@@ -91,9 +91,13 @@ portal.open("/notifications").on(notifiers);
 @Component
 public class NotificationEventListener implements ApplicationListener<NotificationEvent> {
 
+    @Inject
+    private App app;
+
+    @Override
     public void onApplicationEvent(NotificationEvent e) {
         Notification n = e.notification();
-        App.find().room(n.target()).send(n.type(), n.data());
+        app.room(n.target()).send(n.type(), n.data());
     }
 
 }

@@ -66,12 +66,9 @@ Specifies that the annotated parameter is a reply callback. The parameter's type
 The App is the standalone application context.
 
 * `static App find()`
-
-Returns the first application from the default repository. Use this method only if there is a single application to avoid any ambiguousness.
-
 * `static App find(String name)`
 
-Finds an application which corresponds to the given name from the default repository. These methods are static, however, app intances are initialized and configured during runtime. So, only if each app's initialization is done, finder functions can work correctly.
+Finds an application which corresponds to the given name or the first application if the name is not provided from the default repository.
 
 * `App(Options options, Modules... modules)`
 
@@ -109,6 +106,8 @@ Returns the corresponding bean by name or type from the bean container.
 Registers the application to the default repository. Then, the app can be retrieved by `App.find(String name)`. However, injection by container like the Spring or the Guice is more preferred than calling this method and static methods.
 
 ### Options
+
+Options for the core module.
 
 * `String url()`
 * `Options url(String url)`
