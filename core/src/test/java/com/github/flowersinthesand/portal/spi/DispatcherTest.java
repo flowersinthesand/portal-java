@@ -28,7 +28,6 @@ import com.github.flowersinthesand.portal.Socket;
 import com.github.flowersinthesand.portal.handler.DataBean;
 import com.github.flowersinthesand.portal.handler.EventsHandler;
 import com.github.flowersinthesand.portal.support.DefaultDispatcher;
-import com.github.flowersinthesand.portal.support.DefaultDispatcher.EventHandler;
 
 public class DispatcherTest {
 
@@ -37,11 +36,11 @@ public class DispatcherTest {
 			InstantiationException, IllegalAccessException {
 		EventsHandler h = new EventsHandler();
 
-		DefaultDispatcher dispatcher = new DefaultDispatcher();
+		Dispatcher dispatcher = new DefaultDispatcher();
 		dispatcher.on("load", h, h.getClass().getMethod("onLoad"));
 
-		Map<String, Set<EventHandler>> eventHandlers = dispatcher.eventHandlers();
-		Assert.assertNotNull(eventHandlers.get("load"));
+		Map<String, Set<Dispatcher.Handler>> handlers = dispatcher.handlers();
+		Assert.assertNotNull(handlers.get("load"));
 	}
 
 	@Test

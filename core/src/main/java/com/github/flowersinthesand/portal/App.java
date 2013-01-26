@@ -299,7 +299,7 @@ public final class App {
 		return this;
 	}
 
-	public App fire(String event, Socket socket, Object data, Fn.Callback1<Object> reply) {
+	public App fire(String event, Socket socket, Object data, Fn.Callback1<?> reply) {
 		bean(Dispatcher.class).fire(event, socket, data, reply);
 		return this;
 	}

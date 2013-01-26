@@ -18,7 +18,9 @@ package com.github.flowersinthesand.portal.support;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -38,97 +40,87 @@ import com.github.flowersinthesand.portal.spi.Dispatcher;
 public class DefaultDispatcher implements Dispatcher {
 
 	private final Logger logger = LoggerFactory.getLogger(DefaultDispatcher.class);
-	private Map<String, Set<EventHandler>> eventHandlers = new ConcurrentHashMap<String, Set<EventHandler>>();
+	private Map<String, Set<Dispatcher.Handler>> handlers = new ConcurrentHashMap<String, Set<Dispatcher.Handler>>();
 
 	@Override
-	public void on(String event, Object handler, Method method) {
-		EventHandler eventHandler = new StaticEventHandler(handler, method);
-		if (!eventHandlers.containsKey(event)) {
-			eventHandlers.put(event, new CopyOnWriteArraySet<EventHandler>());
+	public Map<String, Set<Dispatcher.Handler>> handlers() {
+		Map<String, Set<Dispatcher.Handler>> map = new LinkedHashMap<String, Set<Handler>>();
+		for (Entry<String, Set<Handler>> entry : handlers.entrySet()) {
+			map.put(entry.getKey(), Collections.unmodifiableSet(entry.getValue()));
 		}
-
-		logger.debug("Attaching the {} event handler {}", event, eventHandler);
+		
+		return Collections.unmodifiableMap(map);
+	}
+	
+	@Override
+	public void on(String event, Object bean, Method method) {
+		logger.debug("Attaching the '{}' event from '{}'", event, method);
+		
+		Dispatcher.Handler handler;
 		try {
-			eventHandlers.get(event).add(eventHandler.init());
-		} catch (EventHandlerSignatureException e) {
-			logger.error("Event handler method signature is inappropriate", e);
+			handler = new DefaultHandler(bean, method);
+		} catch (IllegalArgumentException e) {
+			throw e;
 		}
+		
+		if (!handlers.containsKey(event)) {
+			handlers.put(event, new CopyOnWriteArraySet<Dispatcher.Handler>());
+		}
+
+		handlers.get(event).add(handler);
 	}
 
 	@Override
-	public void fire(String on, Socket socket) {
-		fire(on, socket, null);
+	public void fire(String event, Socket socket) {
+		fire(event, socket, null);
 	}
 
 	@Override
-	public void fire(String on, Socket socket, Object data) {
-		fire(on, socket, data, null);
+	public void fire(String event, Socket socket, Object data) {
+		fire(event, socket, data, null);
 	}
 
 	@Override
-	public void fire(String on, Socket socket, Object data, Fn.Callback1<Object> reply) {
-		logger.info("Firing {} event to Socket#{}", on, socket.param("id"));
-		if (eventHandlers.containsKey(on)) {
-			for (EventHandler eventHandler : eventHandlers.get(on)) {
-				logger.trace("Invoking handler {}", eventHandler);
+	public void fire(String event, Socket socket, Object data, Fn.Callback1<?> reply) {
+		logger.info("Firing {} event to Socket#{}", event, socket.param("id"));
+		if (handlers.containsKey(event)) {
+			for (Dispatcher.Handler handler : handlers.get(event)) {
+				logger.trace("Invoking handler {}", handler);
 				try {
-					eventHandler.handle(socket, data, reply);
+					handler.handle(socket, data, reply);
 				} catch (Exception e) {
-					logger.error("Exception occurred while invoking a handler " + eventHandler, e);
+					logger.error("Exception occurred while invoking a handler " + handler, e);
 				}
 			}
 		}
 	}
-	
-	public Map<String, Set<EventHandler>> eventHandlers() {
-		return Collections.unmodifiableMap(eventHandlers);
-	}
 
-	@SuppressWarnings("serial")
-	public static class EventHandlerSignatureException extends RuntimeException {
+	static class DefaultHandler implements Dispatcher.Handler {
 
-		public EventHandlerSignatureException(String msg) {
-			super(msg);
-		}
-
-	}
-
-	public static interface EventHandler {
-
-		EventHandler init();
-
-		EventHandler handle(Socket socket, Object data, Fn.Callback1<Object> reply) throws Exception;
-
-	}
-
-	static class StaticEventHandler implements EventHandler {
-
+		Logger logger = LoggerFactory.getLogger(DefaultHandler.class);
 		ObjectMapper mapper = new ObjectMapper();
+		Object bean;
+		Method method;
+
 		Class<?> dataType;
 		Class<?> replyType;
-		
-		Object handler;
-		Method method;
 		int length;
 		int socketIndex = -1;
 		int dataIndex = -1;
 		int replyIndex = -1;
 		boolean replied;
 
-		StaticEventHandler(Object handler, Method method) {
-			this.handler = handler;
+		DefaultHandler(Object bean, Method method) {
+			this.bean = bean;
 			this.method = method;
 			this.length = method.getParameterTypes().length;
-		}
-
-		@Override
-		public EventHandler init() {
+			
 			Class<?>[] paramTypes = method.getParameterTypes();
 			for (int i = 0; i < paramTypes.length; i++) {
 				Class<?> paramType = paramTypes[i];
 				if (Socket.class.equals(paramType)) {
 					if (socketIndex > -1) {
-						throw new EventHandlerSignatureException("Socket is duplicated in the parameters of " + method);
+						throw new IllegalArgumentException("Socket is duplicated in the parameters of " + method);
 					}
 					socketIndex = i;
 				}
@@ -140,20 +132,20 @@ public class DefaultDispatcher implements Dispatcher {
 				for (Annotation annotation : paramAnnotations[i]) {
 					if (Data.class.equals(annotation.annotationType())) {
 						if (dataType != null) {
-							throw new EventHandlerSignatureException("@Data is duplicated in the parameters of " + method);
+							throw new IllegalArgumentException("@Data is duplicated in the parameters of " + method);
 						}
 						dataIndex = i;
 						dataType = paramType;
 					}
 					if (Reply.class.equals(annotation.annotationType())) {
 						if (replyType != null) {
-							throw new EventHandlerSignatureException("@Reply is duplicated in the parameters of " + method);
+							throw new IllegalArgumentException("@Reply is duplicated in the parameters of " + method);
 						}
 						if (Fn.Callback.class.equals(paramType) || Fn.Callback1.class.equals(paramType)) {
 							replyIndex = i;
 							replyType = paramType;
 						} else {
-							throw new EventHandlerSignatureException("@Reply must be present either on Fn.Callback or Fn.Callback1 in " + method);
+							throw new IllegalArgumentException("@Reply must be present either on Fn.Callback or Fn.Callback1 in " + method);
 						}
 					}
 				}
@@ -161,14 +153,13 @@ public class DefaultDispatcher implements Dispatcher {
 
 			int sum = socketIndex + dataIndex + replyIndex;
 			if (length > 3 || (length == 3 && sum != 3) || (length == 2 && sum != 0) || (length == 1 && sum != -2) || (length == 0 && sum != -3)) {
-				throw new EventHandlerSignatureException("There is an unhandled paramter in " + method);
+				throw new IllegalArgumentException("There is an unhandled paramter in " + method);
 			}
-			
-			return this;
 		}
 
 		@Override
-		public EventHandler handle(Socket socket, Object data, final Fn.Callback1<Object> reply) throws Exception {
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		public void handle(Socket socket, Object data, final Fn.Callback1 reply) {
 			Object[] args = new Object[length];
 			Object result = null;
 			
@@ -197,13 +188,16 @@ public class DefaultDispatcher implements Dispatcher {
 				};
 			}
 
-			result = method.invoke(handler, args);
+			try {
+				result = method.invoke(bean, args);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+			
 			if (reply != null && !replied && method.getReturnType() != Void.TYPE) {
 				replied = true;
 				reply.call(result);
 			}
-
-			return this;
 		}
 
 	}

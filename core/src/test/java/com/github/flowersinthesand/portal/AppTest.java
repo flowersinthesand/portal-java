@@ -24,8 +24,7 @@ import org.testng.annotations.Test;
 
 import com.github.flowersinthesand.portal.handler.EventsHandler;
 import com.github.flowersinthesand.portal.handler.InitHandler;
-import com.github.flowersinthesand.portal.support.DefaultDispatcher;
-import com.github.flowersinthesand.portal.support.DefaultDispatcher.EventHandler;
+import com.github.flowersinthesand.portal.spi.Dispatcher;
 
 public class AppTest {
 
@@ -44,11 +43,11 @@ public class AppTest {
 	public void init() throws IOException {
 		App app = new App(new Options().url("/init").packageOf("com.github.flowersinthesand.portal.handler"));
 
-		DefaultDispatcher dispatcher = app.bean(DefaultDispatcher.class);
-		Map<String, Set<EventHandler>> eventHandlers = dispatcher.eventHandlers();
+		Dispatcher dispatcher = app.bean(Dispatcher.class);
+		Map<String, Set<Dispatcher.Handler>> handlers = dispatcher.handlers();
 
-		Assert.assertNotNull(eventHandlers.get("load"));
-		Assert.assertNull(eventHandlers.get("ready"));
+		Assert.assertNotNull(handlers.get("load"));
+		Assert.assertNull(handlers.get("ready"));
 	}
 
 	@Test
