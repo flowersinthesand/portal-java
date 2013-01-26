@@ -37,6 +37,18 @@ public class Initializer implements ServletContextListener {
 }
 ```
 
+You can access a registration object for AtmosphereServlet through modifyAtmosphereServletRegistration method of the module.
+```java
+new App(new Options().url("/event").packageOf(this), new AtmosphereModule(servletContext) {
+
+    @Override
+    protected void modifyAtmosphereServletRegistration(ServletRegistration.Dynamic registration) {
+        registration.setInitParameter("key", "value");
+    }
+    
+});
+```
+
 #### Servlet 2.x
 ```java
 AtmosphereModule(AtmosphereFramework)

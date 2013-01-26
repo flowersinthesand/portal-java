@@ -65,9 +65,12 @@ public class AtmosphereModule implements Module {
 		ServletRegistration.Dynamic registration = context.addServlet("portal#" + options.name(), servlet);
 		registration.setLoadOnStartup(0);
 		registration.addMapping(options.url());
+		modifyAtmosphereServletRegistration(registration);
 		logger.info("AtmosphereServlet '{}' is installed in accordance with the registration '{}'", servlet, registration);
 
 		framework = servlet.framework();
 	}
+
+	protected void modifyAtmosphereServletRegistration(ServletRegistration.Dynamic registration) {}
 
 }
