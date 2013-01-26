@@ -13,24 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.flowersinthesand.portal.spring;
+package com.github.flowersinthesand.portal.guice;
 
-import com.github.flowersinthesand.portal.Options;
-import com.github.flowersinthesand.portal.spi.Module;
-import com.github.flowersinthesand.portal.spi.ObjectFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.github.flowersinthesand.portal.support.NewObjectFactory;
+import com.google.inject.ConfigurationException;
 import com.google.inject.Injector;
 
-public class GuiceModule implements Module {
+public class GuiceObjectFactory extends NewObjectFactory {
 
+	private final Logger logger = LoggerFactory.getLogger(GuiceObjectFactory.class);
 	private Injector injector;
 
-	public GuiceModule(Injector injector) {
+	public GuiceObjectFactory(Injector injector) {
 		this.injector = injector;
 	}
 
 	@Override
-	public void configure(Options options) {
-		options.bean(ObjectFactory.class.getName(), new GuiceObjectFactory(injector));
+	public <T> T create(String name, Class<T> clazz) {
+		try {
+			return injector.getInstance(clazz);
+		} catch (ConfigurationException e) {
+			logger.debug("{}", e.getMessage());
+			return super.create(name, clazz);
+		}
 	}
 
 }
