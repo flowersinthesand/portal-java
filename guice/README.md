@@ -38,3 +38,40 @@ public class AccountHandler {
 
 ### Scope
 When there are a single Guice bean container and multiple Portal applications, if a bean will be used by only a single application, its scope can be singleton. For the rest, it must be defined as prototype. In other words, handler beans which are subordinate to an application can be **singleton**, but SPI beans which are instantiated for each application such as Dispatcher and SocketManager must be **prototype**.
+
+### Injection
+Since the `App` is also bean, it can be managed and injected by the Guice. Here, you don't need to call the register method. Module is like this:
+
+```java
+public class PortalModule extends AbstractModule {
+
+    @Override
+    public void configure() {}
+
+    @Provides
+    @Singleton
+    App app(Injector injector) {
+        return new App(new Options().url("/chat").packageOf(AccountHandler.class), new GuiceModule(injector));
+    }
+    
+}
+```
+
+Consequently, the app can be wired to any bean in container gracefully without calling static methods.
+
+```java
+public class AccountServiceImpl implements AccountService {
+
+    @Inject
+    private AccountDao dao;
+    @Inject
+    private App app;
+    
+    @Override
+    public void delete(long id) {
+        dao.delete(id);
+        app.room("account").send("account.delete", id);
+    }
+
+}
+```

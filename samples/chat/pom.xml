@@ -28,10 +28,6 @@
 			<artifactId>portal-atmosphere</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.github.flowersinthesand</groupId>
-			<artifactId>portal-guice</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
