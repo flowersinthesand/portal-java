@@ -247,8 +247,8 @@ public class DefaultDispatcher implements Dispatcher {
 	public static class DefaultEvaluator implements Dispatcher.Evaluator {
 
 		@Override
-		public Object evaluate(Map<String, Object> context, String expression) {
-			return context.get(expression);
+		public Object evaluate(Map<String, Object> root, String expression) {
+			return root.get(expression);
 		}
 
 	}

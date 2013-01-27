@@ -13,6 +13,8 @@ The following list of modules are available, and **bold** modules are required.
 * `objectfactory`: delegates bean creation to the following framework.
     * [`spring`](https://github.com/flowersinthesand/portal-java/tree/master/spring): Spring.
     * [`guice`](https://github.com/flowersinthesand/portal-java/tree/master/guice): Guice.
+* `evaluator`: evaluate an expression using the following expression language.
+    * [`spel`](https://github.com/flowersinthesand/portal-java/tree/master/spel): Spring Expression Language.
 
 ## Demos
 The easiest way to get started with Portal is to try out and look at examples. Thanks to [Ralph](https://github.com/ralscha), various online demos and source codes are available now at http://ha-bio.rasc.ch/portal-demos Try out!
