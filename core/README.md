@@ -29,16 +29,20 @@ For a declarative programming, a lot of annotations are provided and defined in 
 Bean is an application component and is instantiated once per each application like singleton. Therefore, all declared fields on the bean must be thread-safe.
 
 ### @Bean
+Indicates that the annotated class is a bean. This annotation is required for all beans. If a bean name is not provided, the bean name will be the class's name.
+
 * `String value() default ""`
 
-Indicates that the annotated class is a bean. This annotation is required for all beans. The `value` element defines the bean name. If it is not provided, the bean name will be the class's name.
+The bean name of the class.
 
 ### @Wire
+Marks the annotated field as to be wired. If a bean name exists, the container will find a bean by the name. Otherwise, the container will find a bean by the type of the field. The field does not need to be public.
+
+Exceptionally, if the field type is `Room`, it will be wired regarding the value as the room name. If the corresponding room does not exist, it will be opened first before being wired.    
+
 * `String value() default ""`
 
-Marks the annotated field as to be wired. The `value` element indicates a bean name. If it exists, the container will find a bean by the name. Otherwise, the container will find a bean by the type of the field. The field does not need to be public.
-
-Exceptionally, if the field type is `Room`, it will be wired regarding the value as the room name, even though it is not bean. If the corresponding room does not exist, it will be opened first before being wired.    
+The bean name to be wired. 
 
 ### @Prepare
 Specifies that the annotated method should be be executed after dependency injection is done to perform any initialization. Only public methods with no arguments can be executed.
@@ -49,12 +53,18 @@ Any method annotated with `On` on any bean in the application is treated as even
 * `Socket`: The socket instance that sent the event.
 
 ### @On
+Defines an annotated method or an annotated annotation as the event handler. The method should be `public` and a return type of the method doesn't matter. `On.open`, `On.message`, `On.close` are provided as special annotations for `open`, `message`, `close` event respectively.
+
 * `String value()`
 
-Defines an annotated method or an annotated annotation as the event handler. The `value` element is an event name. The method should be `public` and a return type of the method doesn't matter. `On.open`, `On.message`, `On.close` are provided as special annotations for `open`, `message`, `close` event respectively.
+The event name
 
 ### @Data
-Specifies that the event data will be converted to the annotated parameter's type and set to the annotated parameter. By default, [Jackson](http://wiki.fasterxml.com/JacksonHome) library is used to create an instance from a JSON string. Any object the client sent can be converted into the `Map<String, Object>` type.
+Specifies that the event data will be converted to the annotated parameter's type and the expression and set to the annotated parameter. By default, [Jackson](http://wiki.fasterxml.com/JacksonHome) library is used to create an instance from a JSON string. Any object the client sent can be converted into the `Map<String, Object>` type.
+
+* `String value() default ""`
+
+The expression for data. By default, regarding expression as property name, the property of the raw data becomes the data to be passed to the handler.
 
 ### @Reply
 Specifies that the annotated parameter is a reply callback. The parameter's type should be `Fn.Callback` or `Fn.Callback1` and the method's return type should be `void`. If the reply is requested and the method's return type is not void, the result is used as the callback data, and the callback is executed accordingly. So, use this way when you need to execute the callback asynchronously.

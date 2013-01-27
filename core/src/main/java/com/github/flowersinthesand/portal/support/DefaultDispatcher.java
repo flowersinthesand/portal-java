@@ -17,8 +17,10 @@ package com.github.flowersinthesand.portal.support;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -32,8 +34,10 @@ import org.slf4j.LoggerFactory;
 import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.Data;
 import com.github.flowersinthesand.portal.Fn;
+import com.github.flowersinthesand.portal.Fn.Callback1;
 import com.github.flowersinthesand.portal.Reply;
 import com.github.flowersinthesand.portal.Socket;
+import com.github.flowersinthesand.portal.Wire;
 import com.github.flowersinthesand.portal.spi.Dispatcher;
 
 @Bean("com.github.flowersinthesand.portal.spi.Dispatcher")
@@ -41,6 +45,8 @@ public class DefaultDispatcher implements Dispatcher {
 
 	private final Logger logger = LoggerFactory.getLogger(DefaultDispatcher.class);
 	private Map<String, Set<Dispatcher.Handler>> handlers = new ConcurrentHashMap<String, Set<Dispatcher.Handler>>();
+	@Wire
+	private Evaluator evaluator;
 
 	@Override
 	public Map<String, Set<Dispatcher.Handler>> handlers() {
@@ -95,85 +101,131 @@ public class DefaultDispatcher implements Dispatcher {
 		}
 	}
 
-	static class DefaultHandler implements Dispatcher.Handler {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	class DefaultHandler implements Dispatcher.Handler {
 
-		Logger logger = LoggerFactory.getLogger(DefaultHandler.class);
 		ObjectMapper mapper = new ObjectMapper();
 		Object bean;
 		Method method;
-
-		Class<?> dataType;
-		Class<?> replyType;
-		int length;
-		int socketIndex = -1;
-		int dataIndex = -1;
-		int replyIndex = -1;
+		Param[] params;
 		boolean replied;
-
+		
 		DefaultHandler(Object bean, Method method) {
 			this.bean = bean;
 			this.method = method;
-			this.length = method.getParameterTypes().length;
-			
+
 			Class<?>[] paramTypes = method.getParameterTypes();
+			Annotation[][] paramAnnotations = method.getParameterAnnotations();
+			params = new Param[paramTypes.length];
+			
 			for (int i = 0; i < paramTypes.length; i++) {
 				Class<?> paramType = paramTypes[i];
-				if (Socket.class.equals(paramType)) {
-					if (socketIndex > -1) {
-						throw new IllegalArgumentException("Socket is duplicated in the parameters of " + method);
-					}
-					socketIndex = i;
+				if (paramType.isAssignableFrom(Socket.class)) {
+					params[i] = new SocketParam();					
 				}
-			}
-
-			Annotation[][] paramAnnotations = method.getParameterAnnotations();
-			for (int i = 0; i < paramAnnotations.length; i++) {
-				Class<?> paramType = method.getParameterTypes()[i];
 				for (Annotation annotation : paramAnnotations[i]) {
 					if (Data.class.equals(annotation.annotationType())) {
-						if (dataType != null) {
-							throw new IllegalArgumentException("@Data is duplicated in the parameters of " + method);
-						}
-						dataIndex = i;
-						dataType = paramType;
+						params[i] = new DataParam(paramType, (Data) annotation);
 					}
 					if (Reply.class.equals(annotation.annotationType())) {
-						if (replyType != null) {
-							throw new IllegalArgumentException("@Reply is duplicated in the parameters of " + method);
+						if (!Fn.Callback.class.equals(paramType) && !Fn.Callback1.class.equals(paramType)) {
+							throw new IllegalArgumentException(
+								"@Reply must be present either on Fn.Callback or Fn.Callback1 not '" + paramType + "' in '" + method + "'");
 						}
-						if (Fn.Callback.class.equals(paramType) || Fn.Callback1.class.equals(paramType)) {
-							replyIndex = i;
-							replyType = paramType;
-						} else {
-							throw new IllegalArgumentException("@Reply must be present either on Fn.Callback or Fn.Callback1 in " + method);
+						if (method.getReturnType() != Void.TYPE) {
+							throw new IllegalArgumentException("@Reply must be present on void return type method not '" + method + "'");
 						}
+						params[i] = new ReplyParam(paramType);
 					}
 				}
 			}
+			
+			int socketIndex = -1;
+			List<String> expressions = new ArrayList<String>();
+			for (int i = 0; i < params.length; i++) {
+				Param arg = params[i];
+				if (arg == null) {
+					throw new IllegalArgumentException(
+						"Paramters[" + i + "] '" + method.getParameterTypes()[i] + "' of method '" + method + "' cannot be resolved");
+				} else if (arg instanceof SocketParam) {
+					if (socketIndex != -1) {
+						throw new IllegalArgumentException(
+							"Socket is duplicated at '" + socketIndex + "' and '" + i + "' index in parameters of '" + method + "'");
+					}
+					socketIndex = i;
+				} else if (arg instanceof DataParam) {
+					String value = ((DataParam) arg).ann.value();
+					if (expressions.contains(value)) {
+						throw new IllegalArgumentException("@Data(\"" + value + "\") is duplicated in paramters of '" + method + "'");
+					}
+					expressions.add(value);
+				}
+			}
+		}
+		
+		@Override
+		public void handle(Socket socket, Object data, Callback1 reply) {
+			Object[] args = new Object[params.length];
+			for (int i = 0; i < params.length; i++) {
+				args[i] = params[i].resolve(socket, data, reply);
+			}
+			
+			Object result;
+			try {
+				result = method.invoke(bean, args);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
 
-			int sum = socketIndex + dataIndex + replyIndex;
-			if (length > 3 || (length == 3 && sum != 3) || (length == 2 && sum != 0) || (length == 1 && sum != -2) || (length == 0 && sum != -3)) {
-				throw new IllegalArgumentException("There is an unhandled paramter in " + method);
+			if (reply != null && !replied && method.getReturnType() != Void.TYPE) {
+				replied = true;
+				reply.call(result);
+			}
+		}
+		
+		abstract class Param {
+			abstract Object resolve(Socket socket, Object data, Callback1<?> reply);
+		}
+		
+		class SocketParam extends Param {
+			@Override
+			Object resolve(Socket socket, Object data, Callback1<?> reply) {
+				return socket;
 			}
 		}
 
-		@Override
-		@SuppressWarnings({ "unchecked", "rawtypes" })
-		public void handle(Socket socket, Object data, final Fn.Callback1 reply) {
-			Object[] args = new Object[length];
-			Object result = null;
-			
-			if (socketIndex > -1) {
-				args[socketIndex] = socket;
+		class DataParam extends Param {
+			Class<?> type;
+			Data ann;
+
+			public DataParam(Class<?> type, Data ann) {
+				this.type = type;
+				this.ann = ann;
 			}
-			if (dataIndex > -1) {
-				if (dataType != null) {
-					data = mapper.convertValue(data, dataType);
+
+			@Override
+			Object resolve(Socket socket, Object data, Callback1<?> reply) {
+				if (!ann.value().equals("")) {
+					if (!(data instanceof Map)) {
+						throw new IllegalArgumentException("@Data(\"" + ann.value() + "\") must work with Map not '" + data + "'");
+					}
+					data = evaluator.evaluate((Map<String, Object>) data, ann.value());
 				}
-				args[dataIndex] = data;
+				
+				return mapper.convertValue(data, type);
 			}
-			if (replyType != null && reply != null && replyIndex > -1) {
-				args[replyIndex] = Fn.Callback.class.equals(replyType) ? new Fn.Callback() {
+		}
+
+		class ReplyParam extends Param {
+			Class<?> type;
+
+			public ReplyParam(Class<?> type) {
+				this.type = type;
+			}
+
+			@Override
+			Object resolve(Socket socket, Object data, final Callback1 reply) {
+				return Fn.Callback.class.equals(type) ? new Fn.Callback() {
 					@Override
 					public void call() {
 						replied = true;
@@ -187,17 +239,16 @@ public class DefaultDispatcher implements Dispatcher {
 					}
 				};
 			}
+		}
 
-			try {
-				result = method.invoke(bean, args);
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-			
-			if (reply != null && !replied && method.getReturnType() != Void.TYPE) {
-				replied = true;
-				reply.call(result);
-			}
+	}
+
+	@Bean("com.github.flowersinthesand.portal.spi.Dispatcher$Evaluator")
+	public static class DefaultEvaluator implements Dispatcher.Evaluator {
+
+		@Override
+		public Object evaluate(Map<String, Object> context, String expression) {
+			return context.get(expression);
 		}
 
 	}

@@ -15,6 +15,7 @@
  */
 package com.github.flowersinthesand.portal.spi;
 
+import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -37,56 +38,65 @@ public class DispatcherTest {
 		EventsHandler h = new EventsHandler();
 
 		Dispatcher dispatcher = new DefaultDispatcher();
-		dispatcher.on("load", h, h.getClass().getMethod("onLoad"));
+		dispatcher.on("load", h, h.getClass().getMethod("load"));
 
 		Map<String, Set<Dispatcher.Handler>> handlers = dispatcher.handlers();
 		Assert.assertNotNull(handlers.get("load"));
 	}
 
 	@Test
-	public void firing() throws SecurityException, NoSuchMethodException {
+	public void firing() throws SecurityException, NoSuchMethodException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+		Dispatcher dispatcher = new DefaultDispatcher();
+		Field field = DefaultDispatcher.class.getDeclaredField("evaluator");
+		field.setAccessible(true);
+		field.set(dispatcher, new DefaultDispatcher.DefaultEvaluator());
+		
 		EventsHandler h = new EventsHandler();
 		Class<?> clazz = h.getClass(); 
 		Socket socket = Mockito.mock(Socket.class);
-		MyCallback callback = null;
 		
 		Map<String, Object> before = new LinkedHashMap<String, Object>();
 		before.put("number", 100);
 		before.put("string", "String");
-		final DataBean after = new DataBean();
-		after.setNumber(100);
-		after.setString("String");
+		DataBean after = new DataBean(100, "String");
 
-		Dispatcher dispatcher = new DefaultDispatcher();
-		dispatcher.on("socket", h, clazz.getMethod("onSocket", Socket.class));
+		dispatcher.on("socket", h, clazz.getMethod("socket", Socket.class));
 		dispatcher.fire("socket", socket);
 		Assert.assertArrayEquals(new Object[] { socket }, h.args);
 
-		dispatcher.on("data", h, clazz.getMethod("onData", DataBean.class));
+		dispatcher.on("data", h, clazz.getMethod("data", DataBean.class));
 		dispatcher.fire("data", socket, before);
 		Assert.assertArrayEquals(new Object[] { after }, h.args);
 
-		dispatcher.on("repli", h, clazz.getMethod("onRepli", Fn.Callback.class));
+		dispatcher.on("nestedData", h, clazz.getMethod("nestedData", Map.class, DataBean.class, DataBean.class));
+		Map<String, Object> map = new LinkedHashMap<String, Object>();
+		map.put("data1", before);
+		map.put("data2", before);
+		dispatcher.fire("nestedData", socket, map);
+		Assert.assertArrayEquals(new Object[] { map, after, after }, h.args);
+
+		MyCallback callback = null;
+		dispatcher.on("repli", h, clazz.getMethod("repli", Fn.Callback.class));
 		callback = new MyCallback();
 		dispatcher.fire("repli", socket, before, callback);
 		Assert.assertTrue(callback.called);
 		Assert.assertNull(callback.arg1);
 		Assert.assertTrue(h.args[0] instanceof Fn.Callback);
 
-		dispatcher.on("repli-data", h, clazz.getMethod("onRepliData", Fn.Callback1.class, DataBean.class));
+		dispatcher.on("repli-data", h, clazz.getMethod("repliData", Fn.Callback1.class, DataBean.class));
 		callback = new MyCallback();
 		dispatcher.fire("repli-data", socket, before, callback);
 		Assert.assertTrue(callback.called);
 		Assert.assertEquals(after, callback.arg1);
 		Assert.assertTrue(h.args[0] instanceof Fn.Callback1);
 
-		dispatcher.on("repli-data-return", h, clazz.getMethod("onRepliDataReturn", DataBean.class));
+		dispatcher.on("repli-data-return", h, clazz.getMethod("repliDataReturn", DataBean.class));
 		callback = new MyCallback();
 		dispatcher.fire("repli-data-return", socket, before, callback);
 		Assert.assertTrue(callback.called);
 		Assert.assertEquals(after, callback.arg1);
 		
-		dispatcher.on("socket-data-repli", h, clazz.getMethod("onSocketDataRepli", Socket.class, DataBean.class, Fn.Callback1.class));
+		dispatcher.on("socket-data-repli", h, clazz.getMethod("socketDataRepli", Socket.class, DataBean.class, Fn.Callback1.class));
 		callback = new MyCallback();
 		dispatcher.fire("socket-data-repli", socket, before, callback);
 		Assert.assertTrue(callback.called);

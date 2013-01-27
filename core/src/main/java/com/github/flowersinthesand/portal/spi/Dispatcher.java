@@ -40,4 +40,10 @@ public interface Dispatcher {
 
 	}
 
+	interface Evaluator {
+
+		Object evaluate(Map<String, Object> context, String expression);
+
+	}
+
 }
