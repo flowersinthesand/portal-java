@@ -153,11 +153,11 @@ Using reply callback, the client can retrieve data from the server asynchronousl
 #### Browser
 ```js
 portal.find("/model")
-.send("find", {type: "super.model.Actor", id: 45}, function(post) {
-    console.log(post);
+.send("find", {type: "super.model.Actor", id: 45}, function(model) {
+    console.log(model);
 })
-.send("findActor", 384, function(post) {
-    console.log(post);
+.send("findActor", 384, function(model) {
+    console.log(model);
 });
 ```
 
@@ -174,12 +174,12 @@ public class ModelHandler {
     }
     
     @On("find")
-    public Post find(@Data("type") Class<?> entityClass, @Data("id") Long id) {
+    public Object find(@Data("type") Class<?> entityClass, @Data("id") Long id) {
         return em.find(entityClass, id);
     }
     
     @On("findActor")
-    public void load(@Data Long id, @Reply Fn.Callback1<Post> reply) {
+    public void load(@Data Long id, @Reply Fn.Callback1<Actor> reply) {
         reply.call(em.find(Actor.class, id));
     }
 
