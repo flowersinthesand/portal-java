@@ -177,7 +177,7 @@ The number of sockets.
 
 * `Room close()`
 
-Closes all the connections of the sockets, clears all sockets and attributes and deletes the room from the application.
+Closes all the connections of the sockets, clears all sockets and attributes.
 
 ### Socket
 

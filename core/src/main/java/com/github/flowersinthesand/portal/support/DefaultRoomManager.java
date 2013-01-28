@@ -37,7 +37,7 @@ public class DefaultRoomManager implements RoomManager {
 
 	@Override
 	public Room open(String name) {
-		Room room = new Room(name, rooms);
+		Room room = new Room(name);
 		rooms.put(name, room);
 		return room;
 	}

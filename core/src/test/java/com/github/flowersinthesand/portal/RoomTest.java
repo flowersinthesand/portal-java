@@ -16,9 +16,7 @@
 package com.github.flowersinthesand.portal;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.Assert;
 import org.mockito.Mockito;
@@ -30,13 +28,13 @@ public class RoomTest {
 	
 	@Test
 	public void name() {
-		Room room = new Room("room", new LinkedHashMap<String, Room>());
+		Room room = new Room("room");
 		Assert.assertEquals(room.name(), "room");
 	}
 
 	@Test
 	public void sockets() {
-		Room chat = new Room("chat", new LinkedHashMap<String, Room>());
+		Room chat = new Room("chat");
 		
 		Socket socket1 = Mockito.mock(Socket.class);
 		Mockito.when(socket1.opened()).thenReturn(true);
@@ -61,9 +59,9 @@ public class RoomTest {
 	
 	@Test
 	public void rooms() {
-		Room chat = new Room("chat", new LinkedHashMap<String, Room>());
-		Room hollowjan = new Room("hollowjan", new LinkedHashMap<String, Room>());
-		Room envy = new Room("envy", new LinkedHashMap<String, Room>());
+		Room chat = new Room("chat");
+		Room hollowjan = new Room("hollowjan");
+		Room envy = new Room("envy");
 		
 		Socket socket1 = Mockito.mock(Socket.class);
 		Socket socket2 = Mockito.mock(Socket.class);
@@ -85,7 +83,7 @@ public class RoomTest {
 	
 	@Test
 	public void sending() {
-		Room chat = new Room("chat", new LinkedHashMap<String, Room>());
+		Room chat = new Room("chat");
 		final List<Object> executed = new ArrayList<Object>(); 
 		Answer<Object> increment = new Answer<Object>() {
 			@Override
@@ -120,8 +118,7 @@ public class RoomTest {
 	
 	@Test
 	public void closing() {
-		Map<String, Room> rooms = new LinkedHashMap<String, Room>();
-		Room chat = new Room("chat", rooms);
+		Room chat = new Room("chat");
 		final List<Object> executed = new ArrayList<Object>(); 
 		Answer<Object> increment = new Answer<Object>() {
 			@Override
@@ -146,12 +143,11 @@ public class RoomTest {
 		Assert.assertEquals(executed.size(), 2);
 		Assert.assertEquals(chat.size(), 0);
 		Assert.assertNull(chat.get("data"));
-		Assert.assertEquals(rooms.size(), 0);
 	}
 
 	@Test
 	public void attr() {
-		Room room = new Room("room", new LinkedHashMap<String, Room>());
+		Room room = new Room("room");
 		Assert.assertNull(room.get("notfound"));
 		
 		String data = "data";

@@ -9,7 +9,7 @@
 	<artifactId>portal-spel</artifactId>
 	<version>0.4-SNAPSHOT</version>
 	<packaging>jar</packaging>
-	<name>Portal Spring Expression Language</name>
+	<name>Portal SPEL</name>
 	<dependencies>
 		<dependency>
 			<groupId>com.github.flowersinthesand</groupId>
