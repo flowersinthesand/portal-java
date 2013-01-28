@@ -29,11 +29,11 @@ For a declarative programming, a lot of annotations are provided and defined in 
 Bean is an application component and is instantiated once per each application like singleton. Therefore, all declared fields on the bean must be thread-safe.
 
 ### @Bean
-Indicates that the annotated class is a bean. This annotation is required for all beans. If a bean name is not provided, the bean name will be the class's name.
+Indicates that the annotated class is a bean. This annotation is required for all beans.
 
 * `String value() default ""`
 
-The bean name of the class.
+The bean name of the class. If a bean name is not provided, the bean name will be the decapitalized form of the class's name.
 
 ### @Wire
 Marks the annotated field as to be wired. If a bean name exists, the container will find a bean by the name. Otherwise, the container will find a bean by the type of the field. The field does not need to be public.
@@ -108,8 +108,9 @@ Fires the given event to the given socket with data and reply callback.
 
 * `Object bean(String name)`
 * `<T> T bean(Class<? super T> class)`
+* `<T> T bean(String name, Class<? super T> class)`
 
-Returns the corresponding bean by name or type from the bean container.
+Returns the corresponding bean by name or type from the bean container. Throws IllegalArgumentException if there is no corresponding bean.
 
 * `App register()`
 

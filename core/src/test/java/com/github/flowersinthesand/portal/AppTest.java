@@ -33,10 +33,18 @@ public class AppTest {
 		App app1 = new App(new Options().url("/t").packageOf(new EventsHandler()));
 		Assert.assertNotNull(app1.bean(EventsHandler.class));
 		Assert.assertNotNull(app1.bean(InitHandler.class));
-		
+
 		App app2 = new App(new Options().url("/t").packageOf("org.flowersinthesand.portal.handler"));
-		Assert.assertNull(app2.bean(EventsHandler.class));
-		Assert.assertNull(app2.bean(InitHandler.class));
+		try {
+			app2.bean(EventsHandler.class);
+		} catch (IllegalArgumentException e) {
+			Assert.assertTrue(true);
+		}
+		try {
+			app2.bean(InitHandler.class);
+		} catch (IllegalArgumentException e) {
+			Assert.assertTrue(true);
+		}
 	}
 
 	@Test
@@ -57,6 +65,7 @@ public class AppTest {
 		Assert.assertEquals(InitHandler.getPrivateRoom().name(), "privateRoom");
 		Assert.assertEquals(InitHandler.getPackagePrivateRoom().name(), "packagePrivateRoom");
 		Assert.assertEquals(InitHandler.getPublicRoom().name(), "publicRoom");
+		Assert.assertEquals(InitHandler.getAnonymous().name(), "anonymous");
 		Assert.assertNotNull(InitHandler.getDispatcher());
 	}
 

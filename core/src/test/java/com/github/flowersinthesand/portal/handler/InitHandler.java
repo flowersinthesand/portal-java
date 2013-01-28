@@ -41,6 +41,9 @@ public class InitHandler {
 
 	@Wire("publicRoom")
 	public static Room publicRoom;
+
+	@Wire
+	public static Room anonymous;
 	
 	@Wire
 	public static Dispatcher dispatcher;
@@ -63,6 +66,10 @@ public class InitHandler {
 
 	public static Room getPublicRoom() {
 		return publicRoom;
+	}
+	
+	public static Room getAnonymous() {
+		return anonymous;
 	}
 
 	public static Dispatcher getDispatcher() {

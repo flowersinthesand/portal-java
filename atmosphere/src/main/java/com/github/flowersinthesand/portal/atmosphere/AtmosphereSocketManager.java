@@ -51,7 +51,7 @@ import com.github.flowersinthesand.portal.spi.Dispatcher;
 import com.github.flowersinthesand.portal.spi.SocketManager;
 import com.github.flowersinthesand.portal.support.ReplyHandler;
 
-@Bean("com.github.flowersinthesand.portal.spi.SocketManager")
+@Bean("socketManager")
 public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager {
 
 	private static final String padding2K = CharBuffer.allocate(2048).toString().replace('\0', ' ');
@@ -67,8 +67,8 @@ public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager
 	private final Logger logger = LoggerFactory.getLogger(AtmosphereSocketManager.class);
 	private ObjectMapper mapper = new ObjectMapper();
 	private Map<String, AtmosphereSocket> sockets = new ConcurrentHashMap<String, AtmosphereSocket>();
-	@Wire("url")
-	private String mapping;
+	@Wire
+	private String url;
 	@Wire
 	private AtmosphereFramework framework;
 	@Wire
@@ -78,7 +78,7 @@ public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager
 
 	@Prepare
 	public void prepare() {
-		framework.addAtmosphereHandler(mapping, this);
+		framework.addAtmosphereHandler(url, this);
 	}
 
 	@Override

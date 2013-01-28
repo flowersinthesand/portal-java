@@ -15,6 +15,7 @@
  */
 package com.github.flowersinthesand.portal;
 
+import java.beans.Introspector;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -140,18 +141,17 @@ public final class App {
 				try {
 					clazz = classLoader.loadClass(className);
 				} catch (ClassNotFoundException e) {
-					logger.error("Bean " + className + " not found", e);
+					logger.error("Bean '" + className + "' not found", e);
 					throw new IllegalArgumentException(e);
 				}
 				
 				String name = clazz.getAnnotation(Bean.class).value();
-				logger.debug("Scanned @Bean(\"{}\") on '{}'", name, className);
-				
 				if (name.length() == 0) {
-					name = className;
+					name = Introspector.decapitalize(className.substring(className.lastIndexOf('.') + 1).replace('$', '.'));
 				}
 				
 				classes.put(name, clazz);
+				logger.debug("Scanned @Bean(\"{}\") on '{}'", name, className);
 			}
 		});
 
@@ -171,23 +171,29 @@ public final class App {
 	
 	private void wire(Object bean, Field field) {
 		String beanName = field.getAnnotation(Wire.class).value();
+		boolean specified = beanName.length() > 0; 
 		Class<?> beanType = field.getType();
+		if (beanName.length() == 0) {
+			beanName = field.getName();
+		}
+		
 		logger.debug("@Wire(\"{}\") on '{}'", beanName, field);
 
 		Object value = null;
 		if (beanType.isAssignableFrom(App.class)) {
 			value = this;
 		} else if (beanType.isAssignableFrom(Room.class)) {
-			if (beanName.length() == 0) {
-				throw new IllegalArgumentException("Room has no name in @Wire(\"\") " + field);
-			}
 			value = room(beanName);
 		} else {
-			value = beanName.length() > 0 ? bean(beanName) : bean(beanType);
-		}
-		
-		if (value == null) {
-			throw new IllegalStateException("No value to wire the field @Wire(\"" + beanName + "\")" + field);
+			try {
+				value = bean(beanName, beanType);
+			} catch (IllegalArgumentException e) {
+				if (specified) {
+					throw e;
+				} else {
+					value = bean(beanType);
+				}
+			}
 		}
 
 		try {
@@ -215,8 +221,7 @@ public final class App {
 		}
 		
 		if (on != null) {
-			Dispatcher dispatcher = (Dispatcher) bean(Dispatcher.class.getName());
-			dispatcher.on(on, bean, method);
+			bean(Dispatcher.class).on(on, bean, method);
 		}
 	}
 
@@ -251,7 +256,22 @@ public final class App {
 	}
 
 	public Object bean(String name) {
+		if (!beans.containsKey(name)) {
+			throw new IllegalArgumentException("Bean '" + name + "' not found");
+		}
+
 		return beans.get(name);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T bean(String name, Class<T> clazz) {
+		Object bean = bean(name);
+		if (bean != null && !bean.getClass().isAssignableFrom(clazz)) {
+			throw new IllegalArgumentException("Bean '" + name + "' is found, but its type '"
+					+ bean.getClass() + "' is different comparing to the given one '" + clazz + "'");
+		}
+
+		return (T) bean;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -259,24 +279,18 @@ public final class App {
 		Set<String> names = new LinkedHashSet<String>();
 
 		for (Entry<String, Object> entry : beans.entrySet()) {
-			if (clazz == entry.getValue().getClass()) {
+			if (clazz.isAssignableFrom(entry.getValue().getClass())) {
 				names.add(entry.getKey());
-			}
-		}
-
-		if (names.isEmpty()) {
-			for (Entry<String, Object> entry : beans.entrySet()) {
-				if (clazz.isAssignableFrom(entry.getValue().getClass())) {
-					names.add(entry.getKey());
-				}
 			}
 		}
 
 		if (names.size() > 1) {
 			throw new IllegalArgumentException("Multiple beans found " + names + " for " + clazz);
+		} else if (names.isEmpty()) {
+			throw new IllegalArgumentException("No bean found for " + clazz);
 		}
 
-		return names.isEmpty() ? null : (T) bean(names.iterator().next());
+		return (T) bean(names.iterator().next());
 	}
 
 	public Room room(String name) {

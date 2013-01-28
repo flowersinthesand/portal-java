@@ -40,7 +40,7 @@ import com.github.flowersinthesand.portal.Socket;
 import com.github.flowersinthesand.portal.Wire;
 import com.github.flowersinthesand.portal.spi.Dispatcher;
 
-@Bean("com.github.flowersinthesand.portal.spi.Dispatcher")
+@Bean("dispatcher")
 public class DefaultDispatcher implements Dispatcher {
 
 	private final Logger logger = LoggerFactory.getLogger(DefaultDispatcher.class);
@@ -243,7 +243,7 @@ public class DefaultDispatcher implements Dispatcher {
 
 	}
 
-	@Bean("com.github.flowersinthesand.portal.spi.Dispatcher$Evaluator")
+	@Bean("dispatcher.Evaluator")
 	public static class DefaultEvaluator implements Dispatcher.Evaluator {
 
 		@Override

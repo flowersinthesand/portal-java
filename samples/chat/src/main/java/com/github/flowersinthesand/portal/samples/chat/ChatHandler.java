@@ -27,17 +27,17 @@ import com.github.flowersinthesand.portal.Wire;
 @Bean
 public class ChatHandler {
 
-	@Wire("chat")
-	private Room room;
+	@Wire
+	private Room chat;
 
 	@On.open
 	public void open(Socket socket) {
-		room.add(socket);
+		chat.add(socket);
 	}
 
 	@On.message
 	public void message(@Data Map<String, Object> message) {
-		room.send("message", message);
+		chat.send("message", message);
 	}
 
 }

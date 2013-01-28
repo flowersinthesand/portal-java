@@ -25,7 +25,7 @@ import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.Room;
 import com.github.flowersinthesand.portal.spi.RoomManager;
 
-@Bean("com.github.flowersinthesand.portal.spi.RoomManager")
+@Bean("roomManager")
 public class DefaultRoomManager implements RoomManager {
 
 	private Map<String, Room> rooms = new ConcurrentHashMap<String, Room>();

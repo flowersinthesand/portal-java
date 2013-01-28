@@ -24,7 +24,7 @@ import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.Wire;
 import com.github.flowersinthesand.portal.spi.Dispatcher;
 
-@Bean("com.github.flowersinthesand.portal.spi.Dispatcher$Evaluator")
+@Bean("dispatcher.Evaluator")
 public class SpelEvaluator implements Dispatcher.Evaluator {
 
 	@Wire
