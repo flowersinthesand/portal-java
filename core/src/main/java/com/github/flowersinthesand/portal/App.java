@@ -209,11 +209,18 @@ public final class App {
 		String on = null;
 		if (method.isAnnotationPresent(On.class)) {
 			on = method.getAnnotation(On.class).value();
+			if (on.length() == 0) {
+				on = method.getName();
+			}
 			logger.debug("@On(\"{}\") on '{}'", on, method);
 		} else {
 			for (Annotation ann : method.getAnnotations()) {
-				if (ann.annotationType().isAnnotationPresent(On.class)) {
-					on = ann.annotationType().getAnnotation(On.class).value();
+				Class<? extends Annotation> annType = ann.annotationType();
+				if (annType.isAnnotationPresent(On.class)) {
+					on = annType.getAnnotation(On.class).value();
+					if (on.length() == 0) {
+						throw new IllegalStateException("When @On is applied to type, the event name have to be specified.");
+					}
 					logger.debug("@On(\"{}\") of '{}' on '{}'", on, ann, method);
 					break;
 				}

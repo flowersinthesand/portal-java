@@ -30,12 +30,12 @@ public class ChatHandler {
 	@Wire
 	private Room chat;
 
-	@On.open
+	@On
 	public void open(Socket socket) {
 		chat.add(socket);
 	}
 
-	@On.message
+	@On
 	public void message(@Data Map<String, Object> message) {
 		chat.send("message", message);
 	}

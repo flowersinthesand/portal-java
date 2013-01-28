@@ -23,7 +23,7 @@ import org.junit.Assert;
 import org.testng.annotations.Test;
 
 import com.github.flowersinthesand.portal.handler.EventsHandler;
-import com.github.flowersinthesand.portal.handler.InitHandler;
+import com.github.flowersinthesand.portal.handler.AppHandler;
 import com.github.flowersinthesand.portal.spi.Dispatcher;
 
 public class AppTest {
@@ -32,7 +32,7 @@ public class AppTest {
 	public void scan() {
 		App app1 = new App(new Options().url("/t").packageOf(new EventsHandler()));
 		Assert.assertNotNull(app1.bean(EventsHandler.class));
-		Assert.assertNotNull(app1.bean(InitHandler.class));
+		Assert.assertNotNull(app1.bean(AppHandler.class));
 
 		App app2 = new App(new Options().url("/t").packageOf("org.flowersinthesand.portal.handler"));
 		try {
@@ -41,7 +41,7 @@ public class AppTest {
 			Assert.assertTrue(true);
 		}
 		try {
-			app2.bean(InitHandler.class);
+			app2.bean(AppHandler.class);
 		} catch (IllegalArgumentException e) {
 			Assert.assertTrue(true);
 		}
@@ -62,17 +62,17 @@ public class AppTest {
 	public void inject() throws IOException {
 		new App(new Options().url("/init").packageOf("com.github.flowersinthesand.portal.handler"));
 		
-		Assert.assertEquals(InitHandler.getPrivateRoom().name(), "privateRoom");
-		Assert.assertEquals(InitHandler.getPackagePrivateRoom().name(), "packagePrivateRoom");
-		Assert.assertEquals(InitHandler.getPublicRoom().name(), "publicRoom");
-		Assert.assertEquals(InitHandler.getAnonymous().name(), "anonymous");
-		Assert.assertNotNull(InitHandler.getDispatcher());
+		Assert.assertEquals(AppHandler.getPrivateRoom().name(), "privateRoom");
+		Assert.assertEquals(AppHandler.getPackagePrivateRoom().name(), "packagePrivateRoom");
+		Assert.assertEquals(AppHandler.getPublicRoom().name(), "publicRoom");
+		Assert.assertEquals(AppHandler.getAnonymous().name(), "anonymous");
+		Assert.assertNotNull(AppHandler.getDispatcher());
 	}
 
 	@Test
 	public void preparation() throws IOException {
 		new App(new Options().url("/init").packageOf("com.github.flowersinthesand.portal.handler"));
-		Assert.assertTrue(InitHandler.prepared);
+		Assert.assertTrue(AppHandler.prepared);
 	}
 
 	@Test

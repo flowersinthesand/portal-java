@@ -29,7 +29,7 @@ import com.github.flowersinthesand.portal.Wire;
 import com.github.flowersinthesand.portal.spi.Dispatcher;
 
 @Bean
-public class InitHandler {
+public class AppHandler {
 
 	public static boolean prepared;
 

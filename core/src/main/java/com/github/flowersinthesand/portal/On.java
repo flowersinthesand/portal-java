@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
 @Documented
 public @interface On {
 
-	String value();
+	String value() default "";
 
 	@Target(ElementType.METHOD)
 	@Retention(RetentionPolicy.RUNTIME)

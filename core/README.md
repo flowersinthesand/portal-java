@@ -36,13 +36,15 @@ Indicates that the annotated class is a bean. This annotation is required for al
 The bean name of the class. If a bean name is not provided, the bean name will be the decapitalized form of the class's name.
 
 ### @Wire
-Marks the annotated field as to be wired. If a bean name exists, the container will find a bean by the name. Otherwise, the container will find a bean by the type of the field. The field does not need to be public.
+Marks the annotated field as to be wired. The field does not need to be public.
 
-Exceptionally, if the field type is `Room`, it will be wired regarding the value as the room name. If the corresponding room does not exist, it will be opened first before being wired.    
+Exceptionally,
+* if the field type is `App`, the current `App` will be wired. 
+* if the field type is `Room`, a room will be found and wired regarding the bean name as the room name.    
 
 * `String value() default ""`
 
-The bean name to be wired. 
+The bean name to be wired. If the bean name is specified and there is no matching bean with the name and the field's type, wiring will fail. If the bean name is not specified, the annotated field name will be the bean name instead. In this case, even though wiring by the name and the type fails, application will try to find a bean using the type once more.
 
 ### @Prepare
 Specifies that the annotated method should be be executed after dependency injection is done to perform any initialization. Only public methods with no arguments can be executed.
@@ -55,9 +57,9 @@ Any method annotated with `On` on any bean in the application is treated as even
 ### @On
 Defines an annotated method or an annotated annotation as the event handler. The method should be `public` and a return type of the method doesn't matter. `On.open`, `On.message`, `On.close` are provided as special annotations for `open`, `message`, `close` event respectively.
 
-* `String value()`
+* `String value() default ""`
 
-The event name
+The event name. The annotated method's name will be the event name if it's empty. In case of type, the value have to be specified.
 
 ### @Data
 Specifies that the event data will be converted to the annotated parameter's type and the expression and set to the annotated parameter. By default, [Jackson](http://wiki.fasterxml.com/JacksonHome) library is used to create an instance from a JSON string. Any object the client sent can be converted into the `Map<String, Object>` type.

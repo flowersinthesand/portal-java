@@ -29,7 +29,7 @@ public class EventsHandler {
 
 	public Object[] args;
 
-	@On("load")
+	@On
 	public void load() {}
 	
 	@On("socket")
