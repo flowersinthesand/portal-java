@@ -15,7 +15,6 @@
  */
 package com.github.flowersinthesand.portal.spel;
 
-import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 import com.github.flowersinthesand.portal.Options;
