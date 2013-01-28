@@ -36,7 +36,7 @@ portal.open("/echo").send("message", "hello").message(function(data) {
 @Bean
 public class EchoHandler {
 
-    @On.message
+    @On
     public void message(Socket socket, @Data String message) {
         socket.send("message", message);
     }
@@ -64,17 +64,17 @@ portal.open("/chat").on({
 @Bean
 public class ChatHandler {
 
-    @Wire("chat")
-    private Room room;
+    @Wire
+    private Room chat;
 
-    @On.open
+    @On
     public void open(Socket socket) {
-        room.add(socket);
+        chat.add(socket);
     }
     
-    @On.message
+    @On
     public void message(@Data String message) {
-        room.send(message);
+        chat.send(message);
     }
 
 }
@@ -160,6 +160,9 @@ portal.find("/model")
 })
 .send("findActor", 384, function(model) {
     console.log(model);
+})
+.send("getActor", 123, function(model) {
+    console.log(model);
 });
 ```
 
@@ -175,14 +178,19 @@ public class ModelHandler {
         em = Persistence.createEntityManagerFactory("app1").createEntityManager(); 
     }
     
-    @On("find")
+    @On
     public Object find(@Data("type") Class<?> entityClass, @Data("id") Long id) {
         return em.find(entityClass, id);
     }
     
-    @On("findActor")
-    public void load(@Data Long id, @Reply Fn.Callback1<Actor> reply) {
+    @On
+    public void findActor(@Data Long id, @Reply Fn.Callback1<Actor> reply) {
         reply.call(em.find(Actor.class, id));
+    }
+    
+    @On
+    public Actor getActor(@Data Long id) {
+        return em.find(Actor.class, id);
     }
 
 }
@@ -208,13 +216,13 @@ public class AccountServiceImpl implements AccountService {
     private AccountDao dao;
     
     @Override
-    @On("find")
+    @On
     public Account find(@Data long id) {
         return dao.find(id);
     }
 
     @Override
-    @On("remove")
+    @On
     public void remove(@Data long id) {
         dao.remove(id);
     }
@@ -246,7 +254,7 @@ public interface Event {
 @Bean
 public class EventHandler {
 
-    @On("custom")
+    @On
     public void custom(@Data String data) {
         System.out.println(data);
     }
