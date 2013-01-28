@@ -19,6 +19,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 
+import org.atmosphere.cpr.ApplicationConfig;
 import org.atmosphere.cpr.AtmosphereFramework;
 import org.atmosphere.cpr.AtmosphereServlet;
 import org.slf4j.Logger;
@@ -65,6 +66,7 @@ public class AtmosphereModule implements Module {
 		ServletRegistration.Dynamic registration = context.addServlet("portal#" + options.name(), servlet);
 		registration.setLoadOnStartup(0);
 		registration.addMapping(options.url());
+		registration.setInitParameter(ApplicationConfig.DISABLE_ATMOSPHEREINTERCEPTOR, Boolean.FALSE.toString());
 		modifyAtmosphereServletRegistration(registration);
 		logger.info("AtmosphereServlet '{}' is installed in accordance with the registration '{}'", servlet, registration);
 

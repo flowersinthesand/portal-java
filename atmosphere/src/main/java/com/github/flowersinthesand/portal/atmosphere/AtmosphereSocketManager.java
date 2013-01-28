@@ -89,6 +89,13 @@ public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager
 		request.setCharacterEncoding("utf-8");
 		response.setCharacterEncoding("utf-8");
 		
+		response.setHeader("Expires", "-1");
+		response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+		response.setHeader("Pragma", "no-cache");
+		
+		response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin") == null ? "*" : request.getHeader("Origin"));
+		response.setHeader("Access-Control-Allow-Credentials", "true");
+		
 		if (request.getMethod().equalsIgnoreCase("GET")) {
 			final String id = request.getParameter("id");
 			final String transport = request.getParameter("transport");
