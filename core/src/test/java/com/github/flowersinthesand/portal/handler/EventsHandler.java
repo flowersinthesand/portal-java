@@ -53,14 +53,19 @@ public class EventsHandler {
 		reply.call();
 	}
 
+	@On("repli2")
+	@Reply
+	public void repli2() {}
+
 	@On("repli-data")
 	public void repliData(@Reply Fn.Callback1<Object> reply, @Data DataBean data) {
 		args = new Object[] { reply, data };
 		reply.call(data);
 	}
 
-	@On("repli-data-return")
-	public Object repliDataReturn(@Data DataBean data) {
+	@On("repli-data2")
+	@Reply
+	public Object repliData2(@Data DataBean data) {
 		args = new Object[] { data };
 		return data;
 	}

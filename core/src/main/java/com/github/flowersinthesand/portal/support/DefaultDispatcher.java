@@ -108,7 +108,6 @@ public class DefaultDispatcher implements Dispatcher {
 		Object bean;
 		Method method;
 		Param[] params;
-		boolean replied;
 		
 		DefaultHandler(Object bean, Method method) {
 			this.bean = bean;
@@ -132,15 +131,13 @@ public class DefaultDispatcher implements Dispatcher {
 							throw new IllegalArgumentException(
 								"@Reply must be present either on Fn.Callback or Fn.Callback1 not '" + paramType + "' in '" + method + "'");
 						}
-						if (method.getReturnType() != Void.TYPE) {
-							throw new IllegalArgumentException("@Reply must be present on void return type method not '" + method + "'");
-						}
 						params[i] = new ReplyParam(paramType);
 					}
 				}
 			}
 			
 			int socketIndex = -1;
+			int replyIndex = -1;
 			List<String> expressions = new ArrayList<String>();
 			for (int i = 0; i < params.length; i++) {
 				Param arg = params[i];
@@ -159,6 +156,14 @@ public class DefaultDispatcher implements Dispatcher {
 						throw new IllegalArgumentException("@Data(\"" + value + "\") is duplicated in paramters of '" + method + "'");
 					}
 					expressions.add(value);
+				} else if (arg instanceof ReplyParam) {
+					if (replyIndex != -1) {
+						throw new IllegalArgumentException(
+							"@Reply is duplicated at '" + replyIndex + "' and '" + i + "' index in parameters of '" + method + "'");
+					}
+					if (method.isAnnotationPresent(Reply.class)) {
+						throw new IllegalArgumentException("@Reply is alread annotated to the method '" + method + "'");
+					}
 				}
 			}
 		}
@@ -169,7 +174,7 @@ public class DefaultDispatcher implements Dispatcher {
 			for (int i = 0; i < params.length; i++) {
 				args[i] = params[i].resolve(socket, data, reply);
 			}
-			
+
 			Object result;
 			try {
 				result = method.invoke(bean, args);
@@ -177,8 +182,7 @@ public class DefaultDispatcher implements Dispatcher {
 				throw new RuntimeException(e);
 			}
 
-			if (reply != null && !replied && method.getReturnType() != Void.TYPE) {
-				replied = true;
+			if (method.isAnnotationPresent(Reply.class)) {
 				reply.call(result);
 			}
 		}
@@ -228,13 +232,11 @@ public class DefaultDispatcher implements Dispatcher {
 				return Fn.Callback.class.equals(type) ? new Fn.Callback() {
 					@Override
 					public void call() {
-						replied = true;
 						reply.call(null);
 					}
 				} : new Fn.Callback1<Object>() {
 					@Override
 					public void call(Object arg1) {
-						replied = true;
 						reply.call(arg1);
 					}
 				};

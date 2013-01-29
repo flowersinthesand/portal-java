@@ -77,6 +77,11 @@ public class ChatHandler {
         chat.send(message);
     }
 
+    @On
+    public void broadcastExceptMe(Socket socket, @Data String message) {
+        chat.out(socket).send(message);
+    }
+
 }
 ```
 
@@ -154,22 +159,19 @@ Using reply callback, the client can retrieve data from the server asynchronousl
 
 #### Browser
 ```js
-portal.find("/model")
-.send("find", {type: "super.model.Actor", id: 45}, function(model) {
-    console.log(model);
+portal.find("/band")
+.send("find", 45, function(band) {
+    console.log(band);
 })
-.send("findActor", 384, function(model) {
-    console.log(model);
-})
-.send("getActor", 123, function(model) {
-    console.log(model);
+.send("query", query, function(bands) {
+    console.log(bands);
 });
 ```
 
 #### Server
 ```java
 @Bean
-public class ModelHandler {
+public class BandHandler {
 
     private EntityManager em;
     
@@ -179,18 +181,14 @@ public class ModelHandler {
     }
     
     @On
-    public Object find(@Data("type") Class<?> entityClass, @Data("id") Long id) {
-        return em.find(entityClass, id);
+    @Reply
+    public Band find(@Data Long id) {
+        return em.find(Band.class, id));
     }
     
     @On
-    public void findActor(@Data Long id, @Reply Fn.Callback1<Actor> reply) {
-        reply.call(em.find(Actor.class, id));
-    }
-    
-    @On
-    public Actor getActor(@Data Long id) {
-        return em.find(Actor.class, id);
+    public void query(@Data String query, @Reply Fn.Callback1<List<Band>> reply) {
+        reply.call(em...query...list);
     }
 
 }
@@ -201,8 +199,13 @@ Service bean can be executed directly via the portal.
 
 #### Browser
 ```js
-portal.find("/account").send("remove", 45).send("find", 23, function(account) {
+portal.find("/account")
+.send("find", 23, function(account) {
+    console.log('found');
     console.log(account);
+})
+.send("remove", 45, function() {
+    console.log('deleted');
 });
 ```
 
@@ -217,12 +220,14 @@ public class AccountServiceImpl implements AccountService {
     
     @Override
     @On
+    @Reply
     public Account find(@Data long id) {
         return dao.find(id);
     }
 
     @Override
     @On
+    @Reply
     public void remove(@Data long id) {
         dao.remove(id);
     }

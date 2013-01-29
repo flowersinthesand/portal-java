@@ -69,7 +69,7 @@ Specifies that the event data will be converted to the annotated parameter's typ
 The expression for data. By default, regarding expression as property name, the property of the root data becomes the data to be passed to the handler.
 
 ### @Reply
-Specifies that the annotated parameter is a reply callback. The parameter's type should be `Fn.Callback` or `Fn.Callback1` and the method's return type should be `void`. If the reply is requested and the method's return type is not void, the result is used as the callback data, and the callback is executed accordingly. So, use this way when you need to execute the callback asynchronously.
+Specifies that the annotated parameter or method is a reply callback, and the annotation must be present on one place in all the possible place in a event handler. In the parameter case, the parameter's type should be `Fn.Callback` or `Fn.Callback1` and the method's return type does not matter. Use this way when you need to execute the callback asynchronously out of the current thread. In the method case, after execution a reply callback will be executed regarding the execution result as the callback data.
 
 ## Model 
 

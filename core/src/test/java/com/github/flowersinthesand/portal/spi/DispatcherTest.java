@@ -83,6 +83,11 @@ public class DispatcherTest {
 		Assert.assertNull(callback.arg1);
 		Assert.assertTrue(h.args[0] instanceof Fn.Callback);
 
+		dispatcher.on("repli2", h, clazz.getMethod("repli2"));
+		callback = new MyCallback();
+		dispatcher.fire("repli2", socket, before, callback);
+		Assert.assertTrue(callback.called);
+		
 		dispatcher.on("repli-data", h, clazz.getMethod("repliData", Fn.Callback1.class, DataBean.class));
 		callback = new MyCallback();
 		dispatcher.fire("repli-data", socket, before, callback);
@@ -90,9 +95,9 @@ public class DispatcherTest {
 		Assert.assertEquals(after, callback.arg1);
 		Assert.assertTrue(h.args[0] instanceof Fn.Callback1);
 
-		dispatcher.on("repli-data-return", h, clazz.getMethod("repliDataReturn", DataBean.class));
+		dispatcher.on("repli-data2", h, clazz.getMethod("repliData2", DataBean.class));
 		callback = new MyCallback();
-		dispatcher.fire("repli-data-return", socket, before, callback);
+		dispatcher.fire("repli-data2", socket, before, callback);
 		Assert.assertTrue(callback.called);
 		Assert.assertEquals(after, callback.arg1);
 		

@@ -165,11 +165,11 @@ public class RoomTest {
 		Room r = new Room("r").add(s1, s2);
 
 		Room r1 = r.in(s3);
-		Assert.assertNotSame(r1, r1);
+		Assert.assertNotSame(r1, r);
 		Assert.assertArrayEquals(r1.sockets().toArray(), new Object[] { s1, s2, s3 });
 
 		Room r2 = r.out(s2);
-		Assert.assertNotSame(r2, r1);
+		Assert.assertNotSame(r2, r);
 		Assert.assertArrayEquals(r2.sockets().toArray(), new Object[] { s1 });
 	}
 
