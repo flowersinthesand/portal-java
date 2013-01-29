@@ -44,30 +44,36 @@ public class Room {
 		return this;
 	}
 
-	public Room add(Socket socket) {
-		if (socket.opened()) {
-			sockets.add(socket);
+	public Room add(Socket... sockets) {
+		for (Socket socket : sockets) {
+			if (socket.opened()) {
+				this.sockets.add(socket);
+			}
 		}
 		return this;
 	}
 
 	public Room add(Room room) {
-		for (Socket socket : room.sockets) {
-			add(socket);
-		}
-		return this;
+		return add(room.sockets.toArray(new Socket[] {}));
 	}
 
-	public Room remove(Socket socket) {
-		sockets.remove(socket);
+	public Room in(Socket... sockets) {
+		return new Room(name + ".in").add(this).add(sockets);
+	}
+
+	public Room remove(Socket... sockets) {
+		for (Socket socket : sockets) {
+			this.sockets.remove(socket);
+		}
 		return this;
 	}
 
 	public Room remove(Room room) {
-		for (Socket socket : room.sockets) {
-			remove(socket);
-		}
-		return this;
+		return remove(room.sockets.toArray(new Socket[] {}));
+	}
+
+	public Room out(Socket... sockets) {
+		return new Room(name + ".out").add(this).remove(sockets);
 	}
 
 	public Room send(String event) {

@@ -153,5 +153,24 @@ public class RoomTest {
 		String data = "data";
 		Assert.assertSame(room.set("data", data).get("data"), data);
 	}
+	
+	@Test
+	public void sub() {
+		Socket s1 = Mockito.mock(Socket.class);
+		Mockito.when(s1.opened()).thenReturn(true);
+		Socket s2 = Mockito.mock(Socket.class);
+		Mockito.when(s2.opened()).thenReturn(true);
+		Socket s3 = Mockito.mock(Socket.class);
+		Mockito.when(s3.opened()).thenReturn(true);
+		Room r = new Room("r").add(s1, s2);
+
+		Room r1 = r.in(s3);
+		Assert.assertNotSame(r1, r1);
+		Assert.assertArrayEquals(r1.sockets().toArray(), new Object[] { s1, s2, s3 });
+
+		Room r2 = r.out(s2);
+		Assert.assertNotSame(r2, r1);
+		Assert.assertArrayEquals(r2.sockets().toArray(), new Object[] { s1 });
+	}
 
 }

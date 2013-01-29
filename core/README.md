@@ -155,15 +155,23 @@ Returns a value bound with the specified key.
 
 Binds a value to this room using the given key.
 
-* `Room add(Socket socket)`
+* `Room add(Socket... sockets)`
 * `Room add(Room room)`
 
-Adds a socket or sockets in the given room. Only opened socket can be added, and duplicate addition is not possible on account of the Set semantics.
+Adds the given sockets or sockets in the given room. Only opened socket can be added, and duplicate addition is not possible on account of the Set semantics.
 
-* `Room remove(Socket socket)`
+* `Room in(Socket... sockets)`
+
+Creates a new one-time room containing the original room's sockets and the given sockets. Modifications on this room doesn't affect to the original one. This is useful when setting target sockets to receive an event.
+
+* `Room remove(Socket... sockets)`
 * `Room remove(Room room)`
 
-Removes a socket or sockets in the given room. If one of added sockets is closed, it will be removed from the room as well automatically. Use this method to exclude opened socket.
+Removes the given sockets or sockets in the given room. If one of added sockets is closed, it will be removed from the room as well automatically. Use this method to exclude opened socket.
+
+* `Room out(Socket... sockets)`
+
+Creates a new one-time room containing the original room's sockets except the given sockets. Modifications on this room doesn't affect to the original one. This is useful when setting target sockets to receive an event.
 
 * `Room send(String event)`
 * `Room send(String event, Object data)`
