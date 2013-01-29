@@ -25,7 +25,7 @@
 						username = input.value;
 						$("#editor p").addClass("user").removeClass("guide").text(username);
 						
-						portal.open("chat", {sharing: false}).on({
+						portal.open("chat").on({
 							connecting: function() {
 								notify("The connection has been tried by '" + this.data("transport") + "'");
 							},
