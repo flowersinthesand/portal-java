@@ -16,9 +16,11 @@
 package com.github.flowersinthesand.portal.support;
 
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,9 +33,10 @@ import com.github.flowersinthesand.portal.Socket;
 public class HeartbeatHandler {
 
 	private final Logger logger = LoggerFactory.getLogger(HeartbeatHandler.class);
-	private Map<String, Timer> timers = new ConcurrentHashMap<String, Timer>();
+	private ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+	private Map<String, ScheduledFuture<?>> futures = new ConcurrentHashMap<String, ScheduledFuture<?>>();
 
-	@On.open
+	@On
 	public void open(final Socket socket) {
 		long delay = 0;
 		try {
@@ -43,32 +46,28 @@ public class HeartbeatHandler {
 		}
 
 		final String id = socket.param("id");
-		Timer timer = new Timer();
-
 		logger.debug("Setting heartbeat timer for socket#{}", id);
-		timer.schedule(new TimerTask() {
+		futures.put(id, service.schedule(new Runnable() {
 			@Override
 			public void run() {
 				logger.debug("Heartbeat of socket#{} fails", id);
 				socket.close();
 			}
-		}, delay);
-
-		timers.put(id, timer);
+		}, delay, TimeUnit.MILLISECONDS));
 	}
 
-	@On.close
+	@On
 	public void close(Socket socket) {
 		String id = socket.param("id");
-		if (timers.containsKey(id)) {
-			timers.remove(id).cancel();
+		if (futures.containsKey(id)) {
+			futures.remove(id).cancel(true);
 		}
 	}
 
-	@On("heartbeat")
+	@On
 	public void heartbeat(Socket socket) {
 		String id = socket.param("id");
-		if (timers.containsKey(id)) {
+		if (futures.containsKey(id)) {
 			close(socket);
 			open(socket);
 			socket.send("heartbeat");
