@@ -23,10 +23,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.Room;
-import com.github.flowersinthesand.portal.spi.RoomManager;
+import com.github.flowersinthesand.portal.spi.RoomFactory;
 
-@Bean("roomManager")
-public class DefaultRoomManager implements RoomManager {
+@Bean("roomFactory")
+public class DefaultRoomFactory implements RoomFactory {
 
 	private Map<String, Room> rooms = new ConcurrentHashMap<String, Room>();
 
@@ -37,19 +37,24 @@ public class DefaultRoomManager implements RoomManager {
 
 	@Override
 	public Room open(String name) {
+		if (rooms.containsKey(name)) {
+			throw new IllegalStateException("Room# '" + name + "' already exists");
+		}
+
 		Room room = new Room(name);
 		rooms.put(name, room);
+
 		return room;
 	}
 
 	@Override
 	public Room find(String name) {
-		return name == null ? null : rooms.get(name);
+		return rooms.get(name);
 	}
 
 	@Override
-	public void close(String name) {
-		find(name).close();
+	public void remove(String name) {
+		rooms.remove(name);
 	}
 
 }

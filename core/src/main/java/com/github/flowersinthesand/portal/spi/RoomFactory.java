@@ -19,8 +19,7 @@ import java.util.Set;
 
 import com.github.flowersinthesand.portal.Room;
 
-// TODO enhance
-public interface RoomManager {
+public interface RoomFactory {
 
 	Set<Room> all();
 
@@ -28,6 +27,6 @@ public interface RoomManager {
 
 	Room find(String name);
 
-	void close(String name);
+	void remove(String name);
 
 }

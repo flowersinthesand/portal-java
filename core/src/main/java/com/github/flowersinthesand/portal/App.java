@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 import com.github.flowersinthesand.portal.spi.Dispatcher;
 import com.github.flowersinthesand.portal.spi.Module;
 import com.github.flowersinthesand.portal.spi.ObjectFactory;
-import com.github.flowersinthesand.portal.spi.RoomManager;
+import com.github.flowersinthesand.portal.spi.RoomFactory;
 import com.github.flowersinthesand.portal.support.NewObjectFactory;
 
 import eu.infomas.annotation.AnnotationDetector;
@@ -301,28 +301,25 @@ public final class App {
 	}
 
 	public Room room(String name) {
-		RoomManager roomManager = bean(RoomManager.class);
-		Room room = roomManager.find(name);
+		RoomFactory factory = bean(RoomFactory.class);
+		Room room = factory.find(name);
 		if (room == null) {
-			room = roomManager.open(name);
+			room = factory.open(name);
 		}
 		
 		return room;
 	}
 
-	public App fire(String event, Socket socket) {
+	public void fire(String event, Socket socket) {
 		bean(Dispatcher.class).fire(event, socket);
-		return this;
 	}
 
-	public App fire(String event, Socket socket, Object data) {
+	public void fire(String event, Socket socket, Object data) {
 		bean(Dispatcher.class).fire(event, socket, data);
-		return this;
 	}
 
-	public App fire(String event, Socket socket, Object data, Fn.Callback1<?> reply) {
+	public void fire(String event, Socket socket, Object data, Fn.Callback1<?> reply) {
 		bean(Dispatcher.class).fire(event, socket, data, reply);
-		return this;
 	}
 
 }

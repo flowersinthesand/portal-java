@@ -102,9 +102,9 @@ Binds a value to this application using the given key.
 
 Finds corresponding room or opens new one if it doesn't exist. Utilize this method when trying to access rooms which are not available by injection, namely, are supposed to be created in runtime.
 
-* `App fire(String event, Socket socket)`
-* `App fire(String event, Socket socket, Object data)`
-* `App fire(String event, Socket socket, Object data, Fn.Callback1<Object> reply)`
+* `void fire(String event, Socket socket)`
+* `void fire(String event, Socket socket, Object data)`
+* `void fire(String event, Socket socket, Object data, Fn.Callback1<Object> reply)`
 
 Fires the given event to the given socket with data and reply callback.
 

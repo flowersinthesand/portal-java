@@ -20,17 +20,17 @@ import com.github.flowersinthesand.portal.On;
 import com.github.flowersinthesand.portal.Room;
 import com.github.flowersinthesand.portal.Socket;
 import com.github.flowersinthesand.portal.Wire;
-import com.github.flowersinthesand.portal.spi.RoomManager;
+import com.github.flowersinthesand.portal.spi.RoomFactory;
 
 @Bean
 public class RoomCleanupHandler {
 
 	@Wire
-	private RoomManager roomManager;
+	private RoomFactory roomFactory;
 
 	@On
 	public void close(Socket socket) {
-		for (Room room : roomManager.all()) {
+		for (Room room : roomFactory.all()) {
 			room.remove(socket);
 		}
 	}
