@@ -28,7 +28,7 @@ public class RoomCleanupHandler {
 	@Wire
 	private RoomManager roomManager;
 
-	@On.close
+	@On
 	public void close(Socket socket) {
 		for (Room room : roomManager.all()) {
 			room.remove(socket);

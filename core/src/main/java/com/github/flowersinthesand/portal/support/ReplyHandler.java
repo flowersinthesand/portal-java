@@ -33,7 +33,7 @@ public class ReplyHandler {
 	private final Logger logger = LoggerFactory.getLogger(ReplyHandler.class);
 	private Map<String, Map<Integer, Fn.Callback1<?>>> callbacks = new ConcurrentHashMap<String, Map<Integer, Fn.Callback1<?>>>();
 
-	@On.close
+	@On
 	public void close(Socket socket) {
 		String id = socket.param("id");
 		if (callbacks.containsKey(id)) {
@@ -42,7 +42,7 @@ public class ReplyHandler {
 	}
 
 	@SuppressWarnings("unchecked")
-	@On("reply")
+	@On
 	public void reply(Socket socket, @Data Map<String, Object> data) {
 		Integer eventId = (Integer) data.get("id");
 		Object response = data.get("data");
