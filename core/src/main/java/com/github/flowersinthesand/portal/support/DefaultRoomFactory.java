@@ -38,7 +38,7 @@ public class DefaultRoomFactory implements RoomFactory {
 	@Override
 	public Room open(String name) {
 		if (rooms.containsKey(name)) {
-			throw new IllegalStateException("Room# '" + name + "' already exists");
+			throw new IllegalStateException("Room '" + name + "' already exists");
 		}
 
 		Room room = new Room(name);
