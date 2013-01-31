@@ -270,30 +270,9 @@ public class AtmosphereSocketFactory implements AtmosphereHandler, SocketFactory
 	}
 
 	private void fire(String raw) throws IOException {
-		Map<String, Object> message = mapper.readValue(raw, new TypeReference<Map<String, Object>>() {});
-		final Integer eventId = (Integer) message.get("id");
-		String id = (String) message.get("socket");
-		String type = (String) message.get("type");
-		Object data = message.get("data");
-		boolean reply = message.containsKey("reply") && (Boolean) message.get("reply");
-		final AtmosphereSocket socket = sockets.get(id);
-		logger.info("Socket#{} is receiving an event {}", id, message);
-
-		if (!reply) {
-			dispatcher.fire(type, socket, data);
-		} else {
-			dispatcher.fire(type, socket, data, new Fn.Callback1<Object>() {
-				@Override
-				public void call(Object arg1) {
-					Map<String, Object> replyData = new LinkedHashMap<String, Object>();
-					replyData.put("id", eventId);
-					replyData.put("data", arg1);
-
-					logger.debug("Sending the reply event with the data {}", replyData);
-					socket.send("reply", replyData);
-				}
-			});
-		}
+		Map<String, Object> m = mapper.readValue(raw, new TypeReference<Map<String, Object>>() {});
+		logger.info("Receiving an event {}", m);
+		dispatcher.fire((String) m.get("type"), sockets.get(m.get("socket")), m.get("data"), (Boolean) m.get("reply") ? (Integer) m.get("id") : 0);
 	}
 
 	private void format(PrintWriter writer, String transport, Object message, String jsonp, String userAgent) throws IOException {

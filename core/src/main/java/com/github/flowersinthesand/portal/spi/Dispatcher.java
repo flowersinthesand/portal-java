@@ -32,7 +32,7 @@ public interface Dispatcher {
 
 	void fire(String event, Socket socket, Object data);
 
-	void fire(String event, Socket socket, Object data, Fn.Callback1<?> reply);
+	void fire(String event, Socket socket, Object data, int eventIdForReply);
 
 	interface Handler {
 

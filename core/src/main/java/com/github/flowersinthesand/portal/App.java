@@ -306,20 +306,8 @@ public final class App {
 		if (room == null) {
 			room = factory.open(name);
 		}
-		
+
 		return room;
-	}
-
-	public void fire(String event, Socket socket) {
-		bean(Dispatcher.class).fire(event, socket);
-	}
-
-	public void fire(String event, Socket socket, Object data) {
-		bean(Dispatcher.class).fire(event, socket, data);
-	}
-
-	public void fire(String event, Socket socket, Object data, Fn.Callback1<?> reply) {
-		bean(Dispatcher.class).fire(event, socket, data, reply);
 	}
 
 }

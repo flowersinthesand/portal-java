@@ -83,12 +83,24 @@ public class DefaultDispatcher implements Dispatcher {
 
 	@Override
 	public void fire(String event, Socket socket, Object data) {
-		fire(event, socket, data, null);
+		fire(event, socket, data, 0);
 	}
 
 	@Override
-	public void fire(String event, Socket socket, Object data, Fn.Callback1<?> reply) {
-		logger.info("Firing {} event to Socket#{}", event, socket.param("id"));
+	public void fire(String event, final Socket socket, Object data, final int eventIdForReply) {
+		logger.debug("Firing {} event to Socket#{}", event, socket.param("id"));
+		Fn.Callback1<?> reply = eventIdForReply > 0 ? new Fn.Callback1<Object>() {
+			@Override
+			public void call(Object arg1) {
+				Map<String, Object> data = new LinkedHashMap<String, Object>();
+				data.put("id", eventIdForReply);
+				data.put("data", arg1);
+
+				logger.debug("Sending the reply event with the data {}", data);
+				socket.send("reply", data);
+			}
+		} : null;
+				
 		if (handlers.containsKey(event)) {
 			for (Dispatcher.Handler handler : handlers.get(event)) {
 				logger.trace("Invoking handler {}", handler);

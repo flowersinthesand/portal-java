@@ -22,6 +22,8 @@ import java.util.Set;
 
 import org.junit.Assert;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.testng.annotations.Test;
 
 import com.github.flowersinthesand.portal.Fn;
@@ -52,8 +54,17 @@ public class DispatcherTest {
 		field.set(dispatcher, new DefaultDispatcher.DefaultEvaluator());
 		
 		EventsHandler h = new EventsHandler();
-		Class<?> clazz = h.getClass(); 
+		Class<?> clazz = h.getClass();
+		final Map<String, Object> replyInfo = new LinkedHashMap<String, Object>();
 		Socket socket = Mockito.mock(Socket.class);
+		Mockito.when(socket.send(Mockito.anyString(), Mockito.anyMap())).thenAnswer(new Answer<Object>() {
+			@SuppressWarnings("unchecked")
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				replyInfo.putAll((Map<String, Object>) invocation.getArguments()[1]);
+				return null;
+			}
+		});
 		
 		Map<String, Object> before = new LinkedHashMap<String, Object>();
 		before.put("number", 100);
@@ -75,50 +86,36 @@ public class DispatcherTest {
 		dispatcher.fire("nestedData", socket, map);
 		Assert.assertArrayEquals(new Object[] { map, after, after }, h.args);
 
-		MyCallback callback = null;
 		dispatcher.on("repli", h, clazz.getMethod("repli", Fn.Callback.class));
-		callback = new MyCallback();
-		dispatcher.fire("repli", socket, before, callback);
-		Assert.assertTrue(callback.called);
-		Assert.assertNull(callback.arg1);
+		dispatcher.fire("repli", socket, before, 1);
+		Assert.assertFalse(replyInfo.isEmpty());
+		Assert.assertNull(replyInfo.get("data"));
 		Assert.assertTrue(h.args[0] instanceof Fn.Callback);
+		replyInfo.clear();
 
 		dispatcher.on("repli2", h, clazz.getMethod("repli2"));
-		callback = new MyCallback();
-		dispatcher.fire("repli2", socket, before, callback);
-		Assert.assertTrue(callback.called);
+		dispatcher.fire("repli2", socket, before, 1);
 		
 		dispatcher.on("repli-data", h, clazz.getMethod("repliData", Fn.Callback1.class, DataBean.class));
-		callback = new MyCallback();
-		dispatcher.fire("repli-data", socket, before, callback);
-		Assert.assertTrue(callback.called);
-		Assert.assertEquals(after, callback.arg1);
+		dispatcher.fire("repli-data", socket, before, 1);
+		Assert.assertFalse(replyInfo.isEmpty());
+		Assert.assertEquals(after, replyInfo.get("data"));
 		Assert.assertTrue(h.args[0] instanceof Fn.Callback1);
+		replyInfo.clear();
 
 		dispatcher.on("repli-data2", h, clazz.getMethod("repliData2", DataBean.class));
-		callback = new MyCallback();
-		dispatcher.fire("repli-data2", socket, before, callback);
-		Assert.assertTrue(callback.called);
-		Assert.assertEquals(after, callback.arg1);
+		dispatcher.fire("repli-data2", socket, before, 1);
+		Assert.assertFalse(replyInfo.isEmpty());
+		Assert.assertEquals(after, replyInfo.get("data"));
+		replyInfo.clear();
 		
 		dispatcher.on("socket-data-repli", h, clazz.getMethod("socketDataRepli", Socket.class, DataBean.class, Fn.Callback1.class));
-		callback = new MyCallback();
-		dispatcher.fire("socket-data-repli", socket, before, callback);
-		Assert.assertTrue(callback.called);
-		Assert.assertEquals(after, callback.arg1);
+		dispatcher.fire("socket-data-repli", socket, before, 1);
+		Assert.assertFalse(replyInfo.isEmpty());
+		Assert.assertEquals(after, replyInfo.get("data"));
 		Assert.assertSame(socket, h.args[0]);
 		Assert.assertTrue(h.args[2] instanceof Fn.Callback1);
-	}
-
-	static class MyCallback implements Fn.Callback1<Object> {
-		boolean called;
-		Object arg1;
-
-		@Override
-		public void call(Object arg1) {
-			this.arg1 = arg1;
-			called = true;
-		}
+		replyInfo.clear();
 	}
 
 }
