@@ -88,7 +88,7 @@ public class DefaultDispatcher implements Dispatcher {
 
 	@Override
 	public void fire(String event, final Socket socket, Object data, final int eventIdForReply) {
-		logger.debug("Firing {} event to Socket#{}", event, socket.param("id"));
+		logger.debug("Firing {} event to Socket#{}", event, socket.id());
 		Fn.Callback1<?> reply = eventIdForReply > 0 ? new Fn.Callback1<Object>() {
 			@Override
 			public void call(Object arg1) {

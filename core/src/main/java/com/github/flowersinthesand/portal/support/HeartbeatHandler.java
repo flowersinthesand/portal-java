@@ -45,12 +45,11 @@ public class HeartbeatHandler {
 			return;
 		}
 
-		final String id = socket.param("id");
-		logger.debug("Setting heartbeat timer for socket#{}", id);
-		futures.put(id, service.schedule(new Runnable() {
+		logger.debug("Setting heartbeat timer for socket#{}", socket.id());
+		futures.put(socket.id(), service.schedule(new Runnable() {
 			@Override
 			public void run() {
-				logger.debug("Heartbeat of socket#{} fails", id);
+				logger.debug("Heartbeat of socket#{} fails", socket.id());
 				socket.close();
 			}
 		}, delay, TimeUnit.MILLISECONDS));
@@ -58,16 +57,14 @@ public class HeartbeatHandler {
 
 	@On
 	public void close(Socket socket) {
-		String id = socket.param("id");
-		if (futures.containsKey(id)) {
-			futures.remove(id).cancel(true);
+		if (futures.containsKey(socket.id())) {
+			futures.remove(socket.id()).cancel(true);
 		}
 	}
 
 	@On
 	public void heartbeat(Socket socket) {
-		String id = socket.param("id");
-		if (futures.containsKey(id)) {
+		if (futures.containsKey(socket.id())) {
 			close(socket);
 			open(socket);
 			socket.send("heartbeat");

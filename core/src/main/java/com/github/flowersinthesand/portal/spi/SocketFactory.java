@@ -15,6 +15,10 @@
  */
 package com.github.flowersinthesand.portal.spi;
 
+import com.github.flowersinthesand.portal.Socket;
+
 public interface SocketFactory {
+
+	Socket find(String id);
 
 }

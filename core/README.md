@@ -102,11 +102,9 @@ Binds a value to this application using the given key.
 
 Finds corresponding room or opens new one if it doesn't exist. Utilize this method when trying to access rooms which are not available by injection, namely, are supposed to be created in runtime.
 
-* `void fire(String event, Socket socket)`
-* `void fire(String event, Socket socket, Object data)`
-* `void fire(String event, Socket socket, Object data, Fn.Callback1<Object> reply)`
+* `Socket socket(String id)`
 
-Fires the given event to the given socket with data and reply callback.
+Finds a socket by id or returns null if it doesn't exist. Use this method when you need detailed operation in terms of connectivity not entity.
 
 * `Object bean(String name)`
 * `<T> T bean(Class<? super T> class)`

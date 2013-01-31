@@ -250,6 +250,11 @@ public class AtmosphereSocketFactory implements AtmosphereHandler, SocketFactory
 
 	@Override
 	public void destroy() {}
+	
+	@Override
+	public Socket find(String id) {
+		return sockets.get(id);
+	}
 
 	private void start(String id, AtmosphereResource resource) {
 		Map<String, String> params = new LinkedHashMap<String, String>();
@@ -315,6 +320,11 @@ public class AtmosphereSocketFactory implements AtmosphereHandler, SocketFactory
 		public AtmosphereSocket(Map<String, String> params) {
 			this.id = params.get("id");
 			this.params.putAll(params);
+		}
+
+		@Override
+		public String id() {
+			return id;
 		}
 
 		@Override

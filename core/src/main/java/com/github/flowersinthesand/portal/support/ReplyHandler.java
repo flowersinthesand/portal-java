@@ -35,9 +35,8 @@ public class ReplyHandler {
 
 	@On
 	public void close(Socket socket) {
-		String id = socket.param("id");
-		if (callbacks.containsKey(id)) {
-			callbacks.remove(id).clear();
+		if (callbacks.containsKey(socket.id())) {
+			callbacks.remove(socket.id()).clear();
 		}
 	}
 
@@ -47,9 +46,8 @@ public class ReplyHandler {
 		Integer eventId = (Integer) data.get("id");
 		Object response = data.get("data");
 
-		String id = socket.param("id");
-		if (callbacks.containsKey(id)) {
-			Map<Integer, Fn.Callback1<?>> fns = callbacks.get(id);
+		if (callbacks.containsKey(socket.id())) {
+			Map<Integer, Fn.Callback1<?>> fns = callbacks.get(socket.id());
 			if (fns.containsKey(eventId)) {
 				logger.debug("Executing the reply function corresponding to the event#{} with the data {}", eventId, response);
 				((Fn.Callback1<Object>) fns.remove(eventId)).call(response);

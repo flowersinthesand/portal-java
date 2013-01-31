@@ -17,6 +17,8 @@ package com.github.flowersinthesand.portal;
 
 public interface Socket {
 
+	String id();
+
 	boolean opened();
 
 	String param(String key);
