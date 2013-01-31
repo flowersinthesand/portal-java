@@ -24,8 +24,11 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.atmosphere.cpr.AtmosphereFramework;
 import org.atmosphere.cpr.AtmosphereHandler;
@@ -47,23 +50,23 @@ import com.github.flowersinthesand.portal.Prepare;
 import com.github.flowersinthesand.portal.Socket;
 import com.github.flowersinthesand.portal.Wire;
 import com.github.flowersinthesand.portal.spi.Dispatcher;
-import com.github.flowersinthesand.portal.spi.SocketManager;
+import com.github.flowersinthesand.portal.spi.SocketFactory;
 import com.github.flowersinthesand.portal.support.ReplyHandler;
 
-@Bean("socketManager")
-public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager {
+@Bean("socketFactory")
+public class AtmosphereSocketFactory implements AtmosphereHandler, SocketFactory {
 
 	private static final String padding2K = CharBuffer.allocate(2048).toString().replace('\0', ' ');
-	
+
 	private static class BroadcasterFactoryHolder {
 		static BroadcasterFactory defaults = BroadcasterFactory.getDefault();
 	}
-	
+
 	private static BroadcasterFactory broadcasterFactory() {
 		return BroadcasterFactoryHolder.defaults;
 	}
 
-	private final Logger logger = LoggerFactory.getLogger(AtmosphereSocketManager.class);
+	private final Logger logger = LoggerFactory.getLogger(AtmosphereSocketFactory.class);
 	private ObjectMapper mapper = new ObjectMapper();
 	private Map<String, AtmosphereSocket> sockets = new ConcurrentHashMap<String, AtmosphereSocket>();
 	@Wire
@@ -84,17 +87,17 @@ public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager
 	public void onRequest(final AtmosphereResource resource) throws IOException {
 		final AtmosphereRequest request = resource.getRequest();
 		final AtmosphereResponse response = resource.getResponse();
-		
+
 		request.setCharacterEncoding("utf-8");
 		response.setCharacterEncoding("utf-8");
-		
+
 		response.setHeader("Expires", "-1");
 		response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
 		response.setHeader("Pragma", "no-cache");
-		
+
 		response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin") == null ? "*" : request.getHeader("Origin"));
 		response.setHeader("Access-Control-Allow-Credentials", "true");
-		
+
 		if (request.getMethod().equalsIgnoreCase("GET")) {
 			final String id = request.getParameter("id");
 			final String transport = request.getParameter("transport");
@@ -124,7 +127,7 @@ public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager
 							resource.resume();
 							dispatcher.fire("open", sockets.get(id));
 						} else {
-							Broadcaster broadcaster = broadcasterFactory().lookup(id); 
+							Broadcaster broadcaster = broadcasterFactory().lookup(id);
 							broadcaster.addAtmosphereResource(resource);
 
 							Integer lastEventId = Integer.valueOf(request.getParameter("lastEventId"));
@@ -178,15 +181,15 @@ public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager
 
 				private void cleanup() {
 					if (sockets.containsKey(id)) {
-						if ((transport.equals("ws") || transport.equals("sse") || transport.startsWith("stream")) || 
-							(transport.startsWith("longpoll") && !firstLongPoll && request.getAttribute("used") == null)) {
+						if ((transport.equals("ws") || transport.equals("sse") || transport.startsWith("stream"))
+								|| (transport.startsWith("longpoll") && !firstLongPoll && request.getAttribute("used") == null)) {
 							Socket socket = sockets.get(id);
 							end(id);
 							dispatcher.fire("close", socket);
 						}
 					}
 				}
-				
+
 				@Override
 				public void onPreSuspend(AtmosphereResourceEvent event) {}
 
@@ -249,10 +252,13 @@ public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager
 	public void destroy() {}
 
 	private void start(String id, AtmosphereResource resource) {
-		String query = resource.getRequest().getQueryString();
-		logger.info("Socket#{} has been opened, query: {}", id, query);
-		
-		AtmosphereSocket socket = new AtmosphereSocket(query, this);
+		Map<String, String> params = new LinkedHashMap<String, String>();
+		for (Entry<String, String[]> entry : resource.getRequest().getParameterMap().entrySet()) {
+			params.put(entry.getKey(), entry.getValue()[0]);
+		}
+		logger.info("Socket#{} has been opened, params: {}", id, params);
+
+		AtmosphereSocket socket = new AtmosphereSocket(params);
 		broadcasterFactory().get(id).addAtmosphereResource(resource);
 		sockets.put(id, socket);
 	}
@@ -320,55 +326,91 @@ public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager
 		}
 	}
 
-	@Override
-	public boolean opened(Socket socket) {
-		return sockets.containsValue(socket);
-	}
+	public class AtmosphereSocket implements Socket {
 
-	@Override
-	public void send(Socket s, String event, Object data) {
-		AtmosphereSocket socket = (AtmosphereSocket) s;
-		doSend(socket, event, data, false);
-	}
+		private String id;
+		private Map<String, String> params = new LinkedHashMap<String, String>();
+		private AtomicInteger eventId = new AtomicInteger();
+		private Set<Map<String, Object>> cache = new CopyOnWriteArraySet<Map<String, Object>>();
 
-	@Override
-	public void send(Socket s, String event, Object data, final Fn.Callback callback) {
-		AtmosphereSocket socket = (AtmosphereSocket) s;
-		doSend(socket, event, data, true);
-		replyHandler.set(socket.id(), socket.eventId().get(), callback);
-	}
-
-	@Override
-	public void send(Socket s, String event, Object data, final Fn.Callback1<?> callback) {
-		AtmosphereSocket socket = (AtmosphereSocket) s;
-		doSend(socket, event, data, true);
-		replyHandler.set(socket.id(), socket.eventId().get(), callback);
-	}
-	
-	private void doSend(AtmosphereSocket socket, String type, Object data, boolean reply) {
-		Map<String, Object> message = new LinkedHashMap<String, Object>();
-		
-		message.put("id", socket.eventId().incrementAndGet());
-		message.put("type", type);
-		message.put("data", data);
-		message.put("reply", reply);
-		
-		logger.info("Socket#{} is sending an event {}", socket.id(), message);
-		broadcasterFactory().lookup(socket.id()).broadcast(socket.cache(message));
-	}
-
-	@Override
-	public void close(Socket s) {
-		AtmosphereSocket socket = (AtmosphereSocket) s;
-		logger.info("Closing socket#{}", socket.id());
-		for (AtmosphereResource r : broadcasterFactory().lookup(socket.id()).getAtmosphereResources()) {
-			r.resume();
-			try {
-				r.close();
-			} catch (IOException e) {
-				logger.warn("", e);
-			}
+		public AtmosphereSocket(Map<String, String> params) {
+			this.id = params.get("id");
+			this.params.putAll(params);
 		}
+
+		@Override
+		public boolean opened() {
+			return sockets.containsValue(this);
+		}
+
+		@Override
+		public String param(String key) {
+			return params.get(key);
+		}
+
+		@Override
+		public Socket send(String event) {
+			doSend(event, null, false);
+			return this;
+		}
+
+		@Override
+		public Socket send(String event, Object data) {
+			doSend(event, data, false);
+			return this;
+		}
+
+		@Override
+		public Socket send(String event, Object data, Fn.Callback callback) {
+			doSend(event, data, true);
+			replyHandler.set(id, eventId.get(), callback);
+			return this;
+		}
+
+		@Override
+		public Socket send(String event, Object data, Fn.Callback1<?> callback) {
+			doSend(event, data, true);
+			replyHandler.set(id, eventId.get(), callback);
+			return this;
+		}
+
+		private void doSend(String type, Object data, boolean reply) {
+			Map<String, Object> message = new LinkedHashMap<String, Object>();
+
+			message.put("id", eventId.incrementAndGet());
+			message.put("type", type);
+			message.put("data", data);
+			message.put("reply", reply);
+
+			logger.info("Socket#{} is sending an event {}", id, message);
+			broadcasterFactory().lookup(id).broadcast(cache(message));
+		}
+
+		@Override
+		public Socket close() {
+			logger.info("Closing socket#{}", id);
+			for (AtmosphereResource r : broadcasterFactory().lookup(id).getAtmosphereResources()) {
+				r.resume();
+				try {
+					r.close();
+				} catch (IOException e) {
+					logger.warn("", e);
+				}
+			}
+			return this;
+		}
+
+		public Set<Map<String, Object>> cache() {
+			return cache;
+		}
+
+		public Map<String, Object> cache(Map<String, Object> message) {
+			if (param("transport").startsWith("longpoll")) {
+				cache.add(message);
+			}
+			return message;
+		}
+
 	}
 
 }

@@ -13,22 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.flowersinthesand.portal;
+package com.github.flowersinthesand.portal.spi;
 
-public interface Socket {
-
-	boolean opened();
-
-	String param(String key);
-
-	Socket send(String event);
-
-	Socket send(String event, Object data);
-
-	Socket send(String event, Object data, Fn.Callback callback);
-
-	Socket send(String event, Object data, Fn.Callback1<?> callback);
-
-	Socket close();
+public interface SocketFactory {
 
 }
