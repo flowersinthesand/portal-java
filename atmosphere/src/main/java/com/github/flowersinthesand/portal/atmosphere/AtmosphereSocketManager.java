@@ -32,7 +32,6 @@ import org.atmosphere.cpr.AtmosphereHandler;
 import org.atmosphere.cpr.AtmosphereRequest;
 import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.AtmosphereResourceEvent;
-import org.atmosphere.cpr.AtmosphereResourceImpl;
 import org.atmosphere.cpr.AtmosphereResponse;
 import org.atmosphere.cpr.Broadcaster;
 import org.atmosphere.cpr.BroadcasterFactory;
@@ -363,10 +362,9 @@ public class AtmosphereSocketManager implements AtmosphereHandler, SocketManager
 		AtmosphereSocket socket = (AtmosphereSocket) s;
 		logger.info("Closing socket#{}", socket.id());
 		for (AtmosphereResource r : broadcasterFactory().lookup(socket.id()).getAtmosphereResources()) {
-			// TODO use AtmosphereResource.close
 			r.resume();
 			try {
-				((AtmosphereResourceImpl) r).cancel();
+				r.close();
 			} catch (IOException e) {
 				logger.warn("", e);
 			}
