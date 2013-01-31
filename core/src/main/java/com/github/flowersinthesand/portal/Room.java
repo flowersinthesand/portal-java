@@ -15,93 +15,36 @@
  */
 package com.github.flowersinthesand.portal;
 
-import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
 
-public class Room {
+public interface Room {
 
-	private String name;
-	private Set<Socket> sockets = new CopyOnWriteArraySet<Socket>();
-	private Map<String, Object> attrs = new ConcurrentHashMap<String, Object>();
+	String name();
 
-	public Room(String name) {
-		this.name = name;
-	}
+	Object get(String key);
 
-	public String name() {
-		return name;
-	}
+	Room set(String key, Object value);
 
-	public Object get(String key) {
-		return key == null ? null : attrs.get(key);
-	}
+	Room add(Socket... sockets);
 
-	public Room set(String key, Object value) {
-		attrs.put(key, value);
-		return this;
-	}
+	Room add(Room room);
 
-	public Room add(Socket... sockets) {
-		for (Socket socket : sockets) {
-			if (socket.opened()) {
-				this.sockets.add(socket);
-			}
-		}
-		return this;
-	}
+	Room in(Socket... sockets);
 
-	public Room add(Room room) {
-		return add(room.sockets.toArray(new Socket[] {}));
-	}
+	Room remove(Socket... sockets);
 
-	public Room in(Socket... sockets) {
-		return new Room(name + ".in").add(this).add(sockets);
-	}
+	Room remove(Room room);
 
-	public Room remove(Socket... sockets) {
-		for (Socket socket : sockets) {
-			this.sockets.remove(socket);
-		}
-		return this;
-	}
+	Room out(Socket... sockets);
 
-	public Room remove(Room room) {
-		return remove(room.sockets.toArray(new Socket[] {}));
-	}
+	Room send(String event);
 
-	public Room out(Socket... sockets) {
-		return new Room(name + ".out").add(this).remove(sockets);
-	}
+	Room send(String event, Object data);
 
-	public Room send(String event) {
-		return send(event, null);
-	}
+	Set<Socket> sockets();
 
-	public Room send(String event, Object data) {
-		for (Socket s : sockets) {
-			s.send(event, data);
-		}
-		return this;
-	}
+	int size();
 
-	public Set<Socket> sockets() {
-		return Collections.unmodifiableSet(sockets);
-	}
-
-	public int size() {
-		return sockets.size();
-	}
-
-	public Room close() {
-		for (Socket s : sockets) {
-			s.close();
-		}
-		sockets.clear();
-		attrs.clear();
-		return this;
-	}
+	Room close();
 
 }

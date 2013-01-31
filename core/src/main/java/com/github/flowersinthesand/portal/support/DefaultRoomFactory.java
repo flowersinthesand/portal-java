@@ -20,9 +20,11 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.Room;
+import com.github.flowersinthesand.portal.Socket;
 import com.github.flowersinthesand.portal.spi.RoomFactory;
 
 @Bean("roomFactory")
@@ -41,7 +43,7 @@ public class DefaultRoomFactory implements RoomFactory {
 			throw new IllegalStateException("Room '" + name + "' already exists");
 		}
 
-		Room room = new Room(name);
+		Room room = new DefaultRoom(name);
 		rooms.put(name, room);
 
 		return room;
@@ -55,6 +57,105 @@ public class DefaultRoomFactory implements RoomFactory {
 	@Override
 	public void remove(String name) {
 		rooms.remove(name);
+	}
+
+	static class DefaultRoom implements Room {
+
+		private String name;
+		private Set<Socket> sockets = new CopyOnWriteArraySet<Socket>();
+		private Map<String, Object> attrs = new ConcurrentHashMap<String, Object>();
+
+		public DefaultRoom(String name) {
+			this.name = name;
+		}
+
+		@Override
+		public String name() {
+			return name;
+		}
+
+		@Override
+		public Object get(String key) {
+			return key == null ? null : attrs.get(key);
+		}
+
+		@Override
+		public Room set(String key, Object value) {
+			attrs.put(key, value);
+			return this;
+		}
+
+		@Override
+		public Room add(Socket... sockets) {
+			for (Socket socket : sockets) {
+				if (socket.opened()) {
+					this.sockets.add(socket);
+				}
+			}
+			return this;
+		}
+
+		@Override
+		public Room add(Room room) {
+			return add(room.sockets().toArray(new Socket[] {}));
+		}
+
+		@Override
+		public Room in(Socket... sockets) {
+			return new DefaultRoom(name + ".in").add(this).add(sockets);
+		}
+
+		@Override
+		public Room remove(Socket... sockets) {
+			for (Socket socket : sockets) {
+				this.sockets.remove(socket);
+			}
+			return this;
+		}
+
+		@Override
+		public Room remove(Room room) {
+			return remove(room.sockets().toArray(new Socket[] {}));
+		}
+
+		@Override
+		public Room out(Socket... sockets) {
+			return new DefaultRoom(name + ".out").add(this).remove(sockets);
+		}
+
+		@Override
+		public Room send(String event) {
+			return send(event, null);
+		}
+
+		@Override
+		public Room send(String event, Object data) {
+			for (Socket s : sockets) {
+				s.send(event, data);
+			}
+			return this;
+		}
+
+		@Override
+		public Set<Socket> sockets() {
+			return Collections.unmodifiableSet(sockets);
+		}
+
+		@Override
+		public int size() {
+			return sockets.size();
+		}
+
+		@Override
+		public Room close() {
+			for (Socket s : sockets) {
+				s.close();
+			}
+			sockets.clear();
+			attrs.clear();
+			return this;
+		}
+
 	}
 
 }

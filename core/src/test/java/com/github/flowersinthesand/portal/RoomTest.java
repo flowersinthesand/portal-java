@@ -24,17 +24,19 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.testng.annotations.Test;
 
+import com.github.flowersinthesand.portal.support.DefaultRoomFactory;
+
 public class RoomTest {
 	
 	@Test
 	public void name() {
-		Room room = new Room("room");
+		Room room = new DefaultRoomFactory().open("room");
 		Assert.assertEquals(room.name(), "room");
 	}
 
 	@Test
 	public void sockets() {
-		Room chat = new Room("chat");
+		Room chat = new DefaultRoomFactory().open("chat");
 		
 		Socket socket1 = Mockito.mock(Socket.class);
 		Mockito.when(socket1.opened()).thenReturn(true);
@@ -59,9 +61,9 @@ public class RoomTest {
 	
 	@Test
 	public void rooms() {
-		Room chat = new Room("chat");
-		Room hollowjan = new Room("hollowjan");
-		Room envy = new Room("envy");
+		Room chat = new DefaultRoomFactory().open("chat");
+		Room hollowjan = new DefaultRoomFactory().open("hollowjan");
+		Room envy = new DefaultRoomFactory().open("envy");
 		
 		Socket socket1 = Mockito.mock(Socket.class);
 		Socket socket2 = Mockito.mock(Socket.class);
@@ -83,7 +85,7 @@ public class RoomTest {
 	
 	@Test
 	public void sending() {
-		Room chat = new Room("chat");
+		Room chat = new DefaultRoomFactory().open("chat");
 		final List<Object> executed = new ArrayList<Object>(); 
 		Answer<Object> increment = new Answer<Object>() {
 			@Override
@@ -118,7 +120,7 @@ public class RoomTest {
 	
 	@Test
 	public void closing() {
-		Room chat = new Room("chat");
+		Room chat = new DefaultRoomFactory().open("chat");
 		final List<Object> executed = new ArrayList<Object>(); 
 		Answer<Object> increment = new Answer<Object>() {
 			@Override
@@ -147,7 +149,7 @@ public class RoomTest {
 
 	@Test
 	public void attr() {
-		Room room = new Room("room");
+		Room room = new DefaultRoomFactory().open("room");
 		Assert.assertNull(room.get("notfound"));
 		
 		String data = "data";
@@ -162,7 +164,7 @@ public class RoomTest {
 		Mockito.when(s2.opened()).thenReturn(true);
 		Socket s3 = Mockito.mock(Socket.class);
 		Mockito.when(s3.opened()).thenReturn(true);
-		Room r = new Room("r").add(s1, s2);
+		Room r = new DefaultRoomFactory().open("r").add(s1, s2);
 
 		Room r1 = r.in(s3);
 		Assert.assertNotSame(r1, r);

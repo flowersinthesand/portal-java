@@ -326,7 +326,7 @@ public class AtmosphereSocketFactory implements AtmosphereHandler, SocketFactory
 		}
 	}
 
-	public class AtmosphereSocket implements Socket {
+	class AtmosphereSocket implements Socket {
 
 		private String id;
 		private Map<String, String> params = new LinkedHashMap<String, String>();
