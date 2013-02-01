@@ -261,11 +261,9 @@ public class AtmosphereSocketFactory implements AtmosphereHandler, SocketFactory
 		for (Entry<String, String[]> entry : resource.getRequest().getParameterMap().entrySet()) {
 			params.put(entry.getKey(), entry.getValue()[0]);
 		}
-		logger.info("Socket#{} has been opened, params: {}", id, params);
 
-		AtmosphereSocket socket = new AtmosphereSocket(params);
-		broadcasterFactory().get(id).addAtmosphereResource(resource);
-		sockets.put(id, socket);
+		logger.info("Socket#{} has been opened, params: {}", id, params);
+		sockets.put(id, new AtmosphereSocket(params, broadcasterFactory().get(id).addAtmosphereResource(resource)));
 	}
 
 	private void end(String id) {
@@ -314,12 +312,14 @@ public class AtmosphereSocketFactory implements AtmosphereHandler, SocketFactory
 
 		private String id;
 		private Map<String, String> params = new LinkedHashMap<String, String>();
+		private Broadcaster broadcaster;
 		private AtomicInteger eventId = new AtomicInteger();
 		private Set<Map<String, Object>> cache = new CopyOnWriteArraySet<Map<String, Object>>();
 
-		public AtmosphereSocket(Map<String, String> params) {
+		public AtmosphereSocket(Map<String, String> params, Broadcaster broadcaster) {
 			this.id = params.get("id");
 			this.params.putAll(params);
+			this.broadcaster = broadcaster;
 		}
 
 		@Override
@@ -372,13 +372,13 @@ public class AtmosphereSocketFactory implements AtmosphereHandler, SocketFactory
 			message.put("reply", reply);
 
 			logger.info("Socket#{} is sending an event {}", id, message);
-			broadcasterFactory().lookup(id).broadcast(cache(message));
+			broadcaster.broadcast(cache(message));
 		}
 
 		@Override
 		public Socket close() {
 			logger.info("Closing socket#{}", id);
-			for (AtmosphereResource r : broadcasterFactory().lookup(id).getAtmosphereResources()) {
+			for (AtmosphereResource r : broadcaster.getAtmosphereResources()) {
 				r.resume();
 				try {
 					r.close();
