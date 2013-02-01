@@ -24,15 +24,15 @@ import com.github.flowersinthesand.portal.Socket;
 
 public interface Dispatcher {
 
-	Map<String, Set<Handler>> handlers();
+	Set<Handler> handlers(String type);
 
-	void on(String event, Object bean, Method method);
+	void on(String type, Object bean, Method method);
 
-	void fire(String event, Socket socket);
+	void fire(String type, Socket socket);
 
-	void fire(String event, Socket socket, Object data);
+	void fire(String type, Socket socket, Object data);
 
-	void fire(String event, Socket socket, Object data, int eventIdForReply);
+	void fire(String type, Socket socket, Object data, int eventIdForReply);
 
 	interface Handler {
 

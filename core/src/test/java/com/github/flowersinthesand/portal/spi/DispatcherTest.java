@@ -18,7 +18,6 @@ package com.github.flowersinthesand.portal.spi;
 import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 
 import org.junit.Assert;
 import org.mockito.Mockito;
@@ -42,8 +41,7 @@ public class DispatcherTest {
 		Dispatcher dispatcher = new DefaultDispatcher();
 		dispatcher.on("load", h, h.getClass().getMethod("load"));
 
-		Map<String, Set<Dispatcher.Handler>> handlers = dispatcher.handlers();
-		Assert.assertNotNull(handlers.get("load"));
+		Assert.assertNotNull(dispatcher.handlers("load"));
 	}
 
 	@Test

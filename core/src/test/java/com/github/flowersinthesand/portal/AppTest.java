@@ -16,14 +16,12 @@
 package com.github.flowersinthesand.portal;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
 
 import org.junit.Assert;
 import org.testng.annotations.Test;
 
-import com.github.flowersinthesand.portal.handler.EventsHandler;
 import com.github.flowersinthesand.portal.handler.AppHandler;
+import com.github.flowersinthesand.portal.handler.EventsHandler;
 import com.github.flowersinthesand.portal.spi.Dispatcher;
 
 public class AppTest {
@@ -52,10 +50,8 @@ public class AppTest {
 		App app = new App(new Options().url("/init").packageOf("com.github.flowersinthesand.portal.handler"));
 
 		Dispatcher dispatcher = app.bean(Dispatcher.class);
-		Map<String, Set<Dispatcher.Handler>> handlers = dispatcher.handlers();
-
-		Assert.assertNotNull(handlers.get("load"));
-		Assert.assertNull(handlers.get("ready"));
+		Assert.assertNotNull(dispatcher.handlers("load"));
+		Assert.assertNull(dispatcher.handlers("ready"));
 	}
 
 	@Test

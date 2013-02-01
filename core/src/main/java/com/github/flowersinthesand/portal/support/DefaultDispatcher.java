@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -49,18 +48,13 @@ public class DefaultDispatcher implements Dispatcher {
 	private Evaluator evaluator;
 
 	@Override
-	public Map<String, Set<Dispatcher.Handler>> handlers() {
-		Map<String, Set<Dispatcher.Handler>> map = new LinkedHashMap<String, Set<Handler>>();
-		for (Entry<String, Set<Handler>> entry : handlers.entrySet()) {
-			map.put(entry.getKey(), Collections.unmodifiableSet(entry.getValue()));
-		}
-		
-		return Collections.unmodifiableMap(map);
+	public Set<Dispatcher.Handler> handlers(String type) {
+		return handlers.containsKey(type) ? Collections.unmodifiableSet(handlers.get(type)) : null;
 	}
-	
+
 	@Override
-	public void on(String event, Object bean, Method method) {
-		logger.debug("Attaching the '{}' event from '{}'", event, method);
+	public void on(String type, Object bean, Method method) {
+		logger.debug("Attaching the '{}' event from '{}'", type, method);
 		
 		Dispatcher.Handler handler;
 		try {
@@ -69,26 +63,26 @@ public class DefaultDispatcher implements Dispatcher {
 			throw e;
 		}
 		
-		if (!handlers.containsKey(event)) {
-			handlers.put(event, new CopyOnWriteArraySet<Dispatcher.Handler>());
+		if (!handlers.containsKey(type)) {
+			handlers.put(type, new CopyOnWriteArraySet<Dispatcher.Handler>());
 		}
 
-		handlers.get(event).add(handler);
+		handlers.get(type).add(handler);
 	}
 
 	@Override
-	public void fire(String event, Socket socket) {
-		fire(event, socket, null);
+	public void fire(String type, Socket socket) {
+		fire(type, socket, null);
 	}
 
 	@Override
-	public void fire(String event, Socket socket, Object data) {
-		fire(event, socket, data, 0);
+	public void fire(String type, Socket socket, Object data) {
+		fire(type, socket, data, 0);
 	}
 
 	@Override
-	public void fire(String event, final Socket socket, Object data, final int eventIdForReply) {
-		logger.debug("Firing {} event to Socket#{}", event, socket.id());
+	public void fire(String type, final Socket socket, Object data, final int eventIdForReply) {
+		logger.debug("Firing {} event to Socket#{}", type, socket.id());
 		Fn.Callback1<?> reply = eventIdForReply > 0 ? new Fn.Callback1<Object>() {
 			@Override
 			public void call(Object arg1) {
@@ -101,8 +95,8 @@ public class DefaultDispatcher implements Dispatcher {
 			}
 		} : null;
 				
-		if (handlers.containsKey(event)) {
-			for (Dispatcher.Handler handler : handlers.get(event)) {
+		if (handlers.containsKey(type)) {
+			for (Dispatcher.Handler handler : handlers.get(type)) {
 				logger.trace("Invoking handler {}", handler);
 				try {
 					handler.handle(socket, data, reply);
