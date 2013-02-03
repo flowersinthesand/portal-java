@@ -20,6 +20,8 @@ The following list of modules are available, and **bold** modules are required.
 ## Demos
 The easiest way to get started with Portal is to try out and look at examples. Thanks to [Ralph](https://github.com/ralscha), various online demos and source codes are available now at http://ha-bio.rasc.ch/portal-demos Try out!
 
+Also, officialy a [very simple chat application](https://github.com/flowersinthesand/portal-java/tree/master/samples) is provided with each bridge module to help getting started.
+
 ## Snippets
 
 ### Echoing a message
