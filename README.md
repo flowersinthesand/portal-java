@@ -8,8 +8,9 @@ The following list of modules are available, and **bold** modules are required.
 
 * [**`core`**](https://github.com/flowersinthesand/portal-java/tree/master/core): provides API and SPI.
 * [**`javascript`**](https://github.com/flowersinthesand/portal-java/tree/master/javascript): provides static JavaScript resources.
-* **`bridge`**: makes the application run in the following runtime environment.
+* **`bridge`**: makes the application run in the following environment.
     * [`atmosphere`](https://github.com/flowersinthesand/portal-java/tree/master/atmosphere): Servlet container.
+    * [`play`](https://github.com/flowersinthesand/portal-java/tree/master/play): Play.
 * `objectfactory`: delegates bean creation to the following framework.
     * [`spring`](https://github.com/flowersinthesand/portal-java/tree/master/spring): Spring.
     * [`guice`](https://github.com/flowersinthesand/portal-java/tree/master/guice): Guice.

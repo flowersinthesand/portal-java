@@ -16,6 +16,7 @@
 		<module>core</module>
 		<module>javascript</module>
 		<module>atmosphere</module>
+		<module>play</module>
 		<module>spring</module>
 		<module>guice</module>
 		<module>spel</module>
@@ -117,6 +118,12 @@
 				<groupId>com.google.inject</groupId>
 				<artifactId>guice</artifactId>
 				<version>3.0</version>
+			</dependency>
+			<dependency>
+				<groupId>play</groupId>
+				<artifactId>play_2.9.1</artifactId>
+				<version>2.0.4</version>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>
@@ -259,4 +266,11 @@
 			</build>
 		</profile>
 	</profiles>
+	<repositories>
+		<repository>
+			<id>typesafe</id>
+			<name>typesafe-releases</name>
+			<url>http://repo.typesafe.com/typesafe/releases/</url>
+		</repository>
+	</repositories>
 </project>

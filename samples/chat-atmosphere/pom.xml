@@ -6,10 +6,10 @@
 		<version>0.5-SNAPSHOT</version>
 	</parent>
 	<groupId>com.github.flowersinthesand</groupId>
-	<artifactId>portal-chat</artifactId>
+	<artifactId>portal-chat-atmosphere</artifactId>
 	<version>0.5-SNAPSHOT</version>
 	<packaging>war</packaging>
-	<name>Chat webapp</name>
+	<name>Chat for Atmosphere</name>
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.geronimo.specs</groupId>

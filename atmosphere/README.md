@@ -19,7 +19,7 @@ Use the following constructor in accordance with your servlet container
 ```java
 AtmosphereModule(ServletContext)
 ```
-Thanks to dynamic registration support in Servlet 3, you don't need to install the Atmosphere and find AtmosphereFramework manually. Instead, only `javax.servlet.ServletContext` is required. The Atmosphere will be installed automatically per app. In this case, ServletContextListener is a recommended entry point where the application starts. 
+Thanks to dynamic registration support in Servlet 3, you don't need to install the Atmosphere and find `AtmosphereFramework` manually. Instead, only `ServletContext` is required. The Atmosphere will be installed automatically per app. In this case, `ServletContextListener` is a recommended entry point where the application starts. 
 
 ```java
 @WebListener
@@ -37,7 +37,7 @@ public class Initializer implements ServletContextListener {
 }
 ```
 
-You can access a registration object for AtmosphereServlet through modifyAtmosphereServletRegistration method of the module.
+You can access a registration object for AtmosphereServlet through `modifyAtmosphereServletRegistration` method of the module.
 ```java
 new App(new Options().url("/event").packageOf(this), new AtmosphereModule(servletContext) {
 
@@ -54,7 +54,7 @@ new App(new Options().url("/event").packageOf(this), new AtmosphereModule(servle
 AtmosphereModule(AtmosphereFramework)
 ```
 
-To install Atmosphere and initialize application, you have to write a servlet extending AtmosphereServlet and declare it in web.xml. The initialization can be done in `void init(ServletConfig)` method only after calling the method of the super class.
+To install Atmosphere and initialize application, you have to write a servlet extending `AtmosphereServlet` and declare it in web.xml. The initialization can be done in `void init(ServletConfig)` method only after calling the method of the super class.
 
 ```java
 public class Initializer extends AtmosphereServlet {

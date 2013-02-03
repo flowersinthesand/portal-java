@@ -11,7 +11,7 @@
 	<packaging>pom</packaging>
 	<name>Portal samples</name>
 	<modules>
-		<module>chat</module>
+		<module>chat-atmosphere</module>
 	</modules>
 	<build>
 		<finalName>${project.artifactId}</finalName>
