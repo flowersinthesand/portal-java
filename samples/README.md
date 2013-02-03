@@ -23,7 +23,12 @@ mvn jetty:run-war
 Then, open a browser and connect to `http://localhost:8080`.
 
 ### Play
-Applications powered by the `portal-play` module requires the [Play](http://www.playframework.org/) 2. By typing the following command, you can run the application on port `9000`.
+Applications powered by the `portal-play` module requires the [Play](http://www.playframework.org/) 2. Because the whole project is managed by Maven, the Play application also can run by Maven. Note that the play should be executable on your `PATH`.
+```
+mvn package play2:run
+```
+
+If you want to run the application without Maven as usual, modify `Build.scala` according to comments on it and run the application as usual.
 ```
 play run
 ```

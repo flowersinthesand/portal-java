@@ -12,6 +12,7 @@
 	<name>Portal samples</name>
 	<modules>
 		<module>chat-atmosphere</module>
+		<module>chat-play</module>
 	</modules>
 	<build>
 		<finalName>${project.artifactId}</finalName>
