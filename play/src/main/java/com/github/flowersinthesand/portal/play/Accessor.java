@@ -42,6 +42,7 @@ public class Accessor extends Controller {
 		response().setHeader("Expires", "-1");
 		response().setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
 		response().setHeader("Pragma", "no-cache");
+		
 		response().setHeader("Access-Control-Allow-Origin", request().getHeader("Origin") != null ? request().getHeader("Origin") : "*");
 		response().setHeader("Access-Control-Allow-Credentials", "true");
 	}
