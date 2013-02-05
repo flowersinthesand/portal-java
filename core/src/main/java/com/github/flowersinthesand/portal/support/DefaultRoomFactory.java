@@ -18,11 +18,16 @@ package com.github.flowersinthesand.portal.support;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import com.github.flowersinthesand.portal.Bean;
+import com.github.flowersinthesand.portal.Prepare;
 import com.github.flowersinthesand.portal.Room;
 import com.github.flowersinthesand.portal.Socket;
 import com.github.flowersinthesand.portal.spi.RoomFactory;
@@ -31,6 +36,21 @@ import com.github.flowersinthesand.portal.spi.RoomFactory;
 public class DefaultRoomFactory implements RoomFactory {
 
 	private Map<String, Room> rooms = new ConcurrentHashMap<String, Room>();
+	private ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+
+	@Prepare
+	public void prepare() {
+		service.scheduleAtFixedRate(new Runnable() {
+			@Override
+			public void run() {
+				for (Entry<String, Room> entry : rooms.entrySet()) {
+					if (((DefaultRoom) entry.getValue()).closed()) {
+						rooms.remove(entry.getKey());
+					}
+				}
+			}
+		}, 0, 1, TimeUnit.MINUTES);
+	}
 
 	@Override
 	public Set<Room> all() {
@@ -154,6 +174,10 @@ public class DefaultRoomFactory implements RoomFactory {
 			sockets.clear();
 			attrs.clear();
 			return this;
+		}
+
+		boolean closed() {
+			return sockets.isEmpty() && attrs.isEmpty();
 		}
 
 	}
