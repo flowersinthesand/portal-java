@@ -44,7 +44,7 @@ public abstract class AbstractSocketFactory implements SocketFactory {
 		return sockets.get(id);
 	}
 
-	protected void fire(String raw) {
+	public void fire(String raw) {
 		Map<String, Object> m;
 		try {
 			m = mapper.readValue(raw, new TypeReference<Map<String, Object>>() {});
