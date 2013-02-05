@@ -110,17 +110,26 @@ public final class App {
 		for (Entry<String, Object> entry : beans.entrySet()) {
 			logger.debug("Processing bean '{}'", entry.getKey());
 			Object bean = entry.getValue();
-			
-			for (Field field : bean.getClass().getDeclaredFields()) {
-				if (field.isAnnotationPresent(Wire.class)) {
-					wire(bean, field);
+
+			Class<?> targetClass = bean.getClass();
+			while (targetClass != null) {
+				for (Field field : targetClass.getDeclaredFields()) {
+					if (field.isAnnotationPresent(Wire.class)) {
+						wire(bean, field);
+					}
 				}
+				targetClass = targetClass.getSuperclass();
 			}
-			for (Method method : bean.getClass().getMethods()) {
-				onIfPossible(bean, method);
-				if (method.isAnnotationPresent(Prepare.class)) {
-					prepare(bean, method);
+
+			targetClass = bean.getClass();
+			while (targetClass != null) {
+				for (Method method : targetClass.getDeclaredMethods()) {
+					onIfPossible(bean, method);
+					if (method.isAnnotationPresent(Prepare.class)) {
+						prepare(bean, method);
+					}
 				}
+				targetClass = targetClass.getSuperclass();
 			}
 		}
 	}
