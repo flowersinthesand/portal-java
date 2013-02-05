@@ -17,11 +17,11 @@ package com.github.flowersinthesand.portal.atmosphere;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -76,9 +76,9 @@ public class AtmosphereSocketFactory implements AtmosphereHandler, SocketFactory
 	}
 
 	@Override
-	public void onRequest(final AtmosphereResource resource) throws IOException {
-		final AtmosphereRequest request = resource.getRequest();
-		final AtmosphereResponse response = resource.getResponse();
+	public void onRequest(AtmosphereResource resource) throws IOException {
+		AtmosphereRequest request = resource.getRequest();
+		AtmosphereResponse response = resource.getResponse();
 
 		request.setCharacterEncoding("utf-8");
 		response.setCharacterEncoding("utf-8");
@@ -91,65 +91,34 @@ public class AtmosphereSocketFactory implements AtmosphereHandler, SocketFactory
 		response.setHeader("Access-Control-Allow-Credentials", "true");
 
 		if (request.getMethod().equalsIgnoreCase("GET")) {
-			final String id = request.getParameter("id");
-			final String transport = request.getParameter("transport");
-
-			if (transport.equals("ws")) {
-				sockets.put(id, new WsSocket(resource));
-			} else if (transport.equals("sse") || transport.startsWith("stream")) {
-				sockets.put(id, new StreamSocket(resource));
-			} else if (transport.startsWith("longpoll") && "1".equals(request.getParameter("count"))) {
-				sockets.put(id, new LongPollSocket(resource));
-			}
-
-			resource.addEventListener(new WebSocketEventListenerAdapter() {
-				@Override
-				public void onSuspend(AtmosphereResourceEvent event) {
-					((AtmosphereSocket) sockets.get(id)).onSuspend(resource);
-				}
-
-				@Override
-				public void onThrowable(AtmosphereResourceEvent event) {
-					cleanup();
-				}
-
-				@Override
-				public void onResume(AtmosphereResourceEvent event) {
-					cleanup();
-				}
-
-				@Override
-				public void onDisconnect(AtmosphereResourceEvent event) {
-					cleanup();
-				}
-
-				@Override
-				public void onDisconnect(@SuppressWarnings("rawtypes") WebSocketEvent event) {
-					cleanup();
-				}
-
-				@Override
-				public void onClose(@SuppressWarnings("rawtypes") WebSocketEvent event) {
-					cleanup();
-				}
-
-				private void cleanup() {
-					if (sockets.containsKey(id)) {
-						if ((transport.equals("ws") || transport.equals("sse") || transport.startsWith("stream"))
-								|| (transport.startsWith("longpoll") && !"1".equals(request.getParameter("count")) && request.getAttribute("used") == null)) {
-							((AtmosphereSocket) sockets.get(id)).onClose();
-						}
-					}
-				}
-			})
-			.suspend();
+			openSocket(resource);
 		} else if (request.getMethod().equalsIgnoreCase("POST")) {
-			String data = request.getReader().readLine();
-			if (data != null) {
-				logger.debug("POST message body {}", data);
-				fire(data.startsWith("data=") ? data.substring("data=".length()) : data);
-			}
+			String raw = copy(request.getReader());
+			logger.debug("POST message body {}", raw);
+			fire(raw.startsWith("data=") ? raw.substring("data=".length()) : raw);
 		}
+	}
+
+	private String copy(Reader in) throws IOException {
+		StringWriter out = new StringWriter();
+		
+		try {
+			char[] buffer = new char[4096];
+			int bytesRead = -1;
+			while ((bytesRead = in.read(buffer)) != -1) {
+				out.write(buffer, 0, bytesRead);
+			}
+			out.flush();
+		} finally {
+			try {
+				in.close();
+			} catch (IOException ex) {}
+			try {
+				out.close();
+			} catch (IOException ex) {}
+		}
+		
+		return out.toString();
 	}
 
 	@Override
@@ -175,13 +144,60 @@ public class AtmosphereSocketFactory implements AtmosphereHandler, SocketFactory
 	@Override
 	public void destroy() {}
 	
-	private Map<String, String> params(Map<String, String[]> params) {
-		Map<String, String> map = new LinkedHashMap<String, String>();
-		for (Entry<String, String[]> entry : params.entrySet()) {
-			map.put(entry.getKey(), entry.getValue()[0]);
+	private void openSocket(final AtmosphereResource resource) {
+		final AtmosphereRequest request = resource.getRequest();
+		final String id = request.getParameter("id");
+		final String transport = request.getParameter("transport");
+
+		if (transport.equals("ws")) {
+			sockets.put(id, new WsSocket(resource));
+		} else if (transport.equals("sse") || transport.startsWith("stream")) {
+			sockets.put(id, new StreamSocket(resource));
+		} else if (transport.startsWith("longpoll") && "1".equals(request.getParameter("count"))) {
+			sockets.put(id, new LongPollSocket(resource));
 		}
 
-		return map;
+		resource.addEventListener(new WebSocketEventListenerAdapter() {
+			@Override
+			public void onSuspend(AtmosphereResourceEvent event) {
+				((AtmosphereSocket) sockets.get(id)).onSuspend(resource);
+			}
+
+			@Override
+			public void onThrowable(AtmosphereResourceEvent event) {
+				cleanup();
+			}
+
+			@Override
+			public void onResume(AtmosphereResourceEvent event) {
+				cleanup();
+			}
+
+			@Override
+			public void onDisconnect(AtmosphereResourceEvent event) {
+				cleanup();
+			}
+
+			@Override
+			public void onDisconnect(@SuppressWarnings("rawtypes") WebSocketEvent event) {
+				cleanup();
+			}
+
+			@Override
+			public void onClose(@SuppressWarnings("rawtypes") WebSocketEvent event) {
+				cleanup();
+			}
+
+			private void cleanup() {
+				if (sockets.containsKey(id)) {
+					if ((transport.equals("ws") || transport.equals("sse") || transport.startsWith("stream"))
+							|| (transport.startsWith("longpoll") && !"1".equals(request.getParameter("count")) && request.getAttribute("used") == null)) {
+						((AtmosphereSocket) sockets.get(id)).onClose();
+					}
+				}
+			}
+		})
+		.suspend();
 	}
 
 	private void fire(String raw) throws IOException {

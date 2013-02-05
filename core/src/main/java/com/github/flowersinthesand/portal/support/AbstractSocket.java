@@ -18,6 +18,7 @@ package com.github.flowersinthesand.portal.support;
 import java.nio.CharBuffer;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -127,6 +128,15 @@ public abstract class AbstractSocket implements Socket {
 		logger.info("Closing socket#{}", id());
 		disconnect();
 		return this;
+	}
+
+	protected Map<String, String> params(Map<String, String[]> params) {
+		Map<String, String> map = new LinkedHashMap<String, String>();
+		for (Entry<String, String[]> entry : params.entrySet()) {
+			map.put(entry.getKey(), entry.getValue()[0]);
+		}
+
+		return map;
 	}
 
 	protected boolean isAndroid(String userAgent) {

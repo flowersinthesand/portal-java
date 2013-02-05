@@ -16,10 +16,8 @@
 package com.github.flowersinthesand.portal.play;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -61,24 +59,23 @@ public class PlaySocketFactory implements SocketFactory {
 	}
 
 	public WebSocket<String> openWsSocket(Request request) {
-		WsSocket socket = new WsSocket(params(request.queryString()));
+		WsSocket socket = new WsSocket(request);
 		sockets.put(socket.id(), socket);
 
 		return socket.webSocket;
 	}
 
 	public Chunks<String> openHttpSocket(Request request, Response response) {
-		Map<String, String> params = params(request.queryString());
-		String id = params.get("id");
-		String transport = params.get("transport");
+		String id = request.queryString().get("id")[0];
+		String transport = request.queryString().get("transport")[0];
 
 		HttpSocket socket = null;
 		if (transport.equals("sse") || transport.startsWith("stream")) {
-			socket = new StreamSocket(request, response, params);
+			socket = new StreamSocket(request, response);
 			sockets.put(id, socket);
 		} else if (transport.startsWith("longpoll")) {
-			if ("1".equals(params.get("count"))) {
-				socket = new LongPollSocket(request, response, params);
+			if ("1".equals(request.queryString().get("count")[0])) {
+				socket = new LongPollSocket(request, response);
 				sockets.put(id, socket);
 			} else {
 				socket = (LongPollSocket) sockets.get(id);
@@ -87,15 +84,6 @@ public class PlaySocketFactory implements SocketFactory {
 		}
 
 		return socket.chunks;
-	}
-	
-	private Map<String, String> params(Map<String, String[]> params) {
-		Map<String, String> map = new LinkedHashMap<String, String>();
-		for (Entry<String, String[]> entry : params.entrySet()) {
-			map.put(entry.getKey(), entry.getValue()[0]);
-		}
-
-		return map;
 	}
 
 	public void fire(String raw) {
@@ -134,13 +122,13 @@ public class PlaySocketFactory implements SocketFactory {
 
 	}
 
-	class WsSocket extends PlaySocket implements Socket {
+	class WsSocket extends PlaySocket {
 
 		private WebSocket<String> webSocket;
 		private WebSocket.Out<String> out;
 
-		public WsSocket(Map<String, String> params) {
-			this.params = params;
+		public WsSocket(Request request) {
+			this.params = params(request.queryString());
 			this.webSocket = new WebSocket<String>() {
 				@Override
 				public void onReady(WebSocket.In<String> in, Out<String> oout) {
@@ -174,7 +162,7 @@ public class PlaySocketFactory implements SocketFactory {
 
 	}
 	
-	abstract class HttpSocket extends PlaySocket implements Socket {
+	abstract class HttpSocket extends PlaySocket {
 
 		protected Chunks<String> chunks;
 		protected Chunks.Out<String> out;
@@ -191,10 +179,10 @@ public class PlaySocketFactory implements SocketFactory {
 		
 	}
 
-	class StreamSocket extends HttpSocket implements Socket {
-		
-		public StreamSocket(Request request, Response response, Map<String, String> params) {
-			this.params = params;
+	class StreamSocket extends HttpSocket {
+
+		public StreamSocket(Request request, Response response) {
+			this.params = params(request.queryString());
 			this.isAndroid = isAndroid(request.getHeader("user-agent"));
 			this.chunks = new Chunks<String>(JavaResults.writeString(Codec.utf_8()), JavaResults.contentTypeOfString((Codec.utf_8()))) {
 				@Override
@@ -220,12 +208,12 @@ public class PlaySocketFactory implements SocketFactory {
 
 	}
 
-	class LongPollSocket extends HttpSocket implements Socket {
+	class LongPollSocket extends HttpSocket {
 		
 		private Set<Map<String, Object>> cache = new CopyOnWriteArraySet<Map<String, Object>>();
 		
-		public LongPollSocket(Request request, Response response, Map<String, String> params) {
-			this.params = params;
+		public LongPollSocket(Request request, Response response) {
+			this.params = params(request.queryString());
 			refresh(request, response, true);
 		}
 
@@ -274,11 +262,8 @@ public class PlaySocketFactory implements SocketFactory {
 
 		@Override
 		protected void transmit(String it) {
-			if (out != null) {
-				out.write(it);
-				out.close();
-				out = null;
-			}
+			super.transmit(it);
+			out.close();
 		}
 
 	}
