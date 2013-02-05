@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.slf4j.Logger;
@@ -28,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import play.api.mvc.Codec;
 import play.core.j.JavaResults;
 import play.libs.F;
-import play.libs.Json;
 import play.mvc.Http.Request;
 import play.mvc.Http.Response;
 import play.mvc.Results.Chunks;
@@ -36,27 +34,13 @@ import play.mvc.WebSocket;
 
 import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.Fn;
-import com.github.flowersinthesand.portal.Socket;
-import com.github.flowersinthesand.portal.Wire;
-import com.github.flowersinthesand.portal.spi.Dispatcher;
-import com.github.flowersinthesand.portal.spi.SocketFactory;
 import com.github.flowersinthesand.portal.support.AbstractSocket;
-import com.github.flowersinthesand.portal.support.ReplyHandler;
+import com.github.flowersinthesand.portal.support.AbstractSocketFactory;
 
 @Bean("socketFactory")
-public class PlaySocketFactory implements SocketFactory {
+public class PlaySocketFactory extends AbstractSocketFactory {
 
 	private final Logger logger = LoggerFactory.getLogger(PlaySocketFactory.class);
-	private Map<String, Socket> sockets = new ConcurrentHashMap<String, Socket>();
-	@Wire
-	private Dispatcher dispatcher;
-	@Wire
-	private ReplyHandler replyHandler;
-
-	@Override
-	public Socket find(String id) {
-		return sockets.get(id);
-	}
 
 	public WebSocket<String> openWsSocket(Request request) {
 		WsSocket socket = new WsSocket(request);
@@ -86,13 +70,6 @@ public class PlaySocketFactory implements SocketFactory {
 		return socket.chunks;
 	}
 
-	public void fire(String raw) {
-		@SuppressWarnings("unchecked")
-		Map<String, Object> m = Json.fromJson(Json.parse(raw), Map.class);
-		logger.info("Receiving an event {}", m);
-		dispatcher.fire((String) m.get("type"), sockets.get(m.get("socket")), m.get("data"), (Boolean) m.get("reply") ? (Integer) m.get("id") : 0);
-	}
-	
 	abstract class PlaySocket extends AbstractSocket {
 
 		@Override

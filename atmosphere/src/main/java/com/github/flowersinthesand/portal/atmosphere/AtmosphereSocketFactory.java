@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.atmosphere.cpr.AtmosphereFramework;
@@ -35,31 +34,20 @@ import org.atmosphere.cpr.AtmosphereResponse;
 import org.atmosphere.cpr.Broadcaster;
 import org.atmosphere.cpr.BroadcasterFactory;
 import org.atmosphere.websocket.WebSocketEventListenerAdapter;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.Fn;
 import com.github.flowersinthesand.portal.Prepare;
-import com.github.flowersinthesand.portal.Socket;
 import com.github.flowersinthesand.portal.Wire;
-import com.github.flowersinthesand.portal.spi.Dispatcher;
-import com.github.flowersinthesand.portal.spi.SocketFactory;
 import com.github.flowersinthesand.portal.support.AbstractSocket;
-import com.github.flowersinthesand.portal.support.ReplyHandler;
+import com.github.flowersinthesand.portal.support.AbstractSocketFactory;
 
 @Bean("socketFactory")
-public class AtmosphereSocketFactory implements AtmosphereHandler, SocketFactory {
+public class AtmosphereSocketFactory extends AbstractSocketFactory implements AtmosphereHandler {
 
 	private final Logger logger = LoggerFactory.getLogger(AtmosphereSocketFactory.class);
-	private Map<String, Socket> sockets = new ConcurrentHashMap<String, Socket>();
-	private ObjectMapper mapper = new ObjectMapper();
-	@Wire
-	private Dispatcher dispatcher;
-	@Wire
-	private ReplyHandler replyHandler;
 	@Wire
 	private String url;
 	@Wire
@@ -68,11 +56,6 @@ public class AtmosphereSocketFactory implements AtmosphereHandler, SocketFactory
 	@Prepare
 	public void prepare() {
 		framework.addAtmosphereHandler(url, this);
-	}
-	
-	@Override
-	public Socket find(String id) {
-		return sockets.get(id);
 	}
 
 	@Override
@@ -198,12 +181,6 @@ public class AtmosphereSocketFactory implements AtmosphereHandler, SocketFactory
 			}
 		})
 		.suspend();
-	}
-
-	private void fire(String raw) throws IOException {
-		Map<String, Object> m = mapper.readValue(raw, new TypeReference<Map<String, Object>>() {});
-		logger.info("Receiving an event {}", m);
-		dispatcher.fire((String) m.get("type"), sockets.get(m.get("socket")), m.get("data"), (Boolean) m.get("reply") ? (Integer) m.get("id") : 0);
 	}
 
 	private static class BroadcasterFactoryHolder {
