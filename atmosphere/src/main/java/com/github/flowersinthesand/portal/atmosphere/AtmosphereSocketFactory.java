@@ -222,12 +222,16 @@ public class AtmosphereSocketFactory extends AbstractSocketFactory implements At
 
 		@Override
 		protected void disconnect() {
-			for (AtmosphereResource r : broadcaster.getAtmosphereResources()) {
-				r.resume();
-				try {
-					r.close();
-				} catch (IOException e) {
-					logger.warn("", e);
+			if (broadcaster.getAtmosphereResources().size() == 0) {
+				onClose();
+			} else {
+				for (AtmosphereResource r : broadcaster.getAtmosphereResources()) {
+					r.resume();
+					try {
+						r.close();
+					} catch (IOException e) {
+						logger.warn("", e);
+					}
 				}
 			}
 		}
