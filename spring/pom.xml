@@ -3,11 +3,11 @@
 	<parent>
 		<groupId>com.github.flowersinthesand</groupId>
 		<artifactId>portal-parent</artifactId>
-		<version>0.5-SNAPSHOT</version>
+		<version>0.5</version>
 	</parent>
 	<groupId>com.github.flowersinthesand</groupId>
 	<artifactId>portal-spring</artifactId>
-	<version>0.5-SNAPSHOT</version>
+	<version>0.5</version>
 	<packaging>jar</packaging>
 	<name>Portal Spring</name>
 	<dependencies>

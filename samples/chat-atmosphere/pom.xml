@@ -3,11 +3,11 @@
 	<parent>
 		<groupId>com.github.flowersinthesand</groupId>
 		<artifactId>portal-samples</artifactId>
-		<version>0.5-SNAPSHOT</version>
+		<version>0.5</version>
 	</parent>
 	<groupId>com.github.flowersinthesand</groupId>
 	<artifactId>portal-chat-atmosphere</artifactId>
-	<version>0.5-SNAPSHOT</version>
+	<version>0.5</version>
 	<packaging>war</packaging>
 	<name>Chat for Atmosphere</name>
 	<dependencies>
