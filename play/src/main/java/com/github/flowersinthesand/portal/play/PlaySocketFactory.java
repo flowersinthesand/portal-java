@@ -239,8 +239,11 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 
 		@Override
 		protected void transmit(String it) {
-			super.transmit(it);
-			out.close();
+			if (out != null) {
+				out.write(it);
+				out.close();
+				out = null;
+			}
 		}
 
 	}
