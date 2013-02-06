@@ -19,12 +19,13 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -34,6 +35,7 @@ import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.Data;
 import com.github.flowersinthesand.portal.Fn;
 import com.github.flowersinthesand.portal.Fn.Callback1;
+import com.github.flowersinthesand.portal.Order;
 import com.github.flowersinthesand.portal.Reply;
 import com.github.flowersinthesand.portal.Socket;
 import com.github.flowersinthesand.portal.Wire;
@@ -43,7 +45,7 @@ import com.github.flowersinthesand.portal.spi.Dispatcher;
 public class DefaultDispatcher implements Dispatcher {
 
 	private final Logger logger = LoggerFactory.getLogger(DefaultDispatcher.class);
-	private Map<String, Set<Dispatcher.Handler>> handlers = new ConcurrentHashMap<String, Set<Dispatcher.Handler>>();
+	private Map<String, SortedSet<Dispatcher.Handler>> handlers = new LinkedHashMap<String, SortedSet<Dispatcher.Handler>>();
 	@Wire
 	private Evaluator evaluator;
 
@@ -64,7 +66,12 @@ public class DefaultDispatcher implements Dispatcher {
 		}
 		
 		if (!handlers.containsKey(type)) {
-			handlers.put(type, new CopyOnWriteArraySet<Dispatcher.Handler>());
+			handlers.put(type, new TreeSet<Dispatcher.Handler>(new Comparator<Dispatcher.Handler>() {
+				@Override
+				public int compare(Handler o1, Handler o2) {
+					return o1.order() > o2.order() ? 1 : -1;
+				}
+			}));
 		}
 
 		handlers.get(type).add(handler);
@@ -110,6 +117,7 @@ public class DefaultDispatcher implements Dispatcher {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	class DefaultHandler implements Dispatcher.Handler {
 
+		int order = 0;
 		ObjectMapper mapper = new ObjectMapper();
 		Object bean;
 		Method method;
@@ -118,6 +126,10 @@ public class DefaultDispatcher implements Dispatcher {
 		DefaultHandler(Object bean, Method method) {
 			this.bean = bean;
 			this.method = method;
+			
+			if (method.isAnnotationPresent(Order.class)) {
+				this.order = method.getAnnotation(Order.class).value();
+			}
 
 			Class<?>[] paramTypes = method.getParameterTypes();
 			Annotation[][] paramAnnotations = method.getParameterAnnotations();
@@ -173,7 +185,12 @@ public class DefaultDispatcher implements Dispatcher {
 				}
 			}
 		}
-		
+
+		@Override
+		public int order() {
+			return order;
+		}
+
 		@Override
 		public void handle(Socket socket, Object data, Callback1 reply) {
 			Object[] args = new Object[params.length];

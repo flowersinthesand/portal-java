@@ -35,6 +35,8 @@ public interface Dispatcher {
 	void fire(String type, Socket socket, Object data, int eventIdForReply);
 
 	interface Handler {
+		
+		int order();
 
 		void handle(Socket socket, Object data, Fn.Callback1<?> reply);
 

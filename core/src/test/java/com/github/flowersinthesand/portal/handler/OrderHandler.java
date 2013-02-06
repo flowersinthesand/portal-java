@@ -13,28 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.flowersinthesand.portal.support;
+package com.github.flowersinthesand.portal.handler;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.On;
 import com.github.flowersinthesand.portal.Order;
-import com.github.flowersinthesand.portal.Room;
-import com.github.flowersinthesand.portal.Socket;
-import com.github.flowersinthesand.portal.Wire;
-import com.github.flowersinthesand.portal.spi.RoomFactory;
 
 @Bean
-public class RoomCleanupHandler {
+public class OrderHandler {
 
-	@Wire
-	private RoomFactory roomFactory;
+	public List<Integer> args = new ArrayList<Integer>();
 
-	@On
-	@Order(Integer.MIN_VALUE)
-	public void close(Socket socket) {
-		for (Room room : roomFactory.all()) {
-			room.remove(socket);
-		}
+	@On("x")
+	@Order(-1)
+	public void x1() {
+		args.add(-1);
+	}
+
+	@On("x")
+	public void x2() {
+		args.add(0);
+	}
+
+	@On("x")
+	@Order(1)
+	public void x3() {
+		args.add(1);
+	}
+
+	@On("y")
+	@Order(1)
+	public void y3() {
+		args.add(1);
+	}
+
+	@On("y")
+	@Order(0)
+	public void y2() {
+		args.add(0);
+	}
+
+	@On("y")
+	@Order(-1)
+	public void y1() {
+		args.add(-1);
 	}
 
 }

@@ -29,13 +29,13 @@ import com.github.flowersinthesand.portal.Fn;
 import com.github.flowersinthesand.portal.Socket;
 import com.github.flowersinthesand.portal.handler.DataBean;
 import com.github.flowersinthesand.portal.handler.EventsHandler;
+import com.github.flowersinthesand.portal.handler.OrderHandler;
 import com.github.flowersinthesand.portal.support.DefaultDispatcher;
 
 public class DispatcherTest {
 
 	@Test
-	public void binding() throws SecurityException, NoSuchMethodException,
-			InstantiationException, IllegalAccessException {
+	public void binding() throws SecurityException, NoSuchMethodException {
 		EventsHandler h = new EventsHandler();
 
 		Dispatcher dispatcher = new DefaultDispatcher();
@@ -45,7 +45,7 @@ public class DispatcherTest {
 	}
 
 	@Test
-	public void firing() throws SecurityException, NoSuchMethodException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+	public void firing() throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException, NoSuchMethodException {
 		Dispatcher dispatcher = new DefaultDispatcher();
 		Field field = DefaultDispatcher.class.getDeclaredField("evaluator");
 		field.setAccessible(true);
@@ -114,6 +114,24 @@ public class DispatcherTest {
 		Assert.assertSame(socket, h.args[0]);
 		Assert.assertTrue(h.args[2] instanceof Fn.Callback1);
 		replyInfo.clear();
+	}
+	
+	@Test
+	public void order() throws SecurityException, NoSuchMethodException {
+		OrderHandler h = new OrderHandler();
+
+		Dispatcher dispatcher = new DefaultDispatcher();
+		Socket socket = Mockito.mock(Socket.class);
+
+		for (String methodName : new String[] { "x1", "x2", "x3", "y1", "y2", "y3" }) {
+			dispatcher.on(methodName.substring(0, 1), h, h.getClass().getMethod(methodName));
+		}
+
+		dispatcher.fire("x", socket);
+		Assert.assertArrayEquals(h.args.toArray(), new Object[] { -1, 0, 1 });
+		h.args.clear();
+		dispatcher.fire("y", socket);
+		Assert.assertArrayEquals(h.args.toArray(), new Object[] { -1, 0, 1 });
 	}
 
 }

@@ -61,6 +61,13 @@ Defines an annotated method or an annotated annotation as the event handler. The
 
 The event name. The annotated method's name will be the event name if it's empty. In case of type, the value have to be specified.
 
+### @Order
+Indicates an execution order of event handlers. Lower values have higher priority.
+
+* `int value()`
+
+The order value.
+
 ### @Data
 Specifies that the event data will be converted to the annotated parameter's type and the expression and set to the annotated parameter. By default, [Jackson](http://wiki.fasterxml.com/JacksonHome) library is used to create an instance from a JSON string. Any object the client sent can be converted into the `Map<String, Object>` type.
 
