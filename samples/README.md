@@ -15,9 +15,14 @@ cd portal-java/samples/chat-atmosphere
 The way to run an application varies with runtime environment, of course. However, because core API has nothing to do with runtime environment, you can switch runtime environment with no modifications on the application unless the application use extended API depending on runtime environment.
 
 ### Servlet container
-Applications powered by the `portal-atmosphere` module requires a servlet container. By typing the following command, you can run the application on the [Jetty](http://www.eclipse.org/jetty/) that supports the Servlet Specification 3.0 and WebSocket. The Jetty starts on port `8080` by default.
+Applications powered by the `portal-atmosphere` module requires a servlet container. By typing the following command, you can run the application on the [Jetty](http://www.eclipse.org/jetty/).
 ```
 mvn jetty:run-war
+```
+
+Or, you can use the [Apache Tomcat](http://tomcat.apache.org/).
+```
+mvn tomcat7:run
 ```
 
 Then, open a browser and connect to `http://localhost:8080`.
