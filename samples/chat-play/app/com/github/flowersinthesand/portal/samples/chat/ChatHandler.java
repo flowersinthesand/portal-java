@@ -21,23 +21,17 @@ import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.Data;
 import com.github.flowersinthesand.portal.On;
 import com.github.flowersinthesand.portal.Room;
-import com.github.flowersinthesand.portal.Socket;
 import com.github.flowersinthesand.portal.Wire;
 
 @Bean
 public class ChatHandler {
 
 	@Wire
-	private Room chat;
-
-	@On
-	public void open(Socket socket) {
-		chat.add(socket);
-	}
+	private Room hall;
 
 	@On
 	public void message(@Data Map<String, Object> message) {
-		chat.send("message", message);
+		hall.send("message", message);
 	}
 
 }

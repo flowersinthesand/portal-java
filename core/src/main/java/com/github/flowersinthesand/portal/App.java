@@ -320,6 +320,10 @@ public final class App {
 		return room;
 	}
 
+	public Room hall() {
+		return room("hall");
+	}
+
 	public Socket socket(String id) {
 		return bean(SocketFactory.class).find(id);
 	}

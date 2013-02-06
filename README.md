@@ -68,21 +68,11 @@ portal.open("/chat").on({
 public class ChatHandler {
 
     @Wire
-    private Room chat;
-
-    @On
-    public void open(Socket socket) {
-        chat.add(socket);
-    }
+    private Room hall;
     
     @On
     public void message(@Data String message) {
-        chat.send(message);
-    }
-
-    @On
-    public void broadcastExceptMe(Socket socket, @Data String message) {
-        chat.out(socket).send(message);
+        hall.send(message);
     }
 
 }
@@ -107,7 +97,7 @@ public class NotificationEventListener implements ApplicationListener<Notificati
     @Override
     public void onApplicationEvent(NotificationEvent e) {
         Notification n = e.notification();
-        app.room(n.target()).send(n.type(), n.data());
+        app.hall().send(n.type(), n.data());
     }
 
 }

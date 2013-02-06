@@ -15,6 +15,7 @@
  */
 package com.github.flowersinthesand.portal.support;
 
+import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.On;
 import com.github.flowersinthesand.portal.Order;
@@ -24,10 +25,18 @@ import com.github.flowersinthesand.portal.Wire;
 import com.github.flowersinthesand.portal.spi.RoomFactory;
 
 @Bean
-public class RoomCleanupHandler {
+public class RoomSupportHandler {
 
 	@Wire
+	private App app;
+	@Wire
 	private RoomFactory roomFactory;
+
+	@On
+	@Order(Integer.MIN_VALUE)
+	public void open(Socket socket) {
+		app.hall().add(socket);
+	}
 
 	@On
 	@Order(Integer.MIN_VALUE)

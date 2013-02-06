@@ -109,6 +109,10 @@ Binds a value to this application using the given key.
 
 Finds corresponding room or opens new one if it doesn't exist. Utilize this method when trying to access rooms which are not available by injection, namely, are supposed to be created in runtime.
 
+* `Room hall()`
+
+Returns the hall, a specialized room whose name is `hall` and contains every socket that connected to the application.
+
 * `Socket socket(String id)`
 
 Finds a socket by id or returns null if it doesn't exist. Use this method when you need detailed operation in terms of connectivity not entity.
@@ -194,6 +198,10 @@ The number of sockets.
 * `Room close()`
 
 Closes all the connections of the sockets, clears all sockets and attributes.
+
+### Hall
+
+The Hall is just a specialized room whose name is `hall` and contains every socket that connected to the application.
 
 ### Socket
 
