@@ -126,6 +126,11 @@ public class DefaultRoomFactory implements RoomFactory {
 		}
 
 		@Override
+		public Room in(Room room) {
+			return in(room.sockets().toArray(new Socket[] {}));
+		}
+
+		@Override
 		public Room remove(Socket... sockets) {
 			for (Socket socket : sockets) {
 				this.sockets.remove(socket);
@@ -141,6 +146,11 @@ public class DefaultRoomFactory implements RoomFactory {
 		@Override
 		public Room out(Socket... sockets) {
 			return new DefaultRoom(name + ".out").add(this).remove(sockets);
+		}
+
+		@Override
+		public Room out(Room room) {
+			return out(room.sockets().toArray(new Socket[] {}));
 		}
 
 		@Override

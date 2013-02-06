@@ -31,11 +31,15 @@ public interface Room {
 
 	Room in(Socket... sockets);
 
+	Room in(Room room);
+
 	Room remove(Socket... sockets);
 
 	Room remove(Room room);
 
 	Room out(Socket... sockets);
+
+	Room out(Room room);
 
 	Room send(String event);
 

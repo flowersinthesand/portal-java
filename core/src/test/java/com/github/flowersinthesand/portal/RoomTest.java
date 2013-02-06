@@ -173,6 +173,16 @@ public class RoomTest {
 		Room r2 = r.out(s2);
 		Assert.assertNotSame(r2, r);
 		Assert.assertArrayEquals(r2.sockets().toArray(), new Object[] { s1 });
+		
+		r.close();
+		r1.close();
+		r2.close();
+		
+		r.add(s1, s2);
+		r1.add(s2, s3);
+		r2.add(s3, s1);		
+		Assert.assertArrayEquals(r.out(r1).sockets().toArray(), new Object[] { s1 });
+		Assert.assertArrayEquals(r.in(r2).sockets().toArray(), new Object[] { s1, s2, s3 });
 	}
 
 }
