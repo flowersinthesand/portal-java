@@ -70,12 +70,7 @@ public class TwitterReader {
 
     @Scheduled(fixedDelay = 20000)
     public void read() throws TwitterException {
-        Twitter twitter = TwitterFactory.getSingleton();
-        Room room = app.room("twitter");
-        
-        Query query = new Query("java");
-        QueryResult result = twitter.search(query);
-        room.send("tweets", result.getTweets());
+        app.hall().send("tweets", TwitterFactory.getSingleton().search(new Query("java")).getTweets());
     }
 
 }
