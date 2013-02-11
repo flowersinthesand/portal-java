@@ -15,14 +15,7 @@
  */
 package com.github.flowersinthesand.portal.handler;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 import com.github.flowersinthesand.portal.Bean;
-import com.github.flowersinthesand.portal.On;
 import com.github.flowersinthesand.portal.Prepare;
 import com.github.flowersinthesand.portal.Room;
 import com.github.flowersinthesand.portal.Wire;
@@ -53,9 +46,6 @@ public class AppHandler {
 		prepared = true;
 	}
 
-	@Load
-	public void onLoad() {}
-
 	public static Room getPrivateRoom() {
 		return privateRoom;
 	}
@@ -75,11 +65,5 @@ public class AppHandler {
 	public static Dispatcher getDispatcher() {
 		return dispatcher;
 	}
-
-	@Target(ElementType.METHOD)
-	@Retention(RetentionPolicy.RUNTIME)
-	@Documented
-	@On("load")
-	public static @interface Load {}
 
 }

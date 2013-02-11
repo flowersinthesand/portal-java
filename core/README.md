@@ -49,11 +49,11 @@ The bean name to be wired. If the bean name is specified and there is no matchin
 Specifies that the annotated method should be be executed after dependency injection is done to perform any initialization. Only public methods with no arguments can be executed.
 
 ### @On
-Defines an annotated method or an annotated annotation as the event handler. The method should be `public` and a return type of the method doesn't matter. `On.open`, `On.message`, `On.close` are provided as special annotations for `open`, `message`, `close` event respectively.
+Defines an annotated method as the event handler. The method should be `public` and a return type of the method doesn't matter.
 
 * `String value() default ""`
 
-The event name. The annotated method's name will be the event name if it's empty. In case of type, the value have to be specified.
+The event name. The annotated method's name will be the event name if it's empty.
 
 #### Paramter binding
 According to the method signature, the following parameters will be provided.
