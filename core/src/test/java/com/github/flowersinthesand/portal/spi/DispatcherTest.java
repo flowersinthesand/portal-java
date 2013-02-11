@@ -30,6 +30,8 @@ import com.github.flowersinthesand.portal.Socket;
 import com.github.flowersinthesand.portal.handler.DataBean;
 import com.github.flowersinthesand.portal.handler.EventsHandler;
 import com.github.flowersinthesand.portal.handler.OrderHandler;
+import com.github.flowersinthesand.portal.handler.ThrowingHandler;
+import com.github.flowersinthesand.portal.handler.ThrowingHandler.TestException;
 import com.github.flowersinthesand.portal.support.DefaultDispatcher;
 
 public class DispatcherTest {
@@ -132,6 +134,54 @@ public class DispatcherTest {
 		h.args.clear();
 		dispatcher.fire("y", socket);
 		Assert.assertArrayEquals(h.args.toArray(), new Object[] { -1, 0, 1 });
+	}
+	
+	@Test
+	public void throwing() throws SecurityException, NoSuchMethodException {
+		ThrowingHandler h = new ThrowingHandler();
+
+		Dispatcher dispatcher = new DefaultDispatcher();
+		final Map<String, Object> replyInfo = new LinkedHashMap<String, Object>();
+		Socket socket = Mockito.mock(Socket.class);
+		Mockito.when(socket.send(Mockito.anyString(), Mockito.anyMap())).thenAnswer(new Answer<Object>() {
+			@SuppressWarnings("unchecked")
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				replyInfo.putAll((Map<String, Object>) invocation.getArguments()[1]);
+				return null;
+			}
+		});
+		
+		Map<String, Object> failInfo = new LinkedHashMap<String, Object>();
+		failInfo.put("type", TestException.class.getName());
+		failInfo.put("message", "Hello");
+
+		dispatcher.on("success", h, h.getClass().getMethod("success"));
+		dispatcher.fire("success", socket, null, 1);
+		Assert.assertEquals(replyInfo.get("exception"), false);
+
+		dispatcher.on("fail1", h, h.getClass().getMethod("fail1"));
+		dispatcher.fire("fail1", socket, null, 1);
+		Assert.assertEquals(replyInfo.get("exception"), true);
+		Assert.assertEquals(replyInfo.get("data"), failInfo);
+
+		dispatcher.on("fail2", h, h.getClass().getMethod("fail2"));
+		dispatcher.fire("fail2", socket, null, 1);
+		Assert.assertEquals(replyInfo.get("exception"), true);
+		Assert.assertEquals(replyInfo.get("data"), failInfo);
+
+		dispatcher.on("fail3", h, h.getClass().getMethod("fail3"));
+		try {
+			dispatcher.fire("fail3", socket, null, 1);
+			Assert.assertTrue(false);
+		} catch (RuntimeException e) {
+			Throwable ex = e;
+			while (ex.getCause() != null) {
+				ex = ex.getCause();
+			}
+
+			Assert.assertTrue(ex.getClass().isAssignableFrom(TestException.class));
+		}
 	}
 
 }

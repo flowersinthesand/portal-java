@@ -196,9 +196,13 @@ portal.find("/account")
 .send("find", 23, function(account) {
     console.log('found');
     console.log(account);
+}, function(info) {
+    console.log(info.type + ":" + info.message);
 })
 .send("remove", 45, function() {
     console.log('deleted');
+}, function(info) {
+    console.log(info.type + ":" + info.message);
 });
 ```
 
@@ -214,13 +218,15 @@ public class AccountServiceImpl implements AccountService {
     @Override
     @On
     @Reply
-    public Account find(@Data long id) {
+    @Throw
+    public Account find(@Data long id) throws EntityNotFoundException {
         return dao.find(id);
     }
 
     @Override
     @On
     @Reply
+    @Throw(EntityNotFoundException.class)
     public void remove(@Data long id) {
         dao.remove(id);
     }

@@ -15,21 +15,20 @@ Add the following dependency:
 ```
 
 ### Running the app
-Simply, create a `App` with options and modules:
+Simply, create a `com.github.flowersinthesand.portal.App` with options and modules:
 ```java
 new App(new Options().url("/event").packageOf("ch.rasc.portaldemos"), new AtmosphereModule(servletContext));
 ```
 
 ## Application
-A Portal application is a small bean container which contains beans defined by the user and beans used by the application. Here, the user can define a bean as a controller, service or repository, but the expected use case is to write a handler as a component of presentation layer.
+A Portal application is a small bean container which contains beans defined by the user and beans used by the application. Here, the user's todo is to define handlers as a component of presentation layer.
 
 For a declarative programming, a lot of annotations are provided and defined in the package `com.github.flowersinthesand.portal`.
 
-## Bean
-Bean is an application component and is instantiated once per each application like singleton. Therefore, all declared fields on the bean must be thread-safe.
+## Annotation
 
 ### @Bean
-Indicates that the annotated class is a bean. This annotation is required for all beans.
+Indicates that the annotated class is a bean. The bean is an application component and is instantiated once per each application like singleton. Therefore, all declared fields on the bean must be thread-safe. This annotation is required for all beans.
 
 * `String value() default ""`
 
@@ -38,21 +37,16 @@ The bean name of the class. If a bean name is not provided, the bean name will b
 ### @Wire
 Marks the annotated field as to be wired. The field does not need to be public.
 
-Exceptionally,
-* if the field type is `App`, the current `App` will be wired. 
-* if the field type is `Room`, a room will be found and wired regarding the bean name as the room name.    
-
 * `String value() default ""`
 
 The bean name to be wired. If the bean name is specified and there is no matching bean with the name and the field's type, wiring will fail. If the bean name is not specified, the annotated field name will be the bean name instead. In this case, even though wiring by the name and the type fails, application will try to find a bean using the type once more.
 
+#### Exception
+* if the field type is `App`, the current `App` will be wired. 
+* if the field type is `Room`, a room will be found and wired regarding the bean name as the room name.    
+
 ### @Prepare
 Specifies that the annotated method should be be executed after dependency injection is done to perform any initialization. Only public methods with no arguments can be executed.
-
-## Event handler
-Any method annotated with `On` on any bean in the application is treated as event handler. According to the method signature, the following parameters will be provided.
-
-* `Socket`: The socket instance that sent the event.
 
 ### @On
 Defines an annotated method or an annotated annotation as the event handler. The method should be `public` and a return type of the method doesn't matter. `On.open`, `On.message`, `On.close` are provided as special annotations for `open`, `message`, `close` event respectively.
@@ -60,6 +54,11 @@ Defines an annotated method or an annotated annotation as the event handler. The
 * `String value() default ""`
 
 The event name. The annotated method's name will be the event name if it's empty. In case of type, the value have to be specified.
+
+#### Paramter binding
+According to the method signature, the following parameters will be provided.
+
+* `Socket`: The socket instance that sent the event.
 
 ### @Order
 Indicates an execution order of event handlers. Lower values have higher priority.
@@ -77,6 +76,13 @@ The expression for data. By default, regarding expression as property name, the 
 
 ### @Reply
 Specifies that the annotated parameter or method is a reply callback, and the annotation must be present on one place in all the possible place in a event handler. In the parameter case, the parameter's type should be `Fn.Callback` or `Fn.Callback1` and the method's return type does not matter. Use this way when you need to execute the callback asynchronously out of the current thread. In the method case, after execution a reply callback will be executed regarding the execution result as the callback data.
+
+### @Throw
+Indicates what exceptions should be handled for the fail callback in the browser side. Without this annotation, the fail callback will never be invoked. Data for fail callback is in the form of map contains the handled exception's fully qualified class name (`type`) and message (`message`).  
+
+* `Class<? extends Throwable>[] value() default {}`
+
+Throwable classes to be handled. If no class is specified, the annotated method's exception types will be used. So, either value attribute or exception types have to be specified with this annotation. Unhandled exceptions will be thrown to the container.
 
 ## Model 
 
@@ -118,8 +124,8 @@ Returns the hall, a specialized room whose name is `hall` and contains every soc
 Finds a socket by id or returns null if it doesn't exist. Use this method when you need detailed operation in terms of connectivity not entity.
 
 * `Object bean(String name)`
-* `<T> T bean(Class<? super T> class)`
-* `<T> T bean(String name, Class<? super T> class)`
+* `<T> T bean(Class<T> class)`
+* `<T> T bean(String name, Class<T> class)`
 
 Returns the corresponding bean by name or type from the bean container. Throws IllegalArgumentException if there is no corresponding bean.
 

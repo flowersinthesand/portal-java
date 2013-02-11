@@ -16,6 +16,7 @@
 package com.github.flowersinthesand.portal.support;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,6 +39,7 @@ import com.github.flowersinthesand.portal.Fn.Callback1;
 import com.github.flowersinthesand.portal.Order;
 import com.github.flowersinthesand.portal.Reply;
 import com.github.flowersinthesand.portal.Socket;
+import com.github.flowersinthesand.portal.Throw;
 import com.github.flowersinthesand.portal.Wire;
 import com.github.flowersinthesand.portal.spi.Dispatcher;
 
@@ -90,13 +92,10 @@ public class DefaultDispatcher implements Dispatcher {
 	@Override
 	public void fire(String type, final Socket socket, Object data, final int eventIdForReply) {
 		logger.debug("Firing {} event to Socket#{}", type, socket.id());
-		Fn.Callback1<?> reply = eventIdForReply > 0 ? new Fn.Callback1<Object>() {
+		Fn.Callback1<?> reply = eventIdForReply > 0 ? new Fn.Callback1<Map<String, Object>>() {
 			@Override
-			public void call(Object arg1) {
-				Map<String, Object> data = new LinkedHashMap<String, Object>();
+			public void call(Map<String, Object> data) {
 				data.put("id", eventIdForReply);
-				data.put("data", arg1);
-
 				logger.debug("Sending the reply event with the data {}", data);
 				socket.send("reply", data);
 			}
@@ -105,11 +104,7 @@ public class DefaultDispatcher implements Dispatcher {
 		if (handlers.containsKey(type)) {
 			for (Dispatcher.Handler handler : handlers.get(type)) {
 				logger.trace("Invoking handler {}", handler);
-				try {
-					handler.handle(socket, data, reply);
-				} catch (Exception e) {
-					logger.error("Exception occurred while invoking a handler " + handler, e);
-				}
+				handler.handle(socket, data, reply);
 			}
 		}
 	}
@@ -122,6 +117,7 @@ public class DefaultDispatcher implements Dispatcher {
 		Object bean;
 		Method method;
 		Param[] params;
+		Class<?>[] throwables;
 		
 		DefaultHandler(Object bean, Method method) {
 			this.bean = bean;
@@ -129,6 +125,16 @@ public class DefaultDispatcher implements Dispatcher {
 			
 			if (method.isAnnotationPresent(Order.class)) {
 				this.order = method.getAnnotation(Order.class).value();
+			}
+			
+			if (method.isAnnotationPresent(Throw.class)) {
+				throwables = method.getAnnotation(Throw.class).value();
+				if (throwables.length == 0) {
+					throwables = method.getExceptionTypes();
+					if (throwables.length == 0) {
+						throw new IllegalArgumentException("Both @Throw.value and exception types of method '" + method + "' are empty");
+					}
+				}
 			}
 
 			Class<?>[] paramTypes = method.getParameterTypes();
@@ -198,10 +204,32 @@ public class DefaultDispatcher implements Dispatcher {
 				args[i] = params[i].resolve(socket, data, reply);
 			}
 
-			Object result;
+
+			Map<String, Object> result = new LinkedHashMap<String, Object>();
+			result.put("exception", false);
+			
 			try {
-				result = method.invoke(bean, args);
-			} catch (Exception e) {
+				result.put("data", method.invoke(bean, args));
+			} catch (InvocationTargetException e) {
+				Throwable ex = e.getCause();
+				if (throwables != null) {
+					for (Class<?> throwable : throwables) {
+						if (ex.getClass().isAssignableFrom(throwable)) {
+							Map<String, Object> map = new LinkedHashMap<String, Object>();
+							map.put("type", ex.getClass().getName());
+							map.put("message", ex.getMessage());
+							result.put("data", map);
+							result.put("exception", true);
+							break;
+						}
+					}
+				}
+				if (!result.containsKey("data")) {
+					throw new RuntimeException(e);
+				}
+			} catch (IllegalArgumentException e) {
+				throw new RuntimeException(e);
+			} catch (IllegalAccessException e) {
 				throw new RuntimeException(e);
 			}
 
@@ -255,12 +283,18 @@ public class DefaultDispatcher implements Dispatcher {
 				return Fn.Callback.class.equals(type) ? new Fn.Callback() {
 					@Override
 					public void call() {
-						reply.call(null);
+						Map<String, Object> result = new LinkedHashMap<String, Object>();
+						result.put("data", null);
+						result.put("exception", false);
+						reply.call(result);
 					}
 				} : new Fn.Callback1<Object>() {
 					@Override
 					public void call(Object arg1) {
-						reply.call(arg1);
+						Map<String, Object> result = new LinkedHashMap<String, Object>();
+						result.put("data", arg1);
+						result.put("exception", false);
+						reply.call(result);
 					}
 				};
 			}
