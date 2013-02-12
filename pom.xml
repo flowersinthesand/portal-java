@@ -14,7 +14,6 @@
 	<description>Portal server for Java</description>
 	<modules>
 		<module>core</module>
-		<module>javascript</module>
 		<module>atmosphere</module>
 		<module>play</module>
 		<module>spring</module>
@@ -51,11 +50,6 @@
 			<dependency>
 				<groupId>com.github.flowersinthesand</groupId>
 				<artifactId>portal-core</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.github.flowersinthesand</groupId>
-				<artifactId>portal-javascript</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>

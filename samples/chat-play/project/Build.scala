@@ -16,7 +16,6 @@ object ApplicationBuild extends Build {
         // Dependencies are managed by maven
         // To run the application in play console, uncomment the followings and replace ${portal.version} with the latest version  
         // "com.github.flowersinthesand" % "portal-core" % "${portal.version}",
-        // "com.github.flowersinthesand" % "portal-javascript" % "${portal.version}",
         // "com.github.flowersinthesand" % "portal-play" % "${portal.version}",
         // "org.reflections" % "reflections" % "0.9.8"
     )

@@ -17,10 +17,6 @@
 		</dependency>
 		<dependency>
 			<groupId>com.github.flowersinthesand</groupId>
-			<artifactId>portal-javascript</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.github.flowersinthesand</groupId>
 			<artifactId>portal-play</artifactId>
 		</dependency>
 		<dependency>
