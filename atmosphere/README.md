@@ -12,6 +12,11 @@ Add the following dependency to your pom.xml:
 </dependency>
 ```
 
+### Loading resources
+The following static resources are located in `META-INF/resources/portal/` in the jar. Serve them properly according to your environment. The [documentation](http://www.webjars.org/documentation) of WebJars will give you some help for this.
+
+* [`atmosphere.js`](https://github.com/flowersinthesand/portal-java/blob/master/atmosphere/src/main/resources/META-INF/resources/portal/atmosphere.js), [`atmosphere.min.js`](https://github.com/flowersinthesand/portal-java/blob/master/atmosphere/src/main/resources/META-INF/resources/portal/atmosphere.min.js): A set of options to fully benefit from the integration with the atmosphere module, not requiring further configuration in the server side. It enables the heartbeat for every 20 seconds and transports depending on XDomainRequest object.
+
 ### Creating the module
 Use the following constructor in accordance with your servlet container
 

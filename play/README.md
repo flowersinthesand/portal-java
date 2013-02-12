@@ -8,6 +8,11 @@ Add the following dependency to your Build.scala:
 "com.github.flowersinthesand" % "portal-play" % "${portal.version}"
 ```
 
+### Loading resources
+The following static resources are located in `META-INF/resources/portal/` in the jar. Serve them properly according to your environment. The [documentation](http://www.webjars.org/documentation) of WebJars will give you some help for this.
+
+* [`play.js`](https://github.com/flowersinthesand/portal-java/blob/master/play/src/main/resources/META-INF/resources/portal/play.js), [`play.min.js`](https://github.com/flowersinthesand/portal-java/blob/master/play/src/main/resources/META-INF/resources/portal/play.min.js): A set of options to fully benefit from the integration with the play module, not requiring further configuration in the server side. It enables the heartbeat for every 20 seconds.
+
 ### Creating the module
 Use the following constructor:
 ```java

@@ -14,11 +14,13 @@ Add the following dependency:
 </dependency>
 ```
 
-### Running the app
-Simply, create a `com.github.flowersinthesand.portal.App` with options and modules:
-```java
-new App(new Options().url("/event").packageOf("ch.rasc.portaldemos"), new AtmosphereModule(servletContext));
-```
+### Loading resources
+The following static resources are located in `META-INF/resources/portal/` in the jar. Serve them properly according to your environment. The [documentation](http://www.webjars.org/documentation) of WebJars will give you some help for this.
+
+* [`portal.js`](https://github.com/flowersinthesand/portal-java/blob/master/core/src/main/resources/META-INF/resources/portal/portal.js), [`portal.min.js`](https://github.com/flowersinthesand/portal-java/blob/master/core/src/main/resources/META-INF/resources/portal/portal.min.js): The latest portal.js that Portal for Java supports. If there is a newest version of portal.js than provided one, you can use it unless otherwise noted.
+
+#### WebJars
+All the resources of Portal and Portal for Java are available in [WebJars](http://www.webjars.org/). Visit and search `portal` from the list.
 
 ## Application
 A Portal application is a small bean container which contains beans defined by the user and beans used by the application. Here, the user's todo is to define handlers as a component of presentation layer.
