@@ -15,7 +15,7 @@ import org.reflections.scanners.ResourcesScanner
 
 object Servlet3Assets {
   
-  val PATH_PREFIX = List("META-INF", "resources")
+  val PATH_PREFIX = List("META-INF", "resources", "portal")
 
   // returns the contents of an asset
   def at(file: String): Action[AnyContent] = {

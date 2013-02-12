@@ -4,7 +4,7 @@
 
 # Home page
 GET     /                           controllers.Application.index()
-GET     /*file                      controllers.Servlet3Assets.at(file)
+GET     /portal/*file               controllers.Servlet3Assets.at(file)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
