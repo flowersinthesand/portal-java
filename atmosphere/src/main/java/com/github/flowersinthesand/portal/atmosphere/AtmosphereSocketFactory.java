@@ -76,13 +76,13 @@ public class AtmosphereSocketFactory extends AbstractSocketFactory implements At
 		if (request.getMethod().equalsIgnoreCase("GET")) {
 			openSocket(resource);
 		} else if (request.getMethod().equalsIgnoreCase("POST")) {
-			String raw = copy(request.getReader());
+			String raw = read(request.getReader());
 			logger.debug("POST message body {}", raw);
 			fire(raw.startsWith("data=") ? raw.substring("data=".length()) : raw);
 		}
 	}
 
-	private String copy(Reader in) throws IOException {
+	private String read(Reader in) throws IOException {
 		StringWriter out = new StringWriter();
 		
 		try {

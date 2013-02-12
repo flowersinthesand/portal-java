@@ -13,9 +13,38 @@ Add the following dependency to your pom.xml:
 ```
 
 ### Loading resources
-The following static resources are located in `META-INF/resources/portal/` in the jar. Serve them properly according to your environment. The [documentation](http://www.webjars.org/documentation) of WebJars will give you some help for this.
+The following static resources are located in `META-INF/resources/portal/` in the jar.
 
 * [`atmosphere.js`](https://github.com/flowersinthesand/portal-java/blob/master/atmosphere/src/main/resources/META-INF/resources/portal/atmosphere.js), [`atmosphere.min.js`](https://github.com/flowersinthesand/portal-java/blob/master/atmosphere/src/main/resources/META-INF/resources/portal/atmosphere.min.js): A set of options to fully benefit from the integration with the atmosphere module, not requiring further configuration in the server side. It enables the heartbeat for every 20 seconds and transports depending on XDomainRequest object.
+
+#### Servlet 3
+According to Servlet 3 spec, every file in a `META-INF/resources` directory in a jar in `WEB-INF/lib` directory should be automatically exposed as a static resource. So, you don't need to configure anything.
+
+```html
+<script src="/portal/portal.js"></script>
+<script src="/portal/atmosphere.js"></script>
+```
+
+#### Servlet 2.x
+Install the following fallback filter in web.xml:
+
+```xml
+<filter>
+    <filter-name>portalResource</filter-name>
+    <filter-class>com.github.flowersinthesand.portal.atmosphere.StaticResourceFilter</filter-class>
+</filter>
+<filter-mapping>
+    <filter-name>portalResource</filter-name>
+    <url-pattern>/*</url-pattern>
+</filter-mapping>
+```
+
+Then, you can import scripts like with Servlet 3.
+
+```html
+<script src="/portal/portal.js"></script>
+<script src="/portal/atmosphere.js"></script>
+```
 
 ### Creating the module
 Use the following constructor in accordance with your servlet container
@@ -32,8 +61,7 @@ public class Initializer implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent event) {
-        ServletContext servletContext = event.getServletContext();
-        new App(new Options().url("/event").packageOf(this), new AtmosphereModule(servletContext)).register();
+        new App(new Options().url("/event").packageOf(this), new AtmosphereModule(event.getServletContext()));
     }
 
     @Override
@@ -67,7 +95,7 @@ public class Initializer extends AtmosphereServlet {
     @Override
     public void init(ServletConfig servletConfig) throws ServletException {
         super.init(servletConfig);
-        new App(new Options().url("/event").packageOf(this), new AtmosphereModule(framework)).register();
+        new App(new Options().url("/event").packageOf(this), new AtmosphereModule(framework));
     }
     
 }
