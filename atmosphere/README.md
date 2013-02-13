@@ -15,7 +15,7 @@ Add the following dependency to your pom.xml:
 ### Loading resources
 The following static resources are located in `META-INF/resources/portal/` in the jar.
 
-* [`atmosphere.js`](https://github.com/flowersinthesand/portal-java/blob/master/atmosphere/src/main/resources/META-INF/resources/portal/atmosphere.js), [`atmosphere.min.js`](https://github.com/flowersinthesand/portal-java/blob/master/atmosphere/src/main/resources/META-INF/resources/portal/atmosphere.min.js): A set of options to fully benefit from the integration with the atmosphere module, not requiring further configuration in the server side. It enables the heartbeat for every 20 seconds and transports depending on XDomainRequest object.
+* [`atmosphere.js`](https://github.com/flowersinthesand/portal-java/blob/master/atmosphere/src/main/resources/META-INF/resources/portal/atmosphere.js), [`atmosphere.min.js`](https://github.com/flowersinthesand/portal-java/blob/master/atmosphere/src/main/resources/META-INF/resources/portal/atmosphere.min.js): A set of options to fully benefit from the integration with the atmosphere module.
 
 #### Servlet 3
 According to Servlet 3 spec, every file in a `META-INF/resources` directory in a jar in `WEB-INF/lib` directory should be automatically exposed as a static resource. So, you don't need to configure anything.

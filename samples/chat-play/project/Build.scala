@@ -16,8 +16,7 @@ object ApplicationBuild extends Build {
         // Dependencies are managed by maven
         // To run the application in play console, uncomment the followings and replace ${portal.version} with the latest version  
         // "com.github.flowersinthesand" % "portal-core" % "${portal.version}",
-        // "com.github.flowersinthesand" % "portal-play" % "${portal.version}",
-        // "org.reflections" % "reflections" % "0.9.8"
+        // "com.github.flowersinthesand" % "portal-play" % "${portal.version}"
     )
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = JAVA).settings()
