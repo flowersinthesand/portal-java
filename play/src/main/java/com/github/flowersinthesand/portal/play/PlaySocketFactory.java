@@ -33,8 +33,6 @@ import play.mvc.Results.Chunks;
 import play.mvc.WebSocket;
 
 import com.github.flowersinthesand.portal.Bean;
-import com.github.flowersinthesand.portal.Fn;
-import com.github.flowersinthesand.portal.support.AbstractSocket;
 import com.github.flowersinthesand.portal.support.AbstractSocketFactory;
 
 @Bean("socketFactory")
@@ -42,14 +40,14 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 
 	private final Logger logger = LoggerFactory.getLogger(PlaySocketFactory.class);
 
-	public WebSocket<String> openWsSocket(Request request) {
+	public WebSocket<String> openWs(Request request) {
 		WsSocket socket = new WsSocket(request);
 		sockets.put(socket.id(), socket);
 
 		return socket.webSocket;
 	}
 
-	public Chunks<String> openHttpSocket(Request request, Response response) {
+	public Chunks<String> openHttp(Request request, Response response) {
 		String id = request.queryString().get("id")[0];
 		String transport = request.queryString().get("transport")[0];
 
@@ -70,36 +68,7 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 		return socket.chunks;
 	}
 
-	abstract class PlaySocket extends AbstractSocket {
-
-		@Override
-		public boolean opened() {
-			return sockets.containsValue(this);
-		}
-
-		@Override
-		protected void bindReply(Fn.Callback callback) {
-			replyHandler.set(id(), eventId.get(), callback);
-		}
-
-		@Override
-		protected void bindReply(Fn.Callback1<?> callback) {
-			replyHandler.set(id(), eventId.get(), callback);
-		}
-
-		protected void onOpen() {
-			logger.info("Socket#{} has been opened, params: {}", id(), params);
-			dispatcher.fire("open", this);
-		}
-
-		protected void onClose() {
-			logger.info("Socket#{} has been closed", id());
-			dispatcher.fire("close", sockets.remove(id()));
-		}
-
-	}
-
-	class WsSocket extends PlaySocket {
+	class WsSocket extends AbstractSocket {
 
 		private WebSocket<String> webSocket;
 		private WebSocket.Out<String> out;
@@ -139,7 +108,7 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 
 	}
 	
-	abstract class HttpSocket extends PlaySocket {
+	abstract class HttpSocket extends AbstractSocket {
 
 		protected Chunks<String> chunks;
 		protected Chunks.Out<String> out;

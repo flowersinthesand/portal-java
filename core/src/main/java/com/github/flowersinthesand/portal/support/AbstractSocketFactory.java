@@ -16,20 +16,27 @@
 package com.github.flowersinthesand.portal.support;
 
 import java.io.IOException;
+import java.nio.CharBuffer;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.flowersinthesand.portal.Fn;
 import com.github.flowersinthesand.portal.Socket;
 import com.github.flowersinthesand.portal.Wire;
 import com.github.flowersinthesand.portal.spi.Dispatcher;
 import com.github.flowersinthesand.portal.spi.SocketFactory;
 
 public abstract class AbstractSocketFactory implements SocketFactory {
+
+	protected static final String padding2K = CharBuffer.allocate(2048).toString().replace('\0', ' ');
 
 	private final Logger logger = LoggerFactory.getLogger(AbstractSocketFactory.class);
 	protected Map<String, Socket> sockets = new ConcurrentHashMap<String, Socket>();
@@ -43,6 +50,14 @@ public abstract class AbstractSocketFactory implements SocketFactory {
 	public Socket find(String id) {
 		return sockets.get(id);
 	}
+	
+	public void abort(String id) {
+		if (sockets.containsKey(id)) {
+			sockets.get(id).close();
+		}
+	}
+	
+	// openSocket or openWsSocket or openHttpSocket
 
 	public void fire(String raw) {
 		Map<String, Object> m;
@@ -53,6 +68,144 @@ public abstract class AbstractSocketFactory implements SocketFactory {
 		}
 		logger.info("Receiving an event {}", m);
 		dispatcher.fire((String) m.get("type"), sockets.get(m.get("socket")), m.get("data"), (Boolean) m.get("reply") ? (Integer) m.get("id") : 0);
+	}
+
+	protected abstract class AbstractSocket implements Socket {
+
+		private final Logger logger = LoggerFactory.getLogger(AbstractSocket.class);
+		protected boolean isAndroid;
+		protected Map<String, String> params;
+		protected ObjectMapper mapper = new ObjectMapper();
+		protected AtomicInteger eventId = new AtomicInteger();
+
+		@Override
+		public String id() {
+			return params.get("id");
+		}
+
+		@Override
+		public String param(String key) {
+			return params.get(key);
+		}
+		
+		@Override
+		public boolean opened() {
+			return sockets.containsValue(this);
+		}
+		
+		@Override
+		public Socket send(String event) {
+			doSend(event, null, false);
+			return this;
+		}
+
+		@Override
+		public Socket send(String event, Object data) {
+			doSend(event, data, false);
+			return this;
+		}
+
+		@Override
+		public Socket send(String event, Object data, Fn.Callback callback) {
+			doSend(event, data, true);
+			replyHandler.set(id(), eventId.get(), callback);
+			return this;
+		}
+
+		@Override
+		public Socket send(String event, Object data, Fn.Callback1<?> callback) {
+			doSend(event, data, true);
+			replyHandler.set(id(), eventId.get(), callback);
+			return this;
+		}
+
+		protected void doSend(String type, Object data, boolean reply) {
+			Map<String, Object> message = new LinkedHashMap<String, Object>();
+
+			message.put("id", eventId.incrementAndGet());
+			message.put("type", type);
+			message.put("data", data);
+			message.put("reply", reply);
+
+			logger.info("Socket#{} is sending an event {}", id(), message);
+			cache(message);
+			transmit(format(message));
+		}
+
+		protected String format(Object message) {
+			StringBuilder builder = new StringBuilder();
+			String transport = param("transport");
+			String data;
+			try {
+				data = mapper.writeValueAsString(message);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+			logger.debug("Formatting data {} for {} transport", data, transport);
+
+			if (transport.equals("ws")) {
+				builder.append(data);
+			} else if (transport.equals("sse") || transport.startsWith("stream")) {
+				if (isAndroid) {
+					builder.append(padding2K).append(padding2K);
+				}
+				for (String datum : data.split("\r\n|\r|\n")) {
+					builder.append("data: ").append(datum).append("\n");
+				}
+				builder.append("\n");
+			} else if (transport.startsWith("longpoll")) {
+				if (transport.equals("longpolljsonp")) {
+					try {
+						builder.append(param("callback")).append("(")
+								.append(mapper.writeValueAsString(data)).append(");");
+					} catch (Exception e) {
+						throw new RuntimeException(e);
+					}
+				} else {
+					builder.append(data);
+				}
+			}
+
+			return builder.toString();
+		}
+
+		@Override
+		public Socket close() {
+			logger.info("Closing socket#{}", id());
+			disconnect();
+			return this;
+		}
+
+		protected void onOpen() {
+			logger.info("Socket#{} has been opened, params: {}", id(), params);
+			dispatcher.fire("open", this);
+		}
+
+		protected void onClose() {
+			logger.info("Socket#{} has been closed", id());
+			dispatcher.fire("close", sockets.remove(id()));
+		}
+
+		protected Map<String, String> params(Map<String, String[]> params) {
+			Map<String, String> map = new LinkedHashMap<String, String>();
+			for (Entry<String, String[]> entry : params.entrySet()) {
+				map.put(entry.getKey(), entry.getValue()[0]);
+			}
+
+			return map;
+		}
+
+		protected boolean isAndroid(String userAgent) {
+			return userAgent.matches(".*Android\\s[23]\\..*");
+		}
+
+		protected void cache(Map<String, Object> message) {
+		}
+
+		abstract protected void transmit(String it);
+
+		abstract protected void disconnect();
+
 	}
 
 }

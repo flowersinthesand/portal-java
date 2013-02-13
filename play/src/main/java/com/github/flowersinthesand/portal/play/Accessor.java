@@ -16,6 +16,7 @@
 package com.github.flowersinthesand.portal.play;
 
 import play.mvc.Controller;
+import play.mvc.Http.Response;
 import play.mvc.Result;
 import play.mvc.WebSocket;
 
@@ -24,27 +25,37 @@ import com.github.flowersinthesand.portal.App;
 public class Accessor extends Controller {
 
 	public static WebSocket<String> ws() {
-		return App.find(request().path()).bean(PlaySocketFactory.class).openWsSocket(request());
+		return factory(request().path()).openWs(request());
 	}
 
 	public static Result httpOut() {
-		setHeaders();
-		return ok(App.find(request().path()).bean(PlaySocketFactory.class).openHttpSocket(request(), response()));
+		setHeaders(response());
+		
+		if (request().queryString().containsKey("abortion")) {
+			factory(request().path()).abort(request().queryString().get("id")[0]);
+			return ok();
+		}
+		
+		return ok(factory(request().path()).openHttp(request(), response()));
 	}
 
 	public static Result httpIn() {
-		setHeaders();
-		App.find(request().path()).bean(PlaySocketFactory.class).fire(request().body().asText().substring("data=".length()));
+		setHeaders(response());
+		factory(request().path()).fire(request().body().asText().substring("data=".length()));
 		return ok();
 	}
+	
+	private static PlaySocketFactory factory(String path) {
+		return App.find(path).bean(PlaySocketFactory.class);
+	}
 
-	private static void setHeaders() {
-		response().setHeader("Expires", "-1");
-		response().setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-		response().setHeader("Pragma", "no-cache");
+	private static void setHeaders(Response response) {
+		response.setHeader("Expires", "-1");
+		response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+		response.setHeader("Pragma", "no-cache");
 		
-		response().setHeader("Access-Control-Allow-Origin", request().getHeader("Origin") != null ? request().getHeader("Origin") : "*");
-		response().setHeader("Access-Control-Allow-Credentials", "true");
+		response.setHeader("Access-Control-Allow-Origin", request().getHeader("Origin") != null ? request().getHeader("Origin") : "*");
+		response.setHeader("Access-Control-Allow-Credentials", "true");
 	}
 
 }

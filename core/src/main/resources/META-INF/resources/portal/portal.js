@@ -1,5 +1,5 @@
 /*
- * Portal v1.0rc3
+ * Portal v1.0rc4pre
  * http://github.com/flowersinthesand/portal
  * 
  * Copyright 2011-2013, Donghwan Kim 
@@ -290,6 +290,7 @@
 		_heartbeat: 5000,
 		lastEventId: 0,
 		sharing: false,
+		init: null,
 		prepare: function(connect) {
 			connect();
 		},
@@ -315,6 +316,7 @@
 		// Transport options
 		credentials: false,
 		longpollTest: true,
+		notifyAbortion: false,
 		xdrURL: function(url) {
 			// Maintaining session by rewriting URL
 			// http://stackoverflow.com/questions/6453779/maintaining-session-by-rewriting-url
@@ -658,6 +660,8 @@
 				},
 				// Disconnects the connection
 				close: function() {
+					var script, head;
+					
 					// Prevents reconnection
 					opts.reconnect = false;
 					if (reconnectTimer) {
@@ -667,6 +671,21 @@
 					// Fires the close event immediately for transport which doesn't give feedback on disconnection
 					if (unloading || !transport || !transport.feedback) {
 						self.fire("close", unloading ? "error" : "aborted");
+						if (opts.notifyAbortion) {
+							head = document.head || document.getElementsByTagName("head")[0] || document.documentElement;
+							script = document.createElement("script");
+							script.async = false;
+							script.src = self.buildURL({abortion: true});
+							script.onload = script.onreadystatechange = function() {
+								if (!script.readyState || /loaded|complete/.test(script.readyState)) {
+									script.onload = script.onreadystatechange = null;
+									if (script.parentNode) {
+										script.parentNode.removeChild(script);
+									}
+								}
+							};
+							head.insertBefore(script, head.firstChild);
+						}
 					}
 					
 					// Delegates to the transport
@@ -1062,6 +1081,10 @@
 				}
 			}
 		});
+		
+		if (opts.init) {
+			opts.init.call(self, self);
+		}
 		
 		return self.open();
 	}
@@ -1776,7 +1799,6 @@
 						var url = socket.buildURL({callback: callback, count: ++count}), 
 							head = document.head || document.getElementsByTagName("head")[0] || document.documentElement;
 						
-						
 						socket.data("url", url);
 						
 						script = document.createElement("script");
@@ -1784,8 +1806,8 @@
 						script.src = url;
 						script.clean = function() {
 							script.clean = script.onerror = script.onload = script.onreadystatechange = null;
-							if (head && script.parentNode) {
-								head.removeChild(script);
+							if (script.parentNode) {
+								script.parentNode.removeChild(script);
 							}
 						};
 						script.onload = script.onreadystatechange = function() {

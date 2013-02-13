@@ -38,10 +38,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.flowersinthesand.portal.Bean;
-import com.github.flowersinthesand.portal.Fn;
 import com.github.flowersinthesand.portal.Prepare;
 import com.github.flowersinthesand.portal.Wire;
-import com.github.flowersinthesand.portal.support.AbstractSocket;
 import com.github.flowersinthesand.portal.support.AbstractSocketFactory;
 
 @Bean("socketFactory")
@@ -74,7 +72,11 @@ public class AtmosphereSocketFactory extends AbstractSocketFactory implements At
 		response.setHeader("Access-Control-Allow-Credentials", "true");
 
 		if (request.getMethod().equalsIgnoreCase("GET")) {
-			openSocket(resource);
+			if (request.getParameter("abortion") != null) {
+				abort(request.getParameter("id"));
+			} else {
+				open(resource);
+			}
 		} else if (request.getMethod().equalsIgnoreCase("POST")) {
 			String raw = read(request.getReader());
 			logger.debug("POST message body {}", raw);
@@ -127,7 +129,7 @@ public class AtmosphereSocketFactory extends AbstractSocketFactory implements At
 	@Override
 	public void destroy() {}
 	
-	private void openSocket(final AtmosphereResource resource) {
+	private void open(final AtmosphereResource resource) {
 		final AtmosphereRequest request = resource.getRequest();
 		final String id = request.getParameter("id");
 		final String transport = request.getParameter("transport");
@@ -199,21 +201,6 @@ public class AtmosphereSocketFactory extends AbstractSocketFactory implements At
 			this.params = params(resource.getRequest().getParameterMap());
 			this.broadcaster = broadcasterFactory().get(id()).addAtmosphereResource(resource);
 		}
-		
-		@Override
-		public boolean opened() {
-			return sockets.containsValue(this);
-		}
-
-		@Override
-		protected void bindReply(Fn.Callback callback) {
-			replyHandler.set(id(), eventId.get(), callback);
-		}
-
-		@Override
-		protected void bindReply(Fn.Callback1<?> callback) {
-			replyHandler.set(id(), eventId.get(), callback);
-		}
 
 		@Override
 		protected void transmit(String it) {
@@ -236,15 +223,10 @@ public class AtmosphereSocketFactory extends AbstractSocketFactory implements At
 			}
 		}
 
-		protected void onOpen() {
-			logger.info("Socket#{} has been opened, params: {}", id(), params);
-			dispatcher.fire("open", this);
-		}
-
+		@Override
 		protected void onClose() {
-			logger.info("Socket#{} has been closed", id());
+			super.onClose();
 			broadcaster.destroy();
-			dispatcher.fire("close", sockets.remove(id()));
 		}
 		
 		public void onSuspend(AtmosphereResource resource) {}
