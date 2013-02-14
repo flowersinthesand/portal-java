@@ -19,11 +19,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.atmosphere.cpr.AtmosphereFramework;
 import org.atmosphere.cpr.AtmosphereHandler;
@@ -279,8 +274,6 @@ public class AtmosphereSocketFactory extends AbstractSocketFactory implements At
 	
 	class LongPollSocket extends AtmosphereSocket {
 		
-		private Set<Map<String, Object>> cache = new CopyOnWriteArraySet<Map<String, Object>>();
-		
 		public LongPollSocket(AtmosphereResource resource) {
 			super(resource);
 			resource.getResponse().setContentType("text/" + ("longpolljsonp".equals(param("transport")) ? "javascript" : "plain"));
@@ -296,27 +289,8 @@ public class AtmosphereSocketFactory extends AbstractSocketFactory implements At
 				onOpen();
 			} else if (when.equals("poll")) {
 				this.broadcaster.addAtmosphereResource(resource);
-
-				// TODO enhance
-				Integer lastEventId = Integer.valueOf(request.getParameter("lastEventId"));
-				List<Map<String, Object>> temp = new ArrayList<Map<String, Object>>();
-				for (Map<String, Object> message : cache) {
-					if (lastEventId < (Integer) message.get("id")) {
-						temp.add(message);
-					}
-				}
-
-				if (!temp.isEmpty()) {
-					logger.debug("With the last event id {}, flushing cached messages {}", lastEventId, temp);
-					transmit(format(temp));
-					cache.clear();
-				}
+				retrieveCache(request.getParameter("lastEventIds"));
 			}
-		}
-
-		@Override
-		protected void cache(Map<String, Object> message) {
-			cache.add(message);
 		}
 
 	}

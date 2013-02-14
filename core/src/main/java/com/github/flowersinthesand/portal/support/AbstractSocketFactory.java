@@ -17,10 +17,14 @@ package com.github.flowersinthesand.portal.support;
 
 import java.io.IOException;
 import java.nio.CharBuffer;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -57,7 +61,7 @@ public abstract class AbstractSocketFactory implements SocketFactory {
 		}
 	}
 	
-	// openSocket or openWsSocket or openHttpSocket
+	// open or openWs or openHttp
 
 	public void fire(String raw) {
 		Map<String, Object> m;
@@ -77,6 +81,7 @@ public abstract class AbstractSocketFactory implements SocketFactory {
 		protected Map<String, String> params;
 		protected ObjectMapper mapper = new ObjectMapper();
 		protected AtomicInteger eventId = new AtomicInteger();
+		protected Set<Map<String, Object>> cache = new CopyOnWriteArraySet<Map<String, Object>>();
 
 		@Override
 		public String id() {
@@ -128,7 +133,9 @@ public abstract class AbstractSocketFactory implements SocketFactory {
 			message.put("reply", reply);
 
 			logger.info("Socket#{} is sending an event {}", id(), message);
-			cache(message);
+			if (param("transport").startsWith("longpoll")) {
+				cache.add(message);
+			}
 			transmit(format(message));
 		}
 
@@ -199,7 +206,20 @@ public abstract class AbstractSocketFactory implements SocketFactory {
 			return userAgent.matches(".*Android\\s[23]\\..*");
 		}
 
-		protected void cache(Map<String, Object> message) {
+		protected void retrieveCache(String lastEventIdsString) {
+			List<String> lastEventIds = Arrays.asList(lastEventIdsString.split(","));
+			for (String eventId : lastEventIds) {
+				for (Map<String, Object> message : cache) {
+					if (eventId.equals(message.get("id").toString())) {
+						cache.remove(message);
+					}
+				}
+			}
+
+			if (!cache.isEmpty()) {
+				logger.debug("With the last event ids {}, flushing cached messages {}", lastEventIds, cache);
+				transmit(format(cache));
+			}
 		}
 
 		abstract protected void transmit(String it);

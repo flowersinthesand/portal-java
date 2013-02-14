@@ -15,15 +15,6 @@
  */
 package com.github.flowersinthesand.portal.play;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import play.api.mvc.Codec;
 import play.core.j.JavaResults;
 import play.libs.F;
@@ -37,8 +28,6 @@ import com.github.flowersinthesand.portal.support.AbstractSocketFactory;
 
 @Bean("socketFactory")
 public class PlaySocketFactory extends AbstractSocketFactory {
-
-	private final Logger logger = LoggerFactory.getLogger(PlaySocketFactory.class);
 
 	public WebSocket<String> openWs(Request request) {
 		WsSocket socket = new WsSocket(request);
@@ -157,8 +146,6 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 
 	class LongPollSocket extends HttpSocket {
 		
-		private Set<Map<String, Object>> cache = new CopyOnWriteArraySet<Map<String, Object>>();
-		
 		public LongPollSocket(Request request, Response response) {
 			this.params = params(request.queryString());
 			refresh(request, response, true);
@@ -182,29 +169,11 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 						out.close();
 						onOpen();
 					} else {
-						// TODO enhance
-						Integer lastEventId = Integer.valueOf(request.queryString().get("lastEventId")[0]);
-						List<Map<String, Object>> temp = new ArrayList<Map<String, Object>>();
-						for (Map<String, Object> message : cache) {
-							if (lastEventId < (Integer) message.get("id")) {
-								temp.add(message);
-							}
-						}
-
-						if (!temp.isEmpty()) {
-							logger.debug("With the last event id {}, flushing cached messages {}", lastEventId, temp);
-							transmit(format(temp));
-							cache.clear();
-						}
+						retrieveCache(request.queryString().get("lastEventIds")[0]);
 					}
 				}
 			};
 			response.setContentType(("text/" + ("longpolljsonp".equals(param("transport")) ? "javascript" : "plain") + "; charset=utf-8"));
-		}
-
-		@Override
-		protected void cache(Map<String, Object> message) {
-			cache.add(message);
 		}
 
 		@Override
