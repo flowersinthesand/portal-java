@@ -72,10 +72,11 @@ public class AtmosphereSocketFactory extends AbstractSocketFactory implements At
 		response.setHeader("Access-Control-Allow-Credentials", "true");
 
 		if (request.getMethod().equalsIgnoreCase("GET")) {
-			if (request.getParameter("abortion") != null) {
-				abort(request.getParameter("id"));
-			} else {
+			String when = request.getParameter("when");
+			if (when.equals("open") || when.equals("poll")) {
 				open(resource);
+			} else if (when.equals("abort")) {
+				abort(request.getParameter("id"));
 			}
 		} else if (request.getMethod().equalsIgnoreCase("POST")) {
 			String raw = read(request.getReader());
@@ -131,6 +132,7 @@ public class AtmosphereSocketFactory extends AbstractSocketFactory implements At
 	
 	private void open(final AtmosphereResource resource) {
 		final AtmosphereRequest request = resource.getRequest();
+		final String when = request.getParameter("when");
 		final String id = request.getParameter("id");
 		final String transport = request.getParameter("transport");
 
@@ -138,7 +140,7 @@ public class AtmosphereSocketFactory extends AbstractSocketFactory implements At
 			sockets.put(id, new WsSocket(resource));
 		} else if (transport.equals("sse") || transport.startsWith("stream")) {
 			sockets.put(id, new StreamSocket(resource));
-		} else if (transport.startsWith("longpoll") && "1".equals(request.getParameter("count"))) {
+		} else if (transport.startsWith("longpoll") && when.equals("open")) {
 			sockets.put(id, new LongPollSocket(resource));
 		}
 
@@ -176,7 +178,7 @@ public class AtmosphereSocketFactory extends AbstractSocketFactory implements At
 			private void cleanup() {
 				if (sockets.containsKey(id)) {
 					if ((transport.equals("ws") || transport.equals("sse") || transport.startsWith("stream"))
-							|| (transport.startsWith("longpoll") && !"1".equals(request.getParameter("count")) && request.getAttribute("used") == null)) {
+							|| (transport.startsWith("longpoll") && when.equals("poll") && request.getAttribute("used") == null)) {
 						((AtmosphereSocket) sockets.get(id)).onClose();
 					}
 				}
@@ -287,11 +289,12 @@ public class AtmosphereSocketFactory extends AbstractSocketFactory implements At
 		@Override
 		public void onSuspend(AtmosphereResource resource) {
 			AtmosphereRequest request = resource.getRequest();
+			String when = request.getParameter("when"); 
 			
-			if ("1".equals(request.getParameter("count"))) {
+			if (when.equals("open")) {
 				resource.resume();
 				onOpen();
-			} else {
+			} else if (when.equals("poll")) {
 				this.broadcaster.addAtmosphereResource(resource);
 
 				// TODO enhance

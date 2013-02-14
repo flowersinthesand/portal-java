@@ -31,12 +31,14 @@ public class Accessor extends Controller {
 	public static Result httpOut() {
 		setHeaders(response());
 		
-		if (request().queryString().containsKey("abortion")) {
+		String when = request().queryString().get("when")[0];
+		if (when.equals("open") || when.equals("poll")) {
+			return ok(factory(request().path()).openHttp(request(), response()));
+		} else if (when.equals("abort")) {
 			factory(request().path()).abort(request().queryString().get("id")[0]);
 			return ok();
 		}
-		
-		return ok(factory(request().path()).openHttp(request(), response()));
+		return null;
 	}
 
 	public static Result httpIn() {

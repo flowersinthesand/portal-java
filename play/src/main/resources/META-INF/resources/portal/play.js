@@ -8,5 +8,5 @@
  */
 (function(portal) {
 	portal.defaults.heartbeat = 20000;
-	portal.defaults.notifyAbortion = true;
+	portal.defaults.notifyAbort = true;
 })(window.portal);

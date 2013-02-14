@@ -48,6 +48,7 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 	}
 
 	public Chunks<String> openHttp(Request request, Response response) {
+		String when = request.queryString().get("when")[0];
 		String id = request.queryString().get("id")[0];
 		String transport = request.queryString().get("transport")[0];
 
@@ -56,10 +57,10 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 			socket = new StreamSocket(request, response);
 			sockets.put(id, socket);
 		} else if (transport.startsWith("longpoll")) {
-			if ("1".equals(request.queryString().get("count")[0])) {
+			if (when.equals("open")) {
 				socket = new LongPollSocket(request, response);
 				sockets.put(id, socket);
-			} else {
+			} else if (when.equals("poll")) {
 				socket = (LongPollSocket) sockets.get(id);
 				((LongPollSocket) socket).refresh(request, response, false);
 			}
@@ -163,7 +164,7 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 			refresh(request, response, true);
 		}
 
-		private void refresh(final Request request, Response response, final boolean first) {
+		private void refresh(final Request request, Response response, final boolean open) {
 			this.chunks = new Chunks<String>(JavaResults.writeString(Codec.utf_8()), JavaResults.contentTypeOfString((Codec.utf_8()))) {
 				@Override
 				public void onReady(Chunks.Out<String> oout) {
@@ -171,13 +172,13 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 					out.onDisconnected(new F.Callback0() {
 						@Override
 						public void invoke() throws Throwable {
-							if (!first && out != null) {
+							if (!open && out != null) {
 								onClose();
 							}
 						}
 					}); 
 					
-					if (first) {
+					if (open) {
 						out.close();
 						onOpen();
 					} else {
