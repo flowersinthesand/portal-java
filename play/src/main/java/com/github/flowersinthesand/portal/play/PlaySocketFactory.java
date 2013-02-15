@@ -129,7 +129,7 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 					onOpen();
 				}
 			};
-			response.setContentType(("text/" + ("sse".equals(param("transport")) ? "event-stream" : "plain") + "; charset=utf-8"));
+			response.setContentType(streamContentType() + "; charset=utf-8");
 		}
 
 		@Override
@@ -173,7 +173,7 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 					}
 				}
 			};
-			response.setContentType(("text/" + ("longpolljsonp".equals(param("transport")) ? "javascript" : "plain") + "; charset=utf-8"));
+			response.setContentType(longpollContentType() + "; charset=utf-8");
 		}
 
 		@Override

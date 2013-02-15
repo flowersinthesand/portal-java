@@ -219,6 +219,14 @@ public abstract class AbstractSocketFactory implements SocketFactory {
 				transmit(format(cache));
 			}
 		}
+		
+		protected String streamContentType() {
+			return "text/" + ("sse".equals(param("transport")) ? "event-stream" : "plain");
+		}
+		
+		protected String longpollContentType() {
+			return "text/" + ("longpolljsonp".equals(param("transport")) ? "javascript" : "plain");
+		}
 
 		abstract protected void transmit(String it);
 

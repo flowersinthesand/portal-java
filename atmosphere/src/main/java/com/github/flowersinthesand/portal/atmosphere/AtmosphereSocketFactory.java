@@ -244,7 +244,7 @@ public class AtmosphereSocketFactory extends AbstractSocketFactory implements At
 		public StreamSocket(AtmosphereResource resource) {
 			super(resource);
 			this.isAndroid = isAndroid(resource.getRequest().getHeader("user-agent"));
-			resource.getResponse().setContentType("text/" + ("sse".equals(param("transport")) ? "event-stream" : "plain"));
+			resource.getResponse().setContentType(streamContentType());
 		}
 
 		@Override
@@ -272,7 +272,7 @@ public class AtmosphereSocketFactory extends AbstractSocketFactory implements At
 		
 		public LongPollSocket(AtmosphereResource resource) {
 			super(resource);
-			resource.getResponse().setContentType("text/" + ("longpolljsonp".equals(param("transport")) ? "javascript" : "plain"));
+			resource.getResponse().setContentType(longpollContentType());
 		}
 
 		@Override
