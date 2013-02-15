@@ -29,14 +29,14 @@ import com.github.flowersinthesand.portal.support.AbstractSocketFactory;
 @Bean("socketFactory")
 public class PlaySocketFactory extends AbstractSocketFactory {
 
-	public WebSocket<String> openWs(Request request) {
+	WebSocket<String> openWs(Request request) {
 		WsSocket socket = new WsSocket(request);
 		sockets.put(socket.id(), socket);
 
 		return socket.webSocket;
 	}
 
-	public Chunks<String> openHttp(Request request, Response response) {
+	Chunks<String> openHttp(Request request, Response response) {
 		String when = request.queryString().get("when")[0];
 		String id = request.queryString().get("id")[0];
 		String transport = request.queryString().get("transport")[0];
@@ -97,22 +97,12 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 		}
 
 	}
-	
+
 	abstract class HttpSocket extends AbstractSocket {
 
 		protected Chunks<String> chunks;
 		protected Chunks.Out<String> out;
-		
-		@Override
-		protected void transmit(String it) {
-			out.write(it);
-		}
 
-		@Override
-		protected void disconnect() {
-			out.close();
-		}
-		
 	}
 
 	class StreamSocket extends HttpSocket {
@@ -140,6 +130,16 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 				}
 			};
 			response.setContentType(("text/" + ("sse".equals(param("transport")) ? "event-stream" : "plain") + "; charset=utf-8"));
+		}
+
+		@Override
+		protected void transmit(String it) {
+			out.write(it);
+		}
+
+		@Override
+		protected void disconnect() {
+			out.close();
 		}
 
 	}
@@ -182,6 +182,13 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 				out.write(it);
 				out.close();
 				out = null;
+			}
+		}
+
+		@Override
+		protected void disconnect() {
+			if (out != null) {
+				out.close();
 			}
 		}
 

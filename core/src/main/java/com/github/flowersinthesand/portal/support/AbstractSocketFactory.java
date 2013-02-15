@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -43,7 +44,7 @@ public abstract class AbstractSocketFactory implements SocketFactory {
 	protected static final String padding2K = CharBuffer.allocate(2048).toString().replace('\0', ' ');
 
 	private final Logger logger = LoggerFactory.getLogger(AbstractSocketFactory.class);
-	protected Map<String, Socket> sockets = new ConcurrentHashMap<String, Socket>();
+	protected ConcurrentMap<String, Socket> sockets = new ConcurrentHashMap<String, Socket>();
 	protected ObjectMapper mapper = new ObjectMapper();
 	@Wire
 	protected Dispatcher dispatcher;
@@ -54,13 +55,11 @@ public abstract class AbstractSocketFactory implements SocketFactory {
 	public Socket find(String id) {
 		return sockets.get(id);
 	}
-	
+
 	public void abort(String id) {
-		if (sockets.containsKey(id)) {
-			sockets.get(id).close();
-		}
+		sockets.remove(id, sockets.get(id));
 	}
-	
+
 	// open or openWs or openHttp
 
 	public void fire(String raw) {
@@ -163,8 +162,7 @@ public abstract class AbstractSocketFactory implements SocketFactory {
 			} else if (transport.startsWith("longpoll")) {
 				if (transport.equals("longpolljsonp")) {
 					try {
-						builder.append(param("callback")).append("(")
-								.append(mapper.writeValueAsString(data)).append(");");
+						builder.append(param("callback")).append("(").append(mapper.writeValueAsString(data)).append(");");
 					} catch (Exception e) {
 						throw new RuntimeException(e);
 					}

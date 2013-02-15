@@ -29,8 +29,6 @@ import org.atmosphere.cpr.AtmosphereResponse;
 import org.atmosphere.cpr.Broadcaster;
 import org.atmosphere.cpr.BroadcasterFactory;
 import org.atmosphere.websocket.WebSocketEventListenerAdapter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.Prepare;
@@ -40,7 +38,6 @@ import com.github.flowersinthesand.portal.support.AbstractSocketFactory;
 @Bean("socketFactory")
 public class AtmosphereSocketFactory extends AbstractSocketFactory implements AtmosphereHandler {
 
-	private final Logger logger = LoggerFactory.getLogger(AtmosphereSocketFactory.class);
 	@Wire
 	private String url;
 	@Wire
@@ -75,7 +72,6 @@ public class AtmosphereSocketFactory extends AbstractSocketFactory implements At
 			}
 		} else if (request.getMethod().equalsIgnoreCase("POST")) {
 			String raw = read(request.getReader());
-			logger.debug("POST message body {}", raw);
 			fire(raw.startsWith("data=") ? raw.substring("data=".length()) : raw);
 		}
 	}
@@ -214,7 +210,7 @@ public class AtmosphereSocketFactory extends AbstractSocketFactory implements At
 					try {
 						r.close();
 					} catch (IOException e) {
-						logger.warn("", e);
+						throw new RuntimeException(e);
 					}
 				}
 			}
