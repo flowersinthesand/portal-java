@@ -3,11 +3,11 @@
 	<parent>
 		<groupId>com.github.flowersinthesand</groupId>
 		<artifactId>portal-parent</artifactId>
-		<version>0.6-SNAPSHOT</version>
+		<version>0.6</version>
 	</parent>
 	<groupId>com.github.flowersinthesand</groupId>
 	<artifactId>portal-samples</artifactId>
-	<version>0.6-SNAPSHOT</version>
+	<version>0.6</version>
 	<packaging>pom</packaging>
 	<name>Portal samples</name>
 	<modules>
