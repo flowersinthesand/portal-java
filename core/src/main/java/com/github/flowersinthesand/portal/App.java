@@ -65,6 +65,10 @@ public final class App {
 		return name == null ? null : repository().get(name);
 	}
 
+	public static String version() {
+		return App.class.getPackage().getImplementationVersion();
+	}
+
 	private final Logger logger = LoggerFactory.getLogger(App.class);
 	private String name;
 	private Map<String, Object> beans = new LinkedHashMap<String, Object>();
