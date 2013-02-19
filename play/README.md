@@ -45,7 +45,7 @@ public class Global extends GlobalSettings {
     }
 
     @Override
-    public void onStart(Application application) {
+    public void onStop(Application application) {
         app.close();
     }
     
