@@ -25,9 +25,16 @@ import com.github.flowersinthesand.portal.play.PlayModule;
 
 public class Global extends GlobalSettings {
 
+	private App app;
+
 	@Override
 	public void onStart(Application application) {
-		new App(new Options().url("/chat").packageOf("com.github.flowersinthesand.portal.samples.chat"), new PlayModule()).register();
+		app = new App(new Options().url("/chat").packageOf("com.github.flowersinthesand.portal.samples.chat"), new PlayModule()).register();
+	}
+
+	@Override
+	public void onStop(Application application) {
+		app.close();
 	}
 
 	@Override
