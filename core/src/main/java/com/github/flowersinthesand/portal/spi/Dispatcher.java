@@ -19,7 +19,7 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Set;
 
-import com.github.flowersinthesand.portal.Fn;
+import com.github.flowersinthesand.portal.Reply;
 import com.github.flowersinthesand.portal.Socket;
 
 public interface Dispatcher {
@@ -38,7 +38,7 @@ public interface Dispatcher {
 		
 		int order();
 
-		void handle(Socket socket, Object data, Fn.Callback1<?> reply);
+		void handle(Socket socket, Object data, Reply.Callback reply);
 
 	}
 

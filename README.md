@@ -179,8 +179,18 @@ public class BandHandler {
     }
     
     @On
-    public void query(@Data String query, @Reply Fn.Callback1<List<Band>> reply) {
-        reply.call(em...query...list);
+    public void query(@Data String query, @Reply final Reply.Callback reply) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    reply.done(em...query...list);
+                } catch (EntityException e) {
+                    reply.fail(e);
+                }
+            }
+        })
+        .start();
     }
 
 }

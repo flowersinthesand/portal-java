@@ -34,8 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.Data;
-import com.github.flowersinthesand.portal.Fn;
-import com.github.flowersinthesand.portal.Fn.Callback1;
 import com.github.flowersinthesand.portal.Order;
 import com.github.flowersinthesand.portal.Reply;
 import com.github.flowersinthesand.portal.Socket;
@@ -92,12 +90,36 @@ public class DefaultDispatcher implements Dispatcher {
 	@Override
 	public void fire(String type, final Socket socket, Object data, final int eventIdForReply) {
 		logger.debug("Firing {} event to Socket#{}", type, socket.id());
-		Fn.Callback1<?> reply = eventIdForReply > 0 ? new Fn.Callback1<Map<String, Object>>() {
+		Reply.Callback reply = eventIdForReply > 0 ? new Reply.Callback() {
 			@Override
-			public void call(Map<String, Object> data) {
-				data.put("id", eventIdForReply);
+			public void done() {
+				done(null);
+			}
+
+			@Override
+			public void done(Object data) {
+				Map<String, Object> result = new LinkedHashMap<String, Object>();
+				result.put("id", eventIdForReply);
+				result.put("data", data);
+				result.put("exception", false);
+
 				logger.debug("Sending the reply event with the data {}", data);
-				socket.send("reply", data);
+				socket.send("reply", result);
+			}
+
+			@Override
+			public void fail(Throwable error) {
+				Map<String, Object> data = new LinkedHashMap<String, Object>();
+				data.put("type", error.getClass().getName());
+				data.put("message", error.getMessage());
+
+				Map<String, Object> result = new LinkedHashMap<String, Object>();
+				result.put("id", eventIdForReply);
+				result.put("data", data);
+				result.put("exception", true);
+
+				logger.debug("Sending the reply event with the error {}", error);
+				socket.send("reply", result);
 			}
 		} : null;
 				
@@ -109,7 +131,7 @@ public class DefaultDispatcher implements Dispatcher {
 		}
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings("unchecked")
 	class DefaultHandler implements Dispatcher.Handler {
 
 		int order = 0;
@@ -117,6 +139,7 @@ public class DefaultDispatcher implements Dispatcher {
 		Object bean;
 		Method method;
 		Param[] params;
+		boolean replyOnMethod;
 		Class<?>[] throwables;
 		
 		DefaultHandler(Object bean, Method method) {
@@ -127,7 +150,11 @@ public class DefaultDispatcher implements Dispatcher {
 				this.order = method.getAnnotation(Order.class).value();
 			}
 			
+			replyOnMethod = method.isAnnotationPresent(Reply.class);
 			if (method.isAnnotationPresent(Throw.class)) {
+				if (!replyOnMethod) {
+					throw new IllegalArgumentException("@Throw have to be used with @Reply annotated to the method '" + method + "'");
+				}
 				throwables = method.getAnnotation(Throw.class).value();
 				if (throwables.length == 0) {
 					throwables = method.getExceptionTypes();
@@ -151,11 +178,10 @@ public class DefaultDispatcher implements Dispatcher {
 						params[i] = new DataParam(paramType, (Data) annotation);
 					}
 					if (Reply.class.equals(annotation.annotationType())) {
-						if (!Fn.Callback.class.equals(paramType) && !Fn.Callback1.class.equals(paramType)) {
-							throw new IllegalArgumentException(
-								"@Reply must be present either on Fn.Callback or Fn.Callback1 not '" + paramType + "' in '" + method + "'");
+						if (!Reply.Callback.class.equals(paramType)) {
+							throw new IllegalArgumentException("@Reply must be present Reply.Callback not '" + paramType + "' in '" + method + "'");
 						}
-						params[i] = new ReplyParam(paramType);
+						params[i] = new ReplyParam();
 					}
 				}
 			}
@@ -198,33 +224,32 @@ public class DefaultDispatcher implements Dispatcher {
 		}
 
 		@Override
-		public void handle(Socket socket, Object data, Callback1 reply) {
+		public void handle(Socket socket, Object data, Reply.Callback reply) {
 			Object[] args = new Object[params.length];
 			for (int i = 0; i < params.length; i++) {
 				args[i] = params[i].resolve(socket, data, reply);
 			}
-
-
-			Map<String, Object> result = new LinkedHashMap<String, Object>();
-			result.put("exception", false);
 			
+			Object result = null;
 			try {
-				result.put("data", method.invoke(bean, args));
+				result = method.invoke(bean, args);
+				if (replyOnMethod) {
+					reply.done(result);
+				}
 			} catch (InvocationTargetException e) {
+				boolean handled = false;
 				Throwable ex = e.getCause();
+				
 				if (throwables != null) {
 					for (Class<?> throwable : throwables) {
 						if (ex.getClass().isAssignableFrom(throwable)) {
-							Map<String, Object> map = new LinkedHashMap<String, Object>();
-							map.put("type", ex.getClass().getName());
-							map.put("message", ex.getMessage());
-							result.put("data", map);
-							result.put("exception", true);
+							reply.fail(ex);
+							handled = true;
 							break;
 						}
 					}
 				}
-				if (!result.containsKey("data")) {
+				if (!handled) {
 					throw new RuntimeException(e);
 				}
 			} catch (IllegalArgumentException e) {
@@ -233,18 +258,15 @@ public class DefaultDispatcher implements Dispatcher {
 				throw new RuntimeException(e);
 			}
 
-			if (method.isAnnotationPresent(Reply.class)) {
-				reply.call(result);
-			}
 		}
 		
 		abstract class Param {
-			abstract Object resolve(Socket socket, Object data, Callback1<?> reply);
+			abstract Object resolve(Socket socket, Object data, Reply.Callback reply);
 		}
 		
 		class SocketParam extends Param {
 			@Override
-			Object resolve(Socket socket, Object data, Callback1<?> reply) {
+			Object resolve(Socket socket, Object data, Reply.Callback reply) {
 				return socket;
 			}
 		}
@@ -259,7 +281,7 @@ public class DefaultDispatcher implements Dispatcher {
 			}
 
 			@Override
-			Object resolve(Socket socket, Object data, Callback1<?> reply) {
+			Object resolve(Socket socket, Object data, Reply.Callback reply) {
 				if (!ann.value().equals("")) {
 					if (!(data instanceof Map)) {
 						throw new IllegalArgumentException("@Data(\"" + ann.value() + "\") must work with Map not '" + data + "'");
@@ -272,31 +294,9 @@ public class DefaultDispatcher implements Dispatcher {
 		}
 
 		class ReplyParam extends Param {
-			Class<?> type;
-
-			public ReplyParam(Class<?> type) {
-				this.type = type;
-			}
-
 			@Override
-			Object resolve(Socket socket, Object data, final Callback1 reply) {
-				return Fn.Callback.class.equals(type) ? new Fn.Callback() {
-					@Override
-					public void call() {
-						Map<String, Object> result = new LinkedHashMap<String, Object>();
-						result.put("data", null);
-						result.put("exception", false);
-						reply.call(result);
-					}
-				} : new Fn.Callback1<Object>() {
-					@Override
-					public void call(Object arg1) {
-						Map<String, Object> result = new LinkedHashMap<String, Object>();
-						result.put("data", arg1);
-						result.put("exception", false);
-						reply.call(result);
-					}
-				};
+			Object resolve(Socket socket, Object data, final Reply.Callback reply) {
+				return reply;
 			}
 		}
 

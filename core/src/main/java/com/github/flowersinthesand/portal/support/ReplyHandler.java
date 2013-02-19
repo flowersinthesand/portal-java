@@ -23,52 +23,44 @@ import org.slf4j.LoggerFactory;
 
 import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.Data;
-import com.github.flowersinthesand.portal.Fn;
 import com.github.flowersinthesand.portal.On;
+import com.github.flowersinthesand.portal.Reply;
 import com.github.flowersinthesand.portal.Socket;
 
 @Bean
 public class ReplyHandler {
 
 	private final Logger logger = LoggerFactory.getLogger(ReplyHandler.class);
-	private Map<String, Map<Integer, Fn.Callback1<?>>> callbacks = new ConcurrentHashMap<String, Map<Integer, Fn.Callback1<?>>>();
+	private Map<String, Map<Integer, Reply.Callback>> replies = new ConcurrentHashMap<String, Map<Integer, Reply.Callback>>();
 
 	@On
 	public void close(Socket socket) {
-		if (callbacks.containsKey(socket.id())) {
-			callbacks.remove(socket.id()).clear();
+		if (replies.containsKey(socket.id())) {
+			replies.remove(socket.id()).clear();
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	@On
 	public void reply(Socket socket, @Data Map<String, Object> data) {
 		Integer eventId = (Integer) data.get("id");
 		Object response = data.get("data");
 
-		if (callbacks.containsKey(socket.id())) {
-			Map<Integer, Fn.Callback1<?>> fns = callbacks.get(socket.id());
+		if (replies.containsKey(socket.id())) {
+			Map<Integer, Reply.Callback> fns = replies.get(socket.id());
 			if (fns.containsKey(eventId)) {
 				logger.debug("Executing the reply function corresponding to the event#{} with the data {}", eventId, response);
-				((Fn.Callback1<Object>) fns.remove(eventId)).call(response);
+				Reply.Callback reply = fns.remove(eventId);
+				reply.done();
+				reply.done(response);
 			}
 		}
 	}
 
-	public void set(String id, int eventId, final Fn.Callback callback) {
-		set(id, eventId, new Fn.Callback1<Object>() {
-			@Override
-			public void call(Object arg1) {
-				callback.call();
-			}
-		});
-	}
-
-	public void set(String id, int eventId, final Fn.Callback1<?> callback) {
-		if (!callbacks.containsKey(id)) {
-			callbacks.put(id, new ConcurrentHashMap<Integer, Fn.Callback1<?>>());
+	public void set(String id, int eventId, final Reply.Callback reply) {
+		if (!replies.containsKey(id)) {
+			replies.put(id, new ConcurrentHashMap<Integer, Reply.Callback>());
 		}
-		callbacks.get(id).put(eventId, callback);
+		replies.get(id).put(eventId, reply);
 	}
 
 }

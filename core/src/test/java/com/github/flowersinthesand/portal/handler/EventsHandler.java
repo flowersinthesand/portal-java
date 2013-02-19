@@ -19,7 +19,6 @@ import java.util.Map;
 
 import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.Data;
-import com.github.flowersinthesand.portal.Fn;
 import com.github.flowersinthesand.portal.On;
 import com.github.flowersinthesand.portal.Reply;
 import com.github.flowersinthesand.portal.Socket;
@@ -48,19 +47,25 @@ public class EventsHandler {
 	}
 
 	@On("repli")
-	public void repli(@Reply Fn.Callback reply) {
+	public void repli(@Reply Reply.Callback reply) {
 		args = new Object[] { reply };
-		reply.call();
+		reply.done();
 	}
 
 	@On("repli2")
 	@Reply
 	public void repli2() {}
 
+	@On("repli-fail")
+	public void repliFail(@Reply Reply.Callback reply) {
+		args = new Object[] { reply };
+		reply.fail(new RuntimeException("X"));
+	}
+	
 	@On("repli-data")
-	public void repliData(@Reply Fn.Callback1<Object> reply, @Data DataBean data) {
+	public void repliData(@Reply Reply.Callback reply, @Data DataBean data) {
 		args = new Object[] { reply, data };
-		reply.call(data);
+		reply.done(data);
 	}
 
 	@On("repli-data2")
@@ -71,9 +76,9 @@ public class EventsHandler {
 	}
 
 	@On("socket-data-repli")
-	public void socketDataRepli(Socket socket, @Data DataBean data, @Reply Fn.Callback1<Object> reply) {
+	public void socketDataRepli(Socket socket, @Data DataBean data, @Reply Reply.Callback reply) {
 		args = new Object[] { socket, data, reply };
-		reply.call(data);
+		reply.done(data);
 	}
 	
 }

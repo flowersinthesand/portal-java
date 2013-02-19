@@ -26,4 +26,14 @@ import java.lang.annotation.Target;
 @Documented
 public @interface Reply {
 
+	static interface Callback {
+
+		void done();
+
+		void done(Object data);
+
+		void fail(Throwable error);
+
+	}
+
 }

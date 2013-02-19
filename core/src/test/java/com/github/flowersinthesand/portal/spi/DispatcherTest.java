@@ -25,7 +25,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.testng.annotations.Test;
 
-import com.github.flowersinthesand.portal.Fn;
+import com.github.flowersinthesand.portal.Reply;
 import com.github.flowersinthesand.portal.Socket;
 import com.github.flowersinthesand.portal.handler.DataBean;
 import com.github.flowersinthesand.portal.handler.EventsHandler;
@@ -46,6 +46,7 @@ public class DispatcherTest {
 		Assert.assertNotNull(dispatcher.handlers("load"));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void firing() throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException, NoSuchMethodException {
 		Dispatcher dispatcher = new DefaultDispatcher();
@@ -58,7 +59,6 @@ public class DispatcherTest {
 		final Map<String, Object> replyInfo = new LinkedHashMap<String, Object>();
 		Socket socket = Mockito.mock(Socket.class);
 		Mockito.when(socket.send(Mockito.anyString(), Mockito.anyMap())).thenAnswer(new Answer<Object>() {
-			@SuppressWarnings("unchecked")
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				replyInfo.putAll((Map<String, Object>) invocation.getArguments()[1]);
@@ -86,35 +86,40 @@ public class DispatcherTest {
 		dispatcher.fire("nestedData", socket, map);
 		Assert.assertArrayEquals(new Object[] { map, after, after }, h.args);
 
-		dispatcher.on("repli", h, clazz.getMethod("repli", Fn.Callback.class));
+		dispatcher.on("repli", h, clazz.getMethod("repli", Reply.Callback.class));
 		dispatcher.fire("repli", socket, before, 1);
-		Assert.assertFalse(replyInfo.isEmpty());
+		Assert.assertEquals(replyInfo.get("exception"), false);
 		Assert.assertNull(replyInfo.get("data"));
-		Assert.assertTrue(h.args[0] instanceof Fn.Callback);
+		Assert.assertTrue(h.args[0] instanceof Reply.Callback);
 		replyInfo.clear();
 
+		dispatcher.on("repli-fail", h, clazz.getMethod("repliFail", Reply.Callback.class));
+		dispatcher.fire("repli-fail", socket, before, 1);
+		Assert.assertEquals(replyInfo.get("exception"), true);
+		Assert.assertEquals(((Map<String, Object>) replyInfo.get("data")).get("type"), RuntimeException.class.getName());
+		Assert.assertEquals(((Map<String, Object>) replyInfo.get("data")).get("message"), "X");
+		Assert.assertTrue(h.args[0] instanceof Reply.Callback);
+		replyInfo.clear();
+		
 		dispatcher.on("repli2", h, clazz.getMethod("repli2"));
 		dispatcher.fire("repli2", socket, before, 1);
 		
-		dispatcher.on("repli-data", h, clazz.getMethod("repliData", Fn.Callback1.class, DataBean.class));
+		dispatcher.on("repli-data", h, clazz.getMethod("repliData", Reply.Callback.class, DataBean.class));
 		dispatcher.fire("repli-data", socket, before, 1);
-		Assert.assertFalse(replyInfo.isEmpty());
-		Assert.assertEquals(after, replyInfo.get("data"));
-		Assert.assertTrue(h.args[0] instanceof Fn.Callback1);
+		Assert.assertEquals(replyInfo.get("data"), after);
+		Assert.assertTrue(h.args[0] instanceof Reply.Callback);
 		replyInfo.clear();
 
 		dispatcher.on("repli-data2", h, clazz.getMethod("repliData2", DataBean.class));
 		dispatcher.fire("repli-data2", socket, before, 1);
-		Assert.assertFalse(replyInfo.isEmpty());
-		Assert.assertEquals(after, replyInfo.get("data"));
+		Assert.assertEquals(replyInfo.get("data"), after);
 		replyInfo.clear();
 		
-		dispatcher.on("socket-data-repli", h, clazz.getMethod("socketDataRepli", Socket.class, DataBean.class, Fn.Callback1.class));
+		dispatcher.on("socket-data-repli", h, clazz.getMethod("socketDataRepli", Socket.class, DataBean.class, Reply.Callback.class));
 		dispatcher.fire("socket-data-repli", socket, before, 1);
-		Assert.assertFalse(replyInfo.isEmpty());
-		Assert.assertEquals(after, replyInfo.get("data"));
+		Assert.assertEquals(replyInfo.get("data"), after);
 		Assert.assertSame(socket, h.args[0]);
-		Assert.assertTrue(h.args[2] instanceof Fn.Callback1);
+		Assert.assertTrue(h.args[2] instanceof Reply.Callback);
 		replyInfo.clear();
 	}
 	

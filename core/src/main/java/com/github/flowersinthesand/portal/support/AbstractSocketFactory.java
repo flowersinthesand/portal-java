@@ -21,8 +21,8 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -33,7 +33,7 @@ import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.flowersinthesand.portal.Fn;
+import com.github.flowersinthesand.portal.Reply;
 import com.github.flowersinthesand.portal.Socket;
 import com.github.flowersinthesand.portal.Wire;
 import com.github.flowersinthesand.portal.spi.Dispatcher;
@@ -110,16 +110,9 @@ public abstract class AbstractSocketFactory implements SocketFactory {
 		}
 
 		@Override
-		public Socket send(String event, Object data, Fn.Callback callback) {
+		public Socket send(String event, Object data, Reply.Callback reply) {
 			doSend(event, data, true);
-			replyHandler.set(id(), eventId.get(), callback);
-			return this;
-		}
-
-		@Override
-		public Socket send(String event, Object data, Fn.Callback1<?> callback) {
-			doSend(event, data, true);
-			replyHandler.set(id(), eventId.get(), callback);
+			replyHandler.set(id(), eventId.get(), reply);
 			return this;
 		}
 

@@ -51,20 +51,8 @@ public class ThrowingHandler {
 	@SuppressWarnings("serial")
 	public static class TestException extends RuntimeException {
 
-		public TestException() {
-			super();
-		}
-
-		public TestException(String message, Throwable cause) {
-			super(message, cause);
-		}
-
 		public TestException(String message) {
 			super(message);
-		}
-
-		public TestException(Throwable cause) {
-			super(cause);
 		}
 
 	}
