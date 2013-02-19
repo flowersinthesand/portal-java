@@ -105,5 +105,21 @@ public class AppTest {
 		String data = "data";
 		Assert.assertSame(app.set("data", data).get("data"), data);
 	}
+	
+	@Test
+	public void close() {
+		App app = new App(new Options().url("/t").packageOf(new EventsHandler())).set("xx", "yy");
+		Assert.assertEquals(app.get("xx"), "yy");
+		Assert.assertNotNull(app.bean(EventsHandler.class));
+
+		app.close();
+		Assert.assertNull(app.get("xx"));
+		try {
+			app.bean(EventsHandler.class);
+			Assert.assertTrue(false);
+		} catch (IllegalArgumentException e) {
+			Assert.assertTrue(true);
+		}
+	}
 
 }

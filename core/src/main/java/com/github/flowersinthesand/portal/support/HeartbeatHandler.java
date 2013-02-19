@@ -71,4 +71,8 @@ public class HeartbeatHandler {
 		}
 	}
 
+	public ScheduledExecutorService service() {
+		return service;
+	}
+
 }

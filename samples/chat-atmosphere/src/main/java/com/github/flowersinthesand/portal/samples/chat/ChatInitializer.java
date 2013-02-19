@@ -25,13 +25,17 @@ import com.github.flowersinthesand.portal.atmosphere.AtmosphereModule;
 
 @WebListener
 public class ChatInitializer implements ServletContextListener {
+	
+	private App app;
 
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
-		new App(new Options().url("/chat").packageOf(this), new AtmosphereModule(event.getServletContext())).register();
+		app = new App(new Options().url("/chat").packageOf(this), new AtmosphereModule(event.getServletContext())).register();
 	}
 
 	@Override
-	public void contextDestroyed(ServletContextEvent sce) {}
+	public void contextDestroyed(ServletContextEvent sce) {
+		app.close();
+	}
 
 }
