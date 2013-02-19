@@ -59,13 +59,17 @@ Thanks to dynamic registration support in Servlet 3, you don't need to install t
 @WebListener
 public class Initializer implements ServletContextListener {
 
+    private App app;
+
     @Override
     public void contextInitialized(ServletContextEvent event) {
-        new App(new Options().url("/event").packageOf(this), new AtmosphereModule(event.getServletContext()));
+        app = new App(new Options().url("/event").packageOf(this), new AtmosphereModule(event.getServletContext()));
     }
 
     @Override
-    public void contextDestroyed(ServletContextEvent sce) {}
+    public void contextDestroyed(ServletContextEvent event) {
+        app.close();
+    }
 
 }
 ```
@@ -91,12 +95,20 @@ To install Atmosphere and initialize application, you have to write a servlet ex
 
 ```java
 public class Initializer extends AtmosphereServlet {
+
+    private App app;
     
     @Override
     public void init(ServletConfig servletConfig) throws ServletException {
         super.init(servletConfig);
-        new App(new Options().url("/event").packageOf(this), new AtmosphereModule(framework));
+        app = new App(new Options().url("/event").packageOf(this), new AtmosphereModule(framework));
     }
+    
+    @Override
+    public void destroy() {
+        super.destroy();
+        app.close();
+    }    
     
 }
 

@@ -135,6 +135,10 @@ Returns the corresponding bean by name or type from the bean container. Throws I
 
 Registers the application to the default repository. Then, the app can be retrieved by `App.find(String name)`. However, injection by container like the Spring or the Guice is more preferred than calling this method and static methods.
 
+* `void close()`
+
+Closes the app, releasing all resources. 
+
 ### Options
 
 Options for the core module.

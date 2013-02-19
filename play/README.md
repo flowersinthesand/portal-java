@@ -37,11 +37,18 @@ PlayModule()
 ```java
 public class Global extends GlobalSettings {
 
+    prviate App app;
+
     @Override
     public void onStart(Application application) {
-        new App(new Options().url("/chat").packageOf("controllers"), new PlayModule()).register();
+        app = new App(new Options().url("/chat").packageOf("controllers"), new PlayModule()).register();
     }
 
+    @Override
+    public void onStart(Application application) {
+        app.close();
+    }
+    
     @Override
     public Handler onRouteRequest(RequestHeader request) {
         return Handlers.get(request);
