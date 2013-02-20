@@ -47,7 +47,7 @@ public class EventsHandler {
 	}
 
 	@On("repli")
-	public void repli(@Reply Reply.Callback reply) {
+	public void repli(@Reply Reply.Fn reply) {
 		args = new Object[] { reply };
 		reply.done();
 	}
@@ -57,13 +57,13 @@ public class EventsHandler {
 	public void repli2() {}
 
 	@On("repli-fail")
-	public void repliFail(@Reply Reply.Callback reply) {
+	public void repliFail(@Reply Reply.Fn reply) {
 		args = new Object[] { reply };
 		reply.fail(new RuntimeException("X"));
 	}
 	
 	@On("repli-data")
-	public void repliData(@Reply Reply.Callback reply, @Data DataBean data) {
+	public void repliData(@Reply Reply.Fn reply, @Data DataBean data) {
 		args = new Object[] { reply, data };
 		reply.done(data);
 	}
@@ -76,7 +76,7 @@ public class EventsHandler {
 	}
 
 	@On("socket-data-repli")
-	public void socketDataRepli(Socket socket, @Data DataBean data, @Reply Reply.Callback reply) {
+	public void socketDataRepli(Socket socket, @Data DataBean data, @Reply Reply.Fn reply) {
 		args = new Object[] { socket, data, reply };
 		reply.done(data);
 	}

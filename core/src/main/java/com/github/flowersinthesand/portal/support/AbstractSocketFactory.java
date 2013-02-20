@@ -110,7 +110,7 @@ public abstract class AbstractSocketFactory implements SocketFactory {
 		}
 
 		@Override
-		public Socket send(String event, Object data, Reply.Callback reply) {
+		public Socket send(String event, Object data, Reply.Fn reply) {
 			doSend(event, data, true);
 			replyHandler.set(id(), eventId.get(), reply);
 			return this;

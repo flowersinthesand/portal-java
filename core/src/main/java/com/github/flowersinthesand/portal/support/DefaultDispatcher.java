@@ -90,7 +90,7 @@ public class DefaultDispatcher implements Dispatcher {
 	@Override
 	public void fire(String type, final Socket socket, Object data, final int eventIdForReply) {
 		logger.debug("Firing {} event to Socket#{}", type, socket.id());
-		Reply.Callback reply = eventIdForReply > 0 ? new Reply.Callback() {
+		Reply.Fn reply = eventIdForReply > 0 ? new Reply.Fn() {
 			@Override
 			public void done() {
 				done(null);
@@ -178,8 +178,8 @@ public class DefaultDispatcher implements Dispatcher {
 						params[i] = new DataParam(paramType, (Data) annotation);
 					}
 					if (Reply.class.equals(annotation.annotationType())) {
-						if (!Reply.Callback.class.equals(paramType)) {
-							throw new IllegalArgumentException("@Reply must be present Reply.Callback not '" + paramType + "' in '" + method + "'");
+						if (!Reply.Fn.class.equals(paramType)) {
+							throw new IllegalArgumentException("@Reply must be present Reply.Fn not '" + paramType + "' in '" + method + "'");
 						}
 						params[i] = new ReplyParam();
 					}
@@ -224,7 +224,7 @@ public class DefaultDispatcher implements Dispatcher {
 		}
 
 		@Override
-		public void handle(Socket socket, Object data, Reply.Callback reply) {
+		public void handle(Socket socket, Object data, Reply.Fn reply) {
 			Object[] args = new Object[params.length];
 			for (int i = 0; i < params.length; i++) {
 				args[i] = params[i].resolve(socket, data, reply);
@@ -261,12 +261,12 @@ public class DefaultDispatcher implements Dispatcher {
 		}
 		
 		abstract class Param {
-			abstract Object resolve(Socket socket, Object data, Reply.Callback reply);
+			abstract Object resolve(Socket socket, Object data, Reply.Fn reply);
 		}
 		
 		class SocketParam extends Param {
 			@Override
-			Object resolve(Socket socket, Object data, Reply.Callback reply) {
+			Object resolve(Socket socket, Object data, Reply.Fn reply) {
 				return socket;
 			}
 		}
@@ -281,7 +281,7 @@ public class DefaultDispatcher implements Dispatcher {
 			}
 
 			@Override
-			Object resolve(Socket socket, Object data, Reply.Callback reply) {
+			Object resolve(Socket socket, Object data, Reply.Fn reply) {
 				if (!ann.value().equals("")) {
 					if (!(data instanceof Map)) {
 						throw new IllegalArgumentException("@Data(\"" + ann.value() + "\") must work with Map not '" + data + "'");
@@ -295,7 +295,7 @@ public class DefaultDispatcher implements Dispatcher {
 
 		class ReplyParam extends Param {
 			@Override
-			Object resolve(Socket socket, Object data, final Reply.Callback reply) {
+			Object resolve(Socket socket, Object data, final Reply.Fn reply) {
 				return reply;
 			}
 		}

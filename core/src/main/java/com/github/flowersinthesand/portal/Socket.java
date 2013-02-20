@@ -27,7 +27,7 @@ public interface Socket {
 
 	Socket send(String event, Object data);
 
-	Socket send(String event, Object data, Reply.Callback reply);
+	Socket send(String event, Object data, Reply.Fn reply);
 
 	Socket close();
 

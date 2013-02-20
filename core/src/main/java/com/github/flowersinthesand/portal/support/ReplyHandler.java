@@ -31,7 +31,7 @@ import com.github.flowersinthesand.portal.Socket;
 public class ReplyHandler {
 
 	private final Logger logger = LoggerFactory.getLogger(ReplyHandler.class);
-	private Map<String, Map<Integer, Reply.Callback>> replies = new ConcurrentHashMap<String, Map<Integer, Reply.Callback>>();
+	private Map<String, Map<Integer, Reply.Fn>> replies = new ConcurrentHashMap<String, Map<Integer, Reply.Fn>>();
 
 	@On
 	public void close(Socket socket) {
@@ -46,19 +46,19 @@ public class ReplyHandler {
 		Object response = data.get("data");
 
 		if (replies.containsKey(socket.id())) {
-			Map<Integer, Reply.Callback> fns = replies.get(socket.id());
+			Map<Integer, Reply.Fn> fns = replies.get(socket.id());
 			if (fns.containsKey(eventId)) {
 				logger.debug("Executing the reply function corresponding to the event#{} with the data {}", eventId, response);
-				Reply.Callback reply = fns.remove(eventId);
+				Reply.Fn reply = fns.remove(eventId);
 				reply.done();
 				reply.done(response);
 			}
 		}
 	}
 
-	public void set(String id, int eventId, final Reply.Callback reply) {
+	public void set(String id, int eventId, final Reply.Fn reply) {
 		if (!replies.containsKey(id)) {
-			replies.put(id, new ConcurrentHashMap<Integer, Reply.Callback>());
+			replies.put(id, new ConcurrentHashMap<Integer, Reply.Fn>());
 		}
 		replies.get(id).put(eventId, reply);
 	}

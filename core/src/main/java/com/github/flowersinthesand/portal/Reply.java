@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
 @Documented
 public @interface Reply {
 
-	static interface Callback {
+	static interface Fn {
 
 		void done();
 

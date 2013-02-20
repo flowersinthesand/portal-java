@@ -86,28 +86,28 @@ public class DispatcherTest {
 		dispatcher.fire("nestedData", socket, map);
 		Assert.assertArrayEquals(new Object[] { map, after, after }, h.args);
 
-		dispatcher.on("repli", h, clazz.getMethod("repli", Reply.Callback.class));
+		dispatcher.on("repli", h, clazz.getMethod("repli", Reply.Fn.class));
 		dispatcher.fire("repli", socket, before, 1);
 		Assert.assertEquals(replyInfo.get("exception"), false);
 		Assert.assertNull(replyInfo.get("data"));
-		Assert.assertTrue(h.args[0] instanceof Reply.Callback);
+		Assert.assertTrue(h.args[0] instanceof Reply.Fn);
 		replyInfo.clear();
 
-		dispatcher.on("repli-fail", h, clazz.getMethod("repliFail", Reply.Callback.class));
+		dispatcher.on("repli-fail", h, clazz.getMethod("repliFail", Reply.Fn.class));
 		dispatcher.fire("repli-fail", socket, before, 1);
 		Assert.assertEquals(replyInfo.get("exception"), true);
 		Assert.assertEquals(((Map<String, Object>) replyInfo.get("data")).get("type"), RuntimeException.class.getName());
 		Assert.assertEquals(((Map<String, Object>) replyInfo.get("data")).get("message"), "X");
-		Assert.assertTrue(h.args[0] instanceof Reply.Callback);
+		Assert.assertTrue(h.args[0] instanceof Reply.Fn);
 		replyInfo.clear();
 		
 		dispatcher.on("repli2", h, clazz.getMethod("repli2"));
 		dispatcher.fire("repli2", socket, before, 1);
 		
-		dispatcher.on("repli-data", h, clazz.getMethod("repliData", Reply.Callback.class, DataBean.class));
+		dispatcher.on("repli-data", h, clazz.getMethod("repliData", Reply.Fn.class, DataBean.class));
 		dispatcher.fire("repli-data", socket, before, 1);
 		Assert.assertEquals(replyInfo.get("data"), after);
-		Assert.assertTrue(h.args[0] instanceof Reply.Callback);
+		Assert.assertTrue(h.args[0] instanceof Reply.Fn);
 		replyInfo.clear();
 
 		dispatcher.on("repli-data2", h, clazz.getMethod("repliData2", DataBean.class));
@@ -115,11 +115,11 @@ public class DispatcherTest {
 		Assert.assertEquals(replyInfo.get("data"), after);
 		replyInfo.clear();
 		
-		dispatcher.on("socket-data-repli", h, clazz.getMethod("socketDataRepli", Socket.class, DataBean.class, Reply.Callback.class));
+		dispatcher.on("socket-data-repli", h, clazz.getMethod("socketDataRepli", Socket.class, DataBean.class, Reply.Fn.class));
 		dispatcher.fire("socket-data-repli", socket, before, 1);
 		Assert.assertEquals(replyInfo.get("data"), after);
 		Assert.assertSame(socket, h.args[0]);
-		Assert.assertTrue(h.args[2] instanceof Reply.Callback);
+		Assert.assertTrue(h.args[2] instanceof Reply.Fn);
 		replyInfo.clear();
 	}
 	

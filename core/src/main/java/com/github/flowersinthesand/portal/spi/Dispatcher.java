@@ -38,7 +38,7 @@ public interface Dispatcher {
 		
 		int order();
 
-		void handle(Socket socket, Object data, Reply.Callback reply);
+		void handle(Socket socket, Object data, Reply.Fn reply);
 
 	}
 

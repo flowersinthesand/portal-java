@@ -179,7 +179,7 @@ public class BandHandler {
     }
     
     @On
-    public void query(@Data String query, @Reply final Reply.Callback reply) {
+    public void query(@Data String query, @Reply final Reply.Fn reply) {
         new Thread(new Runnable() {
             @Override
             public void run() {

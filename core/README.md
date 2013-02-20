@@ -81,9 +81,9 @@ Specifies that the annotated parameter or method is a reply callback, and the an
 
 In the method case, after execution a reply callback will be executed regarding the execution result as the callback data.
 
-In the parameter case, the parameter's type should be `Reply.Callback` and the method's return type does not matter. Use this way when you need to execute the callback asynchronously out of the current thread.
+In the parameter case, the parameter's type should be `Reply.Fn` and the method's return type does not matter. Use this way when you need to execute the callback asynchronously out of the current thread.
 
-#### Callback
+#### Fn
 Reply callback interface.
 
 * `void done()`
@@ -240,7 +240,7 @@ Getter for the `params` option in the client.
 
 * `Socket send(String event)`
 * `Socket send(String event, Object data)`
-* `Socket send(String event, Object data, Reply.Callback reply)`
+* `Socket send(String event, Object data, Reply.Fn reply)`
 
 Sends an event with data and attaches a reply callback that takes data which will be sent by the client.
 
