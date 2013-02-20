@@ -227,15 +227,13 @@ public class AccountServiceImpl implements AccountService {
     @Override
     @On
     @Reply
-    @Throw
     public Account find(@Data long id) throws EntityNotFoundException {
         return dao.find(id);
     }
 
     @Override
     @On
-    @Reply
-    @Throw(EntityNotFoundException.class)
+    @Reply(failFor = EntityNotFoundException.class)
     public void remove(@Data long id) {
         dao.remove(id);
     }

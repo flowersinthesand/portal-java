@@ -26,6 +26,8 @@ import java.lang.annotation.Target;
 @Documented
 public @interface Reply {
 
+	Class<? extends Throwable>[] failFor() default {};
+
 	static interface Fn {
 
 		void done();

@@ -18,26 +18,22 @@ package com.github.flowersinthesand.portal.handler;
 import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.On;
 import com.github.flowersinthesand.portal.Reply;
-import com.github.flowersinthesand.portal.Throw;
 
 @Bean
 public class ThrowingHandler {
 
 	@On
 	@Reply
-	@Throw
 	public void success() throws TestException {}
 
 	@On
 	@Reply
-	@Throw
 	public void fail1() throws TestException {
 		throw new TestException("Hello");
 	}
 
 	@On
-	@Reply
-	@Throw(TestException.class)
+	@Reply(failFor = TestException.class)
 	public void fail2() {
 		throw new TestException("Hello");
 	}

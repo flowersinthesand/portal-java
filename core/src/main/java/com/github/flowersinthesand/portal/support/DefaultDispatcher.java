@@ -37,7 +37,6 @@ import com.github.flowersinthesand.portal.Data;
 import com.github.flowersinthesand.portal.Order;
 import com.github.flowersinthesand.portal.Reply;
 import com.github.flowersinthesand.portal.Socket;
-import com.github.flowersinthesand.portal.Throw;
 import com.github.flowersinthesand.portal.Wire;
 import com.github.flowersinthesand.portal.spi.Dispatcher;
 
@@ -151,19 +150,13 @@ public class DefaultDispatcher implements Dispatcher {
 			}
 			
 			replyOnMethod = method.isAnnotationPresent(Reply.class);
-			if (method.isAnnotationPresent(Throw.class)) {
-				if (!replyOnMethod) {
-					throw new IllegalArgumentException("@Throw have to be used with @Reply annotated to the method '" + method + "'");
-				}
-				throwables = method.getAnnotation(Throw.class).value();
+			if (replyOnMethod) {
+				throwables = method.getAnnotation(Reply.class).failFor();
 				if (throwables.length == 0) {
 					throwables = method.getExceptionTypes();
-					if (throwables.length == 0) {
-						throw new IllegalArgumentException("Both @Throw.value and exception types of method '" + method + "' are empty");
-					}
 				}
 			}
-
+			
 			Class<?>[] paramTypes = method.getParameterTypes();
 			Annotation[][] paramAnnotations = method.getParameterAnnotations();
 			params = new Param[paramTypes.length];
@@ -178,8 +171,16 @@ public class DefaultDispatcher implements Dispatcher {
 						params[i] = new DataParam(paramType, (Data) annotation);
 					}
 					if (Reply.class.equals(annotation.annotationType())) {
+						if (replyOnMethod) {
+							throw new IllegalArgumentException("@Reply is already annotated to the method '" + method + "'");
+						}
 						if (!Reply.Fn.class.equals(paramType)) {
-							throw new IllegalArgumentException("@Reply must be present Reply.Fn not '" + paramType + "' in '" + method + "'");
+							throw new IllegalArgumentException(
+								"@Reply must be present Reply.Fn not '" + paramType + "' in '" + method + "'");
+						}
+						if (((Reply) annotation).failFor().length != 0) {
+							throw new IllegalArgumentException(
+								"@Reply annotated to the parameter '" + paramType + "' in '" + method + "' cannot have fail attribute");
 						}
 						params[i] = new ReplyParam();
 					}
@@ -229,10 +230,9 @@ public class DefaultDispatcher implements Dispatcher {
 			for (int i = 0; i < params.length; i++) {
 				args[i] = params[i].resolve(socket, data, reply);
 			}
-			
-			Object result = null;
+
 			try {
-				result = method.invoke(bean, args);
+				Object result = method.invoke(bean, args);
 				if (replyOnMethod) {
 					reply.done(result);
 				}
@@ -257,7 +257,6 @@ public class DefaultDispatcher implements Dispatcher {
 			} catch (IllegalAccessException e) {
 				throw new RuntimeException(e);
 			}
-
 		}
 		
 		abstract class Param {

@@ -77,11 +77,11 @@ Specifies that the event data will be converted to the annotated parameter's typ
 The expression for data. By default, regarding expression as property name, the property of the root data becomes the data to be passed to the handler.
 
 ### Reply
-Specifies that the annotated parameter or method is a reply callback, and the annotation must be present on one place in all the possible place in a event handler. 
+Specifies that the annotated parameter or method is a reply callback, and the annotation must be present on one place in all the possible place in a event handler. In the method case, after execution a reply callback will be executed regarding the execution result as the callback data. In the parameter case, the parameter's type should be `Reply.Fn`. Use this way when you need to execute the callback asynchronously out of the current thread.
 
-In the method case, after execution a reply callback will be executed regarding the execution result as the callback data.
+* `Class<? extends Throwable>[] failFor() default {}`
 
-In the parameter case, the parameter's type should be `Reply.Fn` and the method's return type does not matter. Use this way when you need to execute the callback asynchronously out of the current thread.
+Indicates what exceptions should be handled for the fail callback in the browser side. This attribute is only valid when the annotation is annotated to the method. If no class is specified, the annotated method's exception types will be used as the value instead. Unhandled exceptions will be thrown to the container. Data for the fail callback is in the form of map contains the handled exception's fully qualified class name (`type`) and message (`message`).
 
 #### Fn
 Reply callback interface.
@@ -89,13 +89,6 @@ Reply callback interface.
 * `void done()`
 * `void done(Object data)`
 * `void fail(Throwable error)`
-
-### Throw
-Indicates what exceptions should be handled for the fail callback in the browser side. Without this annotation, the fail callback will never be invoked. Also, this is only valid when `@Reply` is annotated to the method. Data for fail callback is in the form of map contains the handled exception's fully qualified class name (`type`) and message (`message`).  
-
-* `Class<? extends Throwable>[] value() default {}`
-
-Throwable classes to be handled. If no class is specified, the annotated method's exception types will be used. So, either value attribute or exception types have to be specified with this annotation. Unhandled exceptions will be thrown to the container.
 
 ## Model 
 
