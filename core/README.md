@@ -36,6 +36,16 @@ Indicates that the annotated class is a bean. The bean is an application compone
 
 The bean name of the class. If a bean name is not provided, the bean name will be the decapitalized form of the class's name.
 
+```java
+@Bean
+public class EventHandler {}
+```
+
+```java
+@Bean("event.handler")
+public class EventHandler {}
+```
+
 ### Wire
 Marks the annotated field as to be wired. The field does not need to be public.
 
@@ -47,8 +57,34 @@ The bean name to be wired. If the bean name is specified and there is no matchin
 * if the field type is `App`, the current `App` will be wired. 
 * if the field type is `Room`, a room will be found and wired regarding the bean name as the room name.    
 
+```java
+@Bean
+public class EventHandler {
+
+    @Wire
+    private App app;
+    
+    @Wire
+    private Room hall;
+    
+    @Wire("foo.bar")
+    private String fooBar;
+    
+}
+```
+
 ### Prepare
 Specifies that the annotated method should be be executed after dependency injection is done to perform any initialization. Only public methods with no arguments can be executed.
+
+```java
+@Bean
+public class EntityHandler {
+
+    @Prepare
+    public void prepareThreadPool() {}
+
+}
+```
 
 ### On
 Defines an annotated method as the event handler. The method should be `public` and a return type of the method doesn't matter.
@@ -62,6 +98,19 @@ According to the method signature, the following parameters will be provided.
 
 * `Socket`: The socket instance that sent the event.
 
+```java
+@Bean
+public class ChatHandler {
+
+    @On
+    public void open(Socket socket) {}
+
+    @On("open")
+    public void onOpen(Socket socket) {}
+
+}
+```
+
 ### Order
 Indicates an execution order of event handlers. Lower values have higher priority.
 
@@ -69,12 +118,43 @@ Indicates an execution order of event handlers. Lower values have higher priorit
 
 The order value.
 
+```java
+@Bean
+public class ExampleHandler {
+
+    @On("open")
+    @Order(-1)
+    public void first() {}
+
+    @On("open")
+    public void second() {}
+    
+    @On("open")
+    @Order(1)
+    public void third() {}
+
+}
+```
+
 ### Data
 Specifies that the event data will be converted to the annotated parameter's type and the expression and set to the annotated parameter. By default, [Jackson](http://wiki.fasterxml.com/JacksonHome) library is used to create an instance from a JSON string. Any object the client sent can be converted into the `Map<String, Object>` type.
 
 * `String value() default ""`
 
 The expression for data. By default, regarding expression as property name, the property of the root data becomes the data to be passed to the handler.
+
+```java
+@Bean
+public class AccountHandler {
+
+    @On
+    public void join(@Data Account account) {}
+    
+    @On
+    public void login(@Data("username") String username, @Data("password") String password) {}
+
+}
+```
 
 ### Reply
 Specifies that the annotated parameter or method is a reply callback, and the annotation must be present on one place in all the possible place in a event handler. In the method case, after execution a reply callback will be executed regarding the execution result as the callback data. In the parameter case, the parameter's type should be `Reply.Fn`. Use this way when you need to execute the callback asynchronously out of the current thread.
@@ -89,6 +169,36 @@ Reply callback interface.
 * `void done()`
 * `void done(Object data)`
 * `void fail(Throwable error)`
+
+```java
+@Bean
+public class AccountHandler {
+
+    @On
+    @Reply
+    public Account find(@Data Long id) {}
+
+    @On
+    @Reply
+    public void activate(@Data Long id) throws AccountNotFoundException {}
+
+    @On
+    @Reply(failFor = AccountNotFoundException.class)
+    public void deactivate(@Data Long id) throws ToBeIgnoredException {}
+
+    @On
+    public void work(@Data Map<String, Object> data, @Reply Reply.Fn reply) {
+        try {
+            reply.done(work(data));
+        } catch(TimeoutException e) {
+            reply.fail(e);
+        } catch(TopSecretException e) {
+            // ... 
+        }
+    }
+
+}
+```
 
 ## Model 
 
