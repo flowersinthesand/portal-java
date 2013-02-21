@@ -36,11 +36,13 @@ Indicates that the annotated class is a bean. The bean is an application compone
 
 The bean name of the class. If a bean name is not provided, the bean name will be the decapitalized form of the class's name.
 
+**Example**: Defining a bean. The bean name will be set to `eventHandler`.
 ```java
 @Bean
 public class EventHandler {}
 ```
-
+ 
+**Example**: Defining a bean with the bean name.
 ```java
 @Bean("event.handler")
 public class EventHandler {}
@@ -53,36 +55,34 @@ Marks the annotated field as to be wired. The field does not need to be public.
 
 The bean name to be wired. If the bean name is specified and there is no matching bean with the name and the field's type, wiring will fail. If the bean name is not specified, the annotated field name will be the bean name instead. In this case, even though wiring by the name and the type fails, application will try to find a bean using the type once more.
 
-**Exception**
-* if the field type is `App`, the current `App` will be wired. 
-* if the field type is `Room`, a room will be found and wired regarding the bean name as the room name.    
-
+**Example**: Wiring the current app.
 ```java
-@Bean
-public class EventHandler {
+@Wire
+private App app;
+```
 
-    @Wire
-    private App app;
-    
-    @Wire
-    private Room hall;
-    
-    @Wire("foo.bar")
-    private String fooBar;
-    
-}
+**Example**: Wiring a room whose name is hall.
+```java
+@Wire
+private Room hall;
+```
+
+**Example**: Wiring a String type bean whose bean name is foo.bar.
+```java
+@Wire("foo.bar")
+private String fooBar;
 ```
 
 ### Prepare
 Specifies that the annotated method should be be executed after dependency injection is done to perform any initialization. Only public methods with no arguments can be executed.
 
+**Example**: Creating a entity manager.
 ```java
-@Bean
-public class EntityHandler {
+private EntityManager em;
 
-    @Prepare
-    public void prepareThreadPool() {}
-
+@Prepare
+public void prepareResource() {
+    em = Persistence.createEntityManagerFactory("mse").createEntityManager();
 }
 ```
 
@@ -93,47 +93,37 @@ Defines an annotated method as the event handler. The method should be `public` 
 
 The event name. The annotated method's name will be the event name if it's empty.
 
-**Paramter binding**
-According to the method signature, the following parameters will be provided.
-
-* `Socket`: The socket instance that sent the event.
-
+**Example**: Registering an event handler for the open event. Regardless of event, the socket that triggered the event always will be injected to event handler as parameter if it exists.
 ```java
-@Bean
-public class ChatHandler {
+@On
+public void open(Socket socket) {}
+```
 
-    @On
-    public void open(Socket socket) {}
-
-    @On("open")
-    public void onOpen(Socket socket) {}
-
-}
+**Example**: Specifying an event name.
+```java
+@On("open")
+public void onOpen(Socket socket) {}
 ```
 
 ### Order
-Indicates an execution order of event handlers. Lower values have higher priority.
+Indicates an execution order of event handlers declared in app. Lower values have higher priority.
 
 * `int value()`
 
 The order value.
 
+**Example**: Executing handlers in order. 
 ```java
-@Bean
-public class ExampleHandler {
+@On("open")
+@Order(-1)
+public void first() {}
 
-    @On("open")
-    @Order(-1)
-    public void first() {}
+@On("open")
+public void second() {}
 
-    @On("open")
-    public void second() {}
-    
-    @On("open")
-    @Order(1)
-    public void third() {}
-
-}
+@On("open")
+@Order(1)
+public void third() {}
 ```
 
 ### Data
@@ -143,17 +133,16 @@ Specifies that the event data will be converted to the annotated parameter's typ
 
 The expression for data. By default, regarding expression as property name, the property of the root data becomes the data to be passed to the handler.
 
+**Example**: Type conversion using Jackson.
 ```java
-@Bean
-public class AccountHandler {
+@On
+public void join(@Data Account account) {}
+```
 
-    @On
-    public void join(@Data Account account) {}
-    
-    @On
-    public void login(@Data("username") String username, @Data("password") String password) {}
-
-}
+**Example**: Getting property of the root data.
+```java
+@On
+public void login(@Data("username") String username, @Data("password") String password) {}
 ```
 
 ### Reply
@@ -170,37 +159,63 @@ Reply callback interface.
 * `void done(Object data)`
 * `void fail(Throwable error)`
 
+**Example**: Done callback will be called with the returned value and fail callback will never be invoked regardless of exception.
 ```java
-@Bean
-public class AccountHandler {
+@On
+@Reply
+public Account find(@Data Long id) {}
+```
 
-    @On
-    @Reply
-    public Account find(@Data Long id) {}
+**Example**: Done callback will be called without argument or fail callback will be invoked if AccountNotFoundException occurs.
+```java
+@On
+@Reply
+public void activate(@Data Long id) throws AccountNotFoundException {}
+```
 
-    @On
-    @Reply
-    public void activate(@Data Long id) throws AccountNotFoundException {}
+**Example**: Done callback will be called without argument or fail callback will be invoked only if AccountNotFoundException occurs.
+```java
+@On
+@Reply(failFor = AccountNotFoundException.class)
+public void deactivate(@Data Long id) throws ToBeIgnoredException {}
+```
 
-    @On
-    @Reply(failFor = AccountNotFoundException.class)
-    public void deactivate(@Data Long id) throws ToBeIgnoredException {}
-
-    @On
-    public void work(@Data Map<String, Object> data, @Reply Reply.Fn reply) {
-        try {
-            reply.done(work(data));
-        } catch(TimeoutException e) {
-            reply.fail(e);
-        } catch(TopSecretException e) {
-            // ... 
-        }
+**Example**: Done callback will be called with the result of `work(data)` argument or fail callback will be invoked if TimeoutException occurs.
+```java
+@On
+public void work(@Data Map<String, Object> data, @Reply Reply.Fn reply) {
+    try {
+        reply.done(work(data));
+    } catch(TimeoutException e) {
+        reply.fail(e);
+    } catch(TopSecretException e) {
+        // ... 
     }
-
 }
 ```
 
 ## Model 
+
+### Options
+
+Options for the app.
+
+* `String url()`
+* `Options url(String url)`
+
+The mapping url. This is required.
+
+* `String name()`
+* `Options name(String name)`
+
+The application name. If it is null, the url will be returned instead.
+
+* `Set<String> packages()`
+* `Options packageOf(String... packages)`
+* `Options packageOf(Class<?>... classes)`
+* `Options packageOf(Object... objects)`
+
+Package names that given classes and objects belong to which will be scanned for beans. Actually required.
 
 ### App
 
@@ -253,26 +268,25 @@ Registers the application to the default repository. Then, the app can be retrie
 
 Closes the app, releasing all resources. 
 
-### Options
+**Example**: Installing the application.
+```java
+@WebListener
+public class Initializer implements ServletContextListener {
 
-Options for the core module.
+    private App app;
 
-* `String url()`
-* `Options url(String url)`
+    @Override
+    public void contextInitialized(ServletContextEvent event) {
+        app = new App(new Options().url("/portal").packageOf(this), new AtmosphereModule(event.getServletContext()));
+    }
 
-The mapping url. This is required.
+    @Override
+    public void contextDestroyed(ServletContextEvent event) {
+        app.close();
+    }
 
-* `String name()`
-* `Options name(String name)`
-
-The application name. If it is null, the url will be returned instead.
-
-* `Set<String> packages()`
-* `Options packageOf(String... packages)`
-* `Options packageOf(Class<?>... classes)`
-* `Options packageOf(Object... objects)`
-
-Package names that given classes and objects belong to which will be scanned for beans. Actually required.
+}
+```
 
 ### Room
 
