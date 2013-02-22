@@ -4,12 +4,15 @@ The **Portal for Java** is a reference implementation written in Java of the ser
 The **Portal** and **Portal for Java** project is developed and maintained by [Donghwan Kim](http://twitter.com/flowersits). If you are interested, please subscribe to the [discussion group](https://groups.google.com/d/forum/portal_project).
 
 ## Modules
-The following list of modules are available, and **bold** modules are required.
+The following list of modules are available.
 
-* [**`core`**](https://github.com/flowersinthesand/portal-java/tree/master/core): provides API and SPI.
-* **`bridge`**: makes the application run in the following environment.
+### Required
+* [`core`](https://github.com/flowersinthesand/portal-java/tree/master/core): provides API and SPI.
+* `bridge`: makes the application run in the following environment.
     * [`atmosphere`](https://github.com/flowersinthesand/portal-java/tree/master/atmosphere): Servlet container.
-    * [`play`](https://github.com/flowersinthesand/portal-java/tree/master/play): Play.
+    * [`play`](https://github.com/flowersinthesand/portal-java/tree/master/play): Play framework.
+
+### Optional
 * `objectfactory`: delegates bean creation to the following framework.
     * [`spring`](https://github.com/flowersinthesand/portal-java/tree/master/spring): Spring.
     * [`guice`](https://github.com/flowersinthesand/portal-java/tree/master/guice): Guice.
@@ -168,7 +171,7 @@ public class BandHandler {
     @On
     @Reply
     public Band find(@Data Long id) {
-        return Band.byId(Band.class, id));
+        return Band.byId(id));
     }
     
     @On
@@ -177,7 +180,7 @@ public class BandHandler {
             @Override
             public void run() {
                 try {
-                    reply.done(Band.query...list);
+                    reply.done(query...list);
                 } catch (EntityException e) {
                     reply.fail(e);
                 }
@@ -198,13 +201,13 @@ portal.find("/account")
 .send("find", 23, function(account) {
     console.log('found');
     console.log(account);
-}, function(info) {
-    console.log(info.type + ":" + info.message);
+}, function(error) {
+    console.log(error.type + ":" + error.message);
 })
 .send("remove", 45, function() {
     console.log('deleted');
-}, function(info) {
-    console.log(info.type + ":" + info.message);
+}, function(error) {
+    console.log(error.type + ":" + error.message);
 });
 ```
 
