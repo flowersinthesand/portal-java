@@ -165,17 +165,10 @@ portal.find("/band")
 @Bean
 public class BandHandler {
 
-    private EntityManager em;
-    
-    @Prepare
-    public void prepare() {
-        em = Persistence.createEntityManagerFactory("app1").createEntityManager(); 
-    }
-    
     @On
     @Reply
     public Band find(@Data Long id) {
-        return em.find(Band.class, id));
+        return Band.byId(Band.class, id));
     }
     
     @On
@@ -184,7 +177,7 @@ public class BandHandler {
             @Override
             public void run() {
                 try {
-                    reply.done(em...query...list);
+                    reply.done(Band.query...list);
                 } catch (EntityException e) {
                     reply.fail(e);
                 }

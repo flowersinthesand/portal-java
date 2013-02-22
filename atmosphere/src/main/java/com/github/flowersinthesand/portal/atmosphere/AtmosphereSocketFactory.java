@@ -31,7 +31,7 @@ import org.atmosphere.cpr.BroadcasterFactory;
 import org.atmosphere.websocket.WebSocketEventListenerAdapter;
 
 import com.github.flowersinthesand.portal.Bean;
-import com.github.flowersinthesand.portal.Prepare;
+import com.github.flowersinthesand.portal.Init;
 import com.github.flowersinthesand.portal.Wire;
 import com.github.flowersinthesand.portal.support.AbstractSocketFactory;
 
@@ -43,8 +43,8 @@ public class AtmosphereSocketFactory extends AbstractSocketFactory implements At
 	@Wire
 	private AtmosphereFramework framework;
 
-	@Prepare
-	public void prepare() {
+	@Init
+	public void init() {
 		framework.addAtmosphereHandler(url, this);
 	}
 

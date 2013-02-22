@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.flowersinthesand.portal.Bean;
+import com.github.flowersinthesand.portal.Destroy;
 import com.github.flowersinthesand.portal.On;
 import com.github.flowersinthesand.portal.Socket;
 
@@ -71,8 +72,9 @@ public class HeartbeatHandler {
 		}
 	}
 
-	public ScheduledExecutorService service() {
-		return service;
+	@Destroy
+	public void destroy() {
+		service.shutdown();
 	}
 
 }

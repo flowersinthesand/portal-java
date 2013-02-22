@@ -73,16 +73,29 @@ private Room hall;
 private String fooBar;
 ```
 
-### Prepare
-Specifies that the annotated method should be be executed after dependency injection is done to perform any initialization. Only public methods with no arguments can be executed.
+### Init
+Specifies that the annotated method should be be executed after dependency injection to perform any initialization. Only public methods with no arguments can be executed.
 
-**Example**: Creating a entity manager.
+**Example**: Initializing a service.
 ```java
-private EntityManager em;
+private ExecutorService service = Executors.newSingleThreadExecutor();
 
-@Prepare
-public void prepareResource() {
-    em = Persistence.createEntityManagerFactory("mse").createEntityManager();
+@Init
+public void init() {
+    service.execute(command);
+}
+```
+
+### Destroy
+Specifies that the annotated method should be be executed after App.close to release resources that it has been holding. Only public methods with no arguments can be executed.
+
+**Example**: Shutting down a service.
+```java
+private ExecutorService service = Executors.newSingleThreadExecutor();
+
+@Destroy
+public void destroy() {
+    service.shutdown();
 }
 ```
 

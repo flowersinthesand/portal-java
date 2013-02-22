@@ -16,7 +16,8 @@
 package com.github.flowersinthesand.portal.handler;
 
 import com.github.flowersinthesand.portal.Bean;
-import com.github.flowersinthesand.portal.Prepare;
+import com.github.flowersinthesand.portal.Destroy;
+import com.github.flowersinthesand.portal.Init;
 import com.github.flowersinthesand.portal.Room;
 import com.github.flowersinthesand.portal.Wire;
 import com.github.flowersinthesand.portal.spi.Dispatcher;
@@ -24,8 +25,9 @@ import com.github.flowersinthesand.portal.spi.Dispatcher;
 @Bean
 public class AppHandler {
 
-	public static boolean prepared;
-
+	public static boolean initialized;
+	public static boolean destroyed;
+	
 	@Wire("privateRoom")
 	private static Room privateRoom;
 
@@ -41,9 +43,14 @@ public class AppHandler {
 	@Wire
 	public static Dispatcher dispatcher;
 
-	@Prepare
-	public void prepare1() {
-		prepared = true;
+	@Init
+	public void init() {
+		initialized = true;
+	}
+
+	@Destroy
+	public void destroy() {
+		destroyed = true;
 	}
 
 	public static Room getPrivateRoom() {

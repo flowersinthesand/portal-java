@@ -16,6 +16,7 @@
 package com.github.flowersinthesand.portal.support;
 
 import com.github.flowersinthesand.portal.Bean;
+import com.github.flowersinthesand.portal.Destroy;
 import com.github.flowersinthesand.portal.On;
 import com.github.flowersinthesand.portal.Order;
 import com.github.flowersinthesand.portal.Room;
@@ -42,6 +43,14 @@ public class RoomSupportHandler {
 	public void close(Socket socket) {
 		for (Room room : roomFactory.all()) {
 			room.remove(socket);
+		}
+	}
+
+	@Destroy
+	public void destroy() {
+		for (Room room : roomFactory.all()) {
+			room.close();
+			roomFactory.remove(room.name());
 		}
 	}
 

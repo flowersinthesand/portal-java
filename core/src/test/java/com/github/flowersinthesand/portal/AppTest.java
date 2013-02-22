@@ -66,9 +66,11 @@ public class AppTest {
 	}
 
 	@Test
-	public void preparation() throws IOException {
-		new App(new Options().url("/init").packageOf("com.github.flowersinthesand.portal.handler"));
-		Assert.assertTrue(AppHandler.prepared);
+	public void lifecycle() throws IOException {
+		App app = new App(new Options().url("/init").packageOf("com.github.flowersinthesand.portal.handler"));
+		Assert.assertTrue(AppHandler.initialized);
+		app.close();
+		Assert.assertTrue(AppHandler.destroyed);
 	}
 
 	@Test

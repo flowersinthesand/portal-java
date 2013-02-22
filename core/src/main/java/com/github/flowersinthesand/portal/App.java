@@ -40,7 +40,6 @@ import com.github.flowersinthesand.portal.spi.Module;
 import com.github.flowersinthesand.portal.spi.ObjectFactory;
 import com.github.flowersinthesand.portal.spi.RoomFactory;
 import com.github.flowersinthesand.portal.spi.SocketFactory;
-import com.github.flowersinthesand.portal.support.HeartbeatHandler;
 import com.github.flowersinthesand.portal.support.NewObjectFactory;
 
 import eu.infomas.annotation.AnnotationDetector;
@@ -87,7 +86,7 @@ public final class App {
 		logger.info("Initializing Portal application with options {} and modules {}", options, modules);
 
 		for (Module module : modules) {
-			logger.debug("Configuring the module '{}'", module);
+			logger.trace("Configuring the module '{}'", module);
 			module.configure(options.packageOf(module));
 		}
 		
@@ -104,39 +103,61 @@ public final class App {
 			beans.put(ObjectFactory.class.getName(), new NewObjectFactory());
 		}
 		ObjectFactory factory = (ObjectFactory) beans.get(ObjectFactory.class.getName());
-		logger.info("ObjectFactory '{}' is prepared", factory);
+		logger.info("ObjectFactory '{}' is initialized", factory);
 
 		for (Entry<String, Class<?>> entry : classes.entrySet()) {
 			Object bean = factory.create(entry.getKey(), entry.getValue());
-			logger.debug("Bean '{}' is instantiated '{}'", entry.getKey(), bean);
+			logger.trace("Bean '{}' is instantiated '{}'", entry.getKey(), bean);
 			beans.put(entry.getKey(), bean);
 		}
 
 		for (Entry<String, Object> entry : beans.entrySet()) {
 			logger.debug("Processing bean '{}'", entry.getKey());
+			
 			Object bean = entry.getValue();
+			List<Field> fields = getAllDeclaredFields(bean.getClass());
+			List<Method> methods = getAllDeclaredMethods(bean.getClass());
 
-			Class<?> targetClass = bean.getClass();
-			while (targetClass != null) {
-				for (Field field : targetClass.getDeclaredFields()) {
-					if (field.isAnnotationPresent(Wire.class)) {
-						wire(bean, field);
-					}
+			for (Field field : fields) {
+				if (field.isAnnotationPresent(Wire.class)) {
+					wireBean(bean, field);
 				}
-				targetClass = targetClass.getSuperclass();
 			}
-
-			targetClass = bean.getClass();
-			while (targetClass != null) {
-				for (Method method : targetClass.getDeclaredMethods()) {
-					onIfPossible(bean, method);
-					if (method.isAnnotationPresent(Prepare.class)) {
-						prepare(bean, method);
-					}
+			for (Method method : methods) {
+				if (method.isAnnotationPresent(On.class)) {
+					registerEventHandler(bean, method);
 				}
-				targetClass = targetClass.getSuperclass();
+			}
+			for (Method method : methods) {
+				if (method.isAnnotationPresent(Init.class)) {
+					initBean(bean, method);
+				}
 			}
 		}
+	}
+
+	private List<Field> getAllDeclaredFields(Class<?> targetClass) {
+		List<Field> fields = new ArrayList<Field>();
+		while (targetClass != null) {
+			for (Field field : targetClass.getDeclaredFields()) {
+				fields.add(field);
+			}
+			targetClass = targetClass.getSuperclass();
+		}
+
+		return fields;
+	}
+
+	private List<Method> getAllDeclaredMethods(Class<?> targetClass) {
+		List<Method> methods = new ArrayList<Method>();
+		while (targetClass != null) {
+			for (Method method : targetClass.getDeclaredMethods()) {
+				methods.add(method);
+			}
+			targetClass = targetClass.getSuperclass();
+		}
+
+		return methods;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -184,7 +205,7 @@ public final class App {
 		return classes;
 	}
 	
-	private void wire(Object bean, Field field) {
+	private void wireBean(Object bean, Field field) {
 		String beanName = field.getAnnotation(Wire.class).value();
 		boolean specified = beanName.length() > 0; 
 		Class<?> beanType = field.getType();
@@ -192,8 +213,6 @@ public final class App {
 			beanName = field.getName();
 		}
 		
-		logger.debug("@Wire(\"{}\") on '{}'", beanName, field);
-
 		Object value = null;
 		if (beanType.isAssignableFrom(App.class)) {
 			value = this;
@@ -211,6 +230,7 @@ public final class App {
 			}
 		}
 
+		logger.debug("Wiring '{}' to '{}'", value, field);
 		try {
 			field.setAccessible(true);
 			field.set(bean, value);
@@ -220,43 +240,56 @@ public final class App {
 		}
 	}
 
-	private void onIfPossible(Object bean, Method method) {
-		String on = null;
-		if (method.isAnnotationPresent(On.class)) {
-			on = method.getAnnotation(On.class).value();
-			if (on.length() == 0) {
-				on = method.getName();
-			}
-			logger.debug("@On(\"{}\") on '{}'", on, method);
-		} else {
-			for (Annotation ann : method.getAnnotations()) {
-				Class<? extends Annotation> annType = ann.annotationType();
-				if (annType.isAnnotationPresent(On.class)) {
-					on = annType.getAnnotation(On.class).value();
-					if (on.length() == 0) {
-						throw new IllegalStateException("When @On is applied to type, the event name have to be specified.");
-					}
-					logger.debug("@On(\"{}\") of '{}' on '{}'", on, ann, method);
-					break;
-				}
-			}
+	private void registerEventHandler(Object bean, Method method) {
+		String on = method.getAnnotation(On.class).value();
+		if (on.length() == 0) {
+			on = method.getName();
 		}
 		
-		if (on != null) {
-			bean(Dispatcher.class).on(on, bean, method);
-		}
+		logger.debug("Registering '{}' event handler from ''", on, method);
+		bean(Dispatcher.class).on(on, bean, method);
 	}
 
-	private void prepare(Object bean, Method method) {
-		logger.debug("@Prepare on '{}'", method);
+	private void initBean(Object bean, Method method) {
+		logger.debug("Executing init method '{}'", method);
 		try {
 			method.invoke(bean);
 		} catch (Exception e) {
-			logger.error("Failed to execute @Prepare method " + method, e);
+			logger.error("Failed to execute @Init method " + method, e);
 			throw new RuntimeException(e);
 		}
 	}
-	
+
+	public void close() {
+		logger.info("Closing Portal application");
+		for (Entry<String, Object> entry : beans.entrySet()) {
+			Object bean = entry.getValue();
+
+			Class<?> targetClass = bean.getClass();
+			while (targetClass != null) {
+				for (Method method : targetClass.getDeclaredMethods()) {
+					if (method.isAnnotationPresent(Destroy.class)) {
+						destroyBean(bean, method);
+					}
+				}
+				targetClass = targetClass.getSuperclass();
+			}
+		}
+
+		beans.clear();
+		attrs.clear();
+	}
+
+	private void destroyBean(Object bean, Method method) {
+		logger.debug("Executing destroy method '{}'", method);
+		try {
+			method.invoke(bean);
+		} catch (Exception e) {
+			logger.error("Failed to execute @Destroy method " + method, e);
+			throw new RuntimeException(e);
+		}
+	}
+
 	public App register() {
 		repository().putIfAbsent(FIRST, this);
 		repository().put(name, this);
@@ -332,16 +365,4 @@ public final class App {
 	public Socket socket(String id) {
 		return bean(SocketFactory.class).find(id);
 	}
-	
-	public void close() {
-		// TODO introduce life cycle
-		bean(HeartbeatHandler.class).service().shutdown();
-		for (Room room : bean(RoomFactory.class).all()) {
-			room.close();
-		}
-
-		beans.clear();
-		attrs.clear();
-	}
-
 }
