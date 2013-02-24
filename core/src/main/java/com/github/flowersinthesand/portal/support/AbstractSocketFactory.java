@@ -206,6 +206,10 @@ public abstract class AbstractSocketFactory implements SocketFactory {
 		}
 
 		protected void retrieveCache(String lastEventIdsString) {
+			if (lastEventIdsString == null) {
+				return;
+			}
+
 			List<String> lastEventIds = Arrays.asList(lastEventIdsString.split(","));
 			for (String eventId : lastEventIds) {
 				for (Map<String, Object> message : cache) {
