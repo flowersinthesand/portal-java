@@ -30,20 +30,17 @@ public class Accessor extends Controller {
 
 	public static Result httpOut() {
 		setHeaders(response());
-		
-		String when = request().queryString().get("when")[0];
-		if (when.equals("open") || when.equals("poll")) {
-			return ok(factory(request().path()).openHttp(request(), response()));
-		} else if (when.equals("abort")) {
-			factory(request().path()).abort(request().queryString().get("id")[0]);
-			return ok();
-		}
-		return null;
+		return ok(factory(request().path()).openHttp(request(), response()));
 	}
 
 	public static Result httpIn() {
 		setHeaders(response());
 		factory(request().path()).fire(request().body().asText().substring("data=".length()));
+		return ok();
+	}
+	
+	public static Result abort() {
+		factory(request().path()).abort(request().queryString().get("id")[0]);
 		return ok();
 	}
 	

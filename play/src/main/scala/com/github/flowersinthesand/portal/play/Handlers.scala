@@ -31,12 +31,26 @@ object Handlers {
       case Some(name) => {
         request.method match {
           case "GET" => {
-            request.queryString.get("transport")(0) match {
-              case "ws" => JavaWebSocket.ofString(Accessor.ws)
-              case _ => new JavaAction {
+            request.queryString.get("when")(0) match {
+              case "open" => {
+                request.queryString.get("transport")(0) match {
+                  case "ws" => JavaWebSocket.ofString(Accessor.ws)
+                  case _ => new JavaAction {
+                    def invocation = Accessor.httpOut
+                    lazy val controller = classOf[Accessor]
+                    lazy val method = MethodUtils.getMatchingAccessibleMethod(controller, "httpOut")
+                  }
+                }                
+              }
+              case "poll" => new JavaAction {
                 def invocation = Accessor.httpOut
                 lazy val controller = classOf[Accessor]
                 lazy val method = MethodUtils.getMatchingAccessibleMethod(controller, "httpOut")
+              }
+              case "abort" => new JavaAction {
+                def invocation = Accessor.abort
+                lazy val controller = classOf[Accessor]
+                lazy val method = MethodUtils.getMatchingAccessibleMethod(controller, "abort")
               }
             }
           }
@@ -50,5 +64,5 @@ object Handlers {
       case None => null
     }
   }
-
+  
 }

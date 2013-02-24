@@ -140,6 +140,8 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 		@Override
 		protected void disconnect() {
 			out.close();
+			// onDisconnected is not fired by close method 
+			onClose();
 		}
 
 	}
@@ -190,6 +192,8 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 			if (out != null) {
 				out.close();
 			}
+			// onDisconnected is not fired by close method 
+			onClose();
 		}
 
 	}
