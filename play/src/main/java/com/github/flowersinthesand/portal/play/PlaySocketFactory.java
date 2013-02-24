@@ -171,7 +171,8 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 						out.close();
 						onOpen();
 					} else {
-						retrieveCache(request.queryString().get("lastEventIds")[0]);
+						String[] value = request.queryString().get("lastEventIds");
+						retrieveCache(value != null ? value[0] : null);
 					}
 				}
 			};
