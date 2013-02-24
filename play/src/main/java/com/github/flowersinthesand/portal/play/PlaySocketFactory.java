@@ -182,9 +182,10 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 		@Override
 		protected void transmit(String it) {
 			if (out != null) {
-				out.write(it);
-				out.close();
+				Chunks.Out<String> oout = out;
 				out = null;
+				oout.write(it);
+				oout.close();
 			}
 		}
 

@@ -13,6 +13,7 @@
 	<modules>
 		<module>chat-atmosphere</module>
 		<module>chat-play</module>
+		<module>chat-vertx</module>
 	</modules>
 	<build>
 		<finalName>${project.artifactId}</finalName>

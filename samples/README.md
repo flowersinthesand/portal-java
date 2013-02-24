@@ -40,12 +40,18 @@ play run
 
 Then, open a browser and connect to `http://localhost:9000`.
 
+### Vert.x
+TODO
+
 ## Applications
 ### Chat for Atmosphere
 A simple chat application using `Room` to broadcast message which can run on servlet container.
 
 ### Chat for Play
 A simple chat application using `Room` to broadcast message which can run on the Play.
+
+### Chat for Vert.x
+TODO
 
 ## External applications
 ### [Demos](http://ha-bio.rasc.ch/portal-demos/) by [Ralph](https://github.com/ralscha)

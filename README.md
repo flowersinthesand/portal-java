@@ -11,6 +11,7 @@ The following list of modules are available.
 * `bridge`: makes the application run in the following environment.
     * [`atmosphere`](https://github.com/flowersinthesand/portal-java/tree/master/atmosphere): Servlet container.
     * [`play`](https://github.com/flowersinthesand/portal-java/tree/master/play): Play framework.
+    * [`vertx`](https://github.com/flowersinthesand/portal-java/tree/master/vertx): Vert.x.
 
 ### Optional
 * `objectfactory`: delegates bean creation to the following framework.
