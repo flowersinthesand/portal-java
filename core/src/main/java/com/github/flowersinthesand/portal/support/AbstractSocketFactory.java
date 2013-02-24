@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -57,7 +58,9 @@ public abstract class AbstractSocketFactory implements SocketFactory {
 	}
 
 	public void abort(String id) {
-		sockets.remove(id, sockets.get(id));
+		if (sockets.containsKey(id)) {
+			sockets.get(id).close();
+		}
 	}
 
 	// open or openWs or openHttp
@@ -76,6 +79,7 @@ public abstract class AbstractSocketFactory implements SocketFactory {
 	protected abstract class AbstractSocket implements Socket {
 
 		private final Logger logger = LoggerFactory.getLogger(AbstractSocket.class);
+		private AtomicBoolean opened = new AtomicBoolean(false);
 		protected boolean isAndroid;
 		protected Map<String, String> params;
 		protected ObjectMapper mapper = new ObjectMapper();
@@ -94,7 +98,7 @@ public abstract class AbstractSocketFactory implements SocketFactory {
 		
 		@Override
 		public boolean opened() {
-			return sockets.containsValue(this);
+			return opened.get();
 		}
 		
 		@Override
@@ -174,14 +178,18 @@ public abstract class AbstractSocketFactory implements SocketFactory {
 			return this;
 		}
 
-		protected void onOpen() {
-			logger.info("Socket#{} has been opened, params: {}", id(), params);
-			dispatcher.fire("open", this);
+		public void onOpen() {
+			if (opened.compareAndSet(false, true)) {
+				logger.info("Socket#{} has been opened, params: {}", id(), params);
+				dispatcher.fire("open", this);
+			}
 		}
 
-		protected void onClose() {
-			logger.info("Socket#{} has been closed", id());
-			dispatcher.fire("close", sockets.remove(id()));
+		public void onClose() {
+			if (opened.compareAndSet(true, false)) {
+				logger.info("Socket#{} has been closed", id());
+				dispatcher.fire("close", sockets.remove(id()));
+			}
 		}
 
 		protected Map<String, String> params(Map<String, String[]> params) {

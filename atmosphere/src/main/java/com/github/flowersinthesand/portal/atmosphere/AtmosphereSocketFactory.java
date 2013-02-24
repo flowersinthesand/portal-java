@@ -217,7 +217,7 @@ public class AtmosphereSocketFactory extends AbstractSocketFactory implements At
 		}
 
 		@Override
-		protected void onClose() {
+		public void onClose() {
 			super.onClose();
 			broadcaster.destroy();
 		}
