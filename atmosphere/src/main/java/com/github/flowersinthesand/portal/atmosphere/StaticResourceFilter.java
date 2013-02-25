@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.net.URLConnection;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -48,7 +49,11 @@ public class StaticResourceFilter implements Filter {
 		if (servletPath.matches("^(/portal/.+\\.(?:js))$")) {
 			URL url = classLoader.getResource("META-INF/resources" + servletPath);
 			if (url != null) {
-				write(url.openStream(), res.getOutputStream());
+				URLConnection conn = url.openConnection();
+				res.setContentType("application/javascript");
+				res.setCharacterEncoding("utf-8");
+				res.setContentLength(conn.getContentLength());
+				write(conn.getInputStream(), res.getOutputStream());
 			} else {
 				chain.doFilter(req, res);
 			}
