@@ -52,11 +52,6 @@ public abstract class AbstractSocketFactory implements SocketFactory {
 	@Wire
 	protected ReplyHandler replyHandler;
 
-	@Override
-	public Socket find(String id) {
-		return sockets.get(id);
-	}
-
 	public void abort(String id) {
 		if (sockets.containsKey(id)) {
 			sockets.get(id).close();

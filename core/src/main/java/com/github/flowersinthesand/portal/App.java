@@ -39,7 +39,6 @@ import com.github.flowersinthesand.portal.spi.Dispatcher;
 import com.github.flowersinthesand.portal.spi.Module;
 import com.github.flowersinthesand.portal.spi.ObjectFactory;
 import com.github.flowersinthesand.portal.spi.RoomFactory;
-import com.github.flowersinthesand.portal.spi.SocketFactory;
 import com.github.flowersinthesand.portal.support.NewObjectFactory;
 
 import eu.infomas.annotation.AnnotationDetector;
@@ -362,7 +361,4 @@ public final class App {
 		return room("hall");
 	}
 
-	public Socket socket(String id) {
-		return bean(SocketFactory.class).find(id);
-	}
 }
