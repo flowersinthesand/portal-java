@@ -133,6 +133,12 @@ public final class App {
 				}
 			}
 		}
+
+		if (options.register()) {
+			logger.debug("Registering to the default repository");
+			repository().putIfAbsent(FIRST, this);
+			repository().put(name, this);
+		}
 	}
 
 	private List<Field> getAllDeclaredFields(Class<?> targetClass) {
@@ -289,13 +295,6 @@ public final class App {
 		}
 	}
 
-	public App register() {
-		repository().putIfAbsent(FIRST, this);
-		repository().put(name, this);
-		
-		return this;
-	}
-	
 	public String name() {
 		return name;
 	}

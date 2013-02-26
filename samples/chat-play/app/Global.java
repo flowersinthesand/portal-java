@@ -29,7 +29,7 @@ public class Global extends GlobalSettings {
 
 	@Override
 	public void onStart(Application application) {
-		app = new App(new Options().url("/chat").packageOf("com.github.flowersinthesand.portal.samples.chat"), new PlayModule()).register();
+		app = new App(new Options().url("/chat").packageOf("com.github.flowersinthesand.portal.samples.chat"), new PlayModule());
 	}
 
 	@Override

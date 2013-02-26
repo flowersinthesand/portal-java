@@ -25,6 +25,7 @@ public class Options {
 
 	private String name;
 	private String url;
+	private boolean register;
 	private Set<String> packages = new LinkedHashSet<String>();
 	private Map<String, Object> beans = new LinkedHashMap<String, Object>();
 
@@ -34,6 +35,15 @@ public class Options {
 
 	public Options name(String name) {
 		this.name = name;
+		return this;
+	}
+
+	public boolean register() {
+		return register;
+	}
+
+	public Options register(boolean register) {
+		this.register = register;
 		return this;
 	}
 
@@ -89,6 +99,7 @@ public class Options {
 
 		map.put("name", name());
 		map.put("url", url());
+		map.put("register", register());
 		map.put("packages", packages());
 		map.put("beans", beans());
 

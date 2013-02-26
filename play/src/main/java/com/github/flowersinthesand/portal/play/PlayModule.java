@@ -21,6 +21,8 @@ import com.github.flowersinthesand.portal.spi.Module;
 public class PlayModule implements Module {
 
 	@Override
-	public void configure(Options options) {}
+	public void configure(Options options) {
+		options.register(true);
+	}
 
 }

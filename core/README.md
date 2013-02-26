@@ -223,6 +223,11 @@ The mapping url. This is required.
 
 The application name. If it is null, the url will be returned instead.
 
+* `boolean register()`
+* `Options register(boolean register)`
+
+If the value is set to true, this app will be able to be retrieved by `App.find(String name)`. However, injection by container is more preferred.
+
 * `Set<String> packages()`
 * `Options packageOf(String... packages)`
 * `Options packageOf(Class<?>... classes)`
@@ -268,10 +273,6 @@ Returns the hall, a specialized room whose name is `hall` and contains every soc
 * `<T> T bean(String name, Class<T> class)`
 
 Returns the corresponding bean by name or type from the bean container. Throws IllegalArgumentException if there is no corresponding bean.
-
-* `App register()`
-
-Registers the application to the default repository. Then, the app can be retrieved by `App.find(String name)`. However, injection by container like the Spring or the Guice is more preferred than calling this method and static methods.
 
 * `void close()`
 

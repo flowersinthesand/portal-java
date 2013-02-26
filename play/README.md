@@ -32,7 +32,7 @@ Use the following constructor:
 PlayModule()
 ```
 
-`Global` is a recommended entry point where the application starts. For `Handlers.get` to confirm that an incoming request is for the portal application and route the request to the application, any portal application have to be registered to the default repository with its url, even though dependency injection framework is used. If an incoming request is not for the portal, `Handlers.get` returns null which is a default value of GlobalSettings.onRouteRequest, and further routing is processed as usual by the framework. You don't need to modify the `routes` file.
+`Global` is a recommended entry point where the application starts. Let `Handlers` intercept an incoming request. It will return a proper handler if an incoming request is for the portal automatically.
 
 ```java
 public class Global extends GlobalSettings {
@@ -41,7 +41,7 @@ public class Global extends GlobalSettings {
 
     @Override
     public void onStart(Application application) {
-        app = new App(new Options().url("/chat").packageOf("controllers"), new PlayModule()).register();
+        app = new App(new Options().url("/chat").packageOf("controllers"), new PlayModule());
     }
 
     @Override

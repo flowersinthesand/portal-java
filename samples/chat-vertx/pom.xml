@@ -44,7 +44,7 @@
 				<artifactId>vertx-maven-plugin</artifactId>
 				<version>1.3.0.1</version>
 				<configuration>
-					<verticleName>com.github.flowersinthesand.portal.samples.chat.Server</verticleName>
+					<verticleName>com.github.flowersinthesand.portal.samples.chat.ChatServer</verticleName>
 				</configuration>
 			</plugin>
 		</plugins>

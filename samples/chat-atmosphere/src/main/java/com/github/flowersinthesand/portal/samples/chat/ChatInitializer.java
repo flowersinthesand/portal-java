@@ -30,7 +30,7 @@ public class ChatInitializer implements ServletContextListener {
 
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
-		app = new App(new Options().url("/chat").packageOf(this), new AtmosphereModule(event.getServletContext())).register();
+		app = new App(new Options().url("/chat").packageOf(this), new AtmosphereModule(event.getServletContext()));
 	}
 
 	@Override

@@ -78,19 +78,15 @@ public class AppTest {
 		Assert.assertNull(App.find());
 		Assert.assertNull(App.find("/notfound"));
 
-		App app1 = new App(new Options().url("/ok"));
-		Assert.assertNull(App.find());
-		Assert.assertNull(App.find("/ok"));
-		
-		app1.register();
+		App app1 = new App(new Options().url("/ok").register(true));
 		Assert.assertSame(App.find(), app1);
 		Assert.assertSame(App.find("/ok"), app1);
 
-		App app2 = new App(new Options().url("/ok2")).register();
+		App app2 = new App(new Options().url("/ok2").register(true));
 		Assert.assertSame(App.find(), app1);
 		Assert.assertSame(App.find("/ok2"), app2);
 		
-		App app3 = new App(new Options().name("ok3").url("/ok3")).register();
+		App app3 = new App(new Options().name("ok3").url("/ok3").register(true));
 		Assert.assertSame(App.find("ok3"), app3);
 	}
 

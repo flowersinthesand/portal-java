@@ -24,7 +24,7 @@ import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Options;
 import com.github.flowersinthesand.portal.vertx.VertxModule;
 
-public class Server extends Verticle {
+public class ChatServer extends Verticle {
 
 	@Override
 	public void start() throws Exception {
