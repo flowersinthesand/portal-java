@@ -263,10 +263,6 @@ Finds corresponding room or opens new one if it doesn't exist. Utilize this meth
 
 Returns the hall, a specialized room whose name is `hall` and contains every socket that connected to the application.
 
-* `Socket socket(String id)`
-
-Finds a socket by id or returns null if it doesn't exist. Use this method when you need detailed operation in terms of connectivity not entity.
-
 * `Object bean(String name)`
 * `<T> T bean(Class<T> class)`
 * `<T> T bean(String name, Class<T> class)`
