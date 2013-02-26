@@ -63,8 +63,6 @@ public abstract class AbstractSocketFactory implements SocketFactory {
 		}
 	}
 
-	// open or openWs or openHttp
-
 	public void fire(String raw) {
 		Map<String, Object> m;
 		try {
@@ -74,6 +72,21 @@ public abstract class AbstractSocketFactory implements SocketFactory {
 		}
 		logger.info("Receiving an event {}", m);
 		dispatcher.fire((String) m.get("type"), sockets.get(m.get("socket")), m.get("data"), (Boolean) m.get("reply") ? (Integer) m.get("id") : 0);
+	}
+
+	public static Map<String, String> noCacheHeader() {
+		Map<String, String> headers = new LinkedHashMap<String, String>();
+		headers.put("Expires", "-1");
+		headers.put("Cache-Control", "no-store, no-cache, must-revalidate");
+		headers.put("Pragma", "no-cache");
+		return headers;
+	}
+
+	public static Map<String, String> corsHeader(String origin) {
+		Map<String, String> headers = new LinkedHashMap<String, String>();
+		headers.put("Access-Control-Allow-Origin", origin != null ? origin : "*");
+		headers.put("Access-Control-Allow-Credentials", "true");
+		return headers;
 	}
 
 	protected abstract class AbstractSocket implements Socket {

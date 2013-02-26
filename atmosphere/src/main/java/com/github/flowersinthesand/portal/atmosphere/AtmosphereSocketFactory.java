@@ -17,115 +17,25 @@ package com.github.flowersinthesand.portal.atmosphere;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.Reader;
-import java.io.StringWriter;
 
-import org.atmosphere.cpr.AtmosphereFramework;
-import org.atmosphere.cpr.AtmosphereHandler;
 import org.atmosphere.cpr.AtmosphereRequest;
 import org.atmosphere.cpr.AtmosphereResource;
 import org.atmosphere.cpr.AtmosphereResourceEvent;
-import org.atmosphere.cpr.AtmosphereResponse;
 import org.atmosphere.cpr.Broadcaster;
 import org.atmosphere.cpr.BroadcasterFactory;
 import org.atmosphere.websocket.WebSocketEventListenerAdapter;
 
 import com.github.flowersinthesand.portal.Bean;
-import com.github.flowersinthesand.portal.Init;
-import com.github.flowersinthesand.portal.Wire;
 import com.github.flowersinthesand.portal.support.AbstractSocketFactory;
 
 @Bean("socketFactory")
-public class AtmosphereSocketFactory extends AbstractSocketFactory implements AtmosphereHandler {
+public class AtmosphereSocketFactory extends AbstractSocketFactory {
 
-	@Wire
-	private String url;
-	@Wire
-	private AtmosphereFramework framework;
-
-	@Init
-	public void init() {
-		framework.addAtmosphereHandler(url, this);
-	}
-
-	@Override
-	public void onRequest(AtmosphereResource resource) throws IOException {
-		AtmosphereRequest request = resource.getRequest();
-		AtmosphereResponse response = resource.getResponse();
-
-		request.setCharacterEncoding("utf-8");
-		response.setCharacterEncoding("utf-8");
-
-		response.setHeader("Expires", "-1");
-		response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-		response.setHeader("Pragma", "no-cache");
-
-		response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin") == null ? "*" : request.getHeader("Origin"));
-		response.setHeader("Access-Control-Allow-Credentials", "true");
-
-		if (request.getMethod().equalsIgnoreCase("GET")) {
-			String when = request.getParameter("when");
-			if (when.equals("open") || when.equals("poll")) {
-				open(resource);
-			} else if (when.equals("abort")) {
-				abort(request.getParameter("id"));
-			}
-		} else if (request.getMethod().equalsIgnoreCase("POST")) {
-			String raw = read(request.getReader());
-			fire(raw.startsWith("data=") ? raw.substring("data=".length()) : raw);
-		}
-	}
-
-	private String read(Reader in) throws IOException {
-		StringWriter out = new StringWriter();
-		
-		try {
-			char[] buffer = new char[4096];
-			int bytesRead = -1;
-			while ((bytesRead = in.read(buffer)) != -1) {
-				out.write(buffer, 0, bytesRead);
-			}
-			out.flush();
-		} finally {
-			try {
-				in.close();
-			} catch (IOException ex) {}
-			try {
-				out.close();
-			} catch (IOException ex) {}
-		}
-		
-		return out.toString();
-	}
-
-	@Override
-	public void onStateChange(AtmosphereResourceEvent event) throws IOException {
-		if (event.getMessage() == null || event.isCancelled() || event.isResuming() || event.isResumedOnTimeout()) {
-			return;
-		}
-
-		AtmosphereResource resource = event.getResource();
-		AtmosphereRequest request = resource.getRequest();
-		AtmosphereResponse response = resource.getResponse();
-		PrintWriter writer = response.getWriter();
-		
-		writer.print((String) event.getMessage());
-		writer.flush();
-		
-		if (request.getParameter("transport").startsWith("longpoll")) {
-			request.setAttribute("used", true);
-			resource.resume();
-		}
-	}
-
-	@Override
-	public void destroy() {}
-	
-	private void open(final AtmosphereResource resource) {
-		final AtmosphereRequest request = resource.getRequest();
-		final String when = request.getParameter("when");
-		final String id = request.getParameter("id");
-		final String transport = request.getParameter("transport");
+	void open(final AtmosphereResource resource) {
+		final AtmosphereRequest req = resource.getRequest();
+		final String when = req.getParameter("when");
+		final String id = req.getParameter("id");
+		final String transport = req.getParameter("transport");
 
 		if (transport.equals("ws")) {
 			sockets.put(id, new WsSocket(resource));
@@ -169,7 +79,7 @@ public class AtmosphereSocketFactory extends AbstractSocketFactory implements At
 			private void cleanup() {
 				if (sockets.containsKey(id)) {
 					if ((transport.equals("ws") || transport.equals("sse") || transport.startsWith("stream"))
-							|| (transport.startsWith("longpoll") && when.equals("poll") && request.getAttribute("used") == null)) {
+							|| (transport.startsWith("longpoll") && when.equals("poll") && req.getAttribute("used") == null)) {
 						((AtmosphereSocket) sockets.get(id)).onClose();
 					}
 				}
@@ -277,15 +187,15 @@ public class AtmosphereSocketFactory extends AbstractSocketFactory implements At
 
 		@Override
 		public void onSuspend(AtmosphereResource resource) {
-			AtmosphereRequest request = resource.getRequest();
-			String when = request.getParameter("when"); 
+			AtmosphereRequest req = resource.getRequest();
+			String when = req.getParameter("when"); 
 			
 			if (when.equals("open")) {
 				resource.resume();
 				onOpen();
 			} else if (when.equals("poll")) {
 				this.broadcaster.addAtmosphereResource(resource);
-				retrieveCache(request.getParameter("lastEventIds"));
+				retrieveCache(req.getParameter("lastEventIds"));
 			}
 		}
 

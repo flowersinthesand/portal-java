@@ -27,41 +27,39 @@ import com.github.flowersinthesand.portal.App
 object Handlers {
   
   def get(request: RequestHeader): Handler = {
-    Option(App.find(request.path)) match {
-      case Some(name) => {
-        request.method match {
-          case "GET" => {
-            request.queryString.get("when")(0) match {
-              case "open" => {
-                request.queryString.get("transport")(0) match {
-                  case "ws" => JavaWebSocket.ofString(Accessor.ws)
-                  case _ => new JavaAction {
-                    def invocation = Accessor.httpOut
-                    lazy val controller = classOf[Accessor]
-                    lazy val method = MethodUtils.getMatchingAccessibleMethod(controller, "httpOut")
-                  }
-                }                
-              }
-              case "poll" => new JavaAction {
-                def invocation = Accessor.httpOut
-                lazy val controller = classOf[Accessor]
+    val app = App.find(request.path)
+    if (app == null) {
+      return null
+    }
+    
+    val controllerClass = classOf[PlaySocketController]
+    val socketController = app.bean(controllerClass)
+    
+    request.method match {
+      case "GET" => {
+        request.queryString.get("when")(0) match {
+          case "open" | "poll" => {
+            request.queryString.get("transport")(0) match {
+              case "ws" => JavaWebSocket.ofString(socketController.ws)
+              case _ => new JavaAction {
+                def invocation = socketController.httpOut
+                val controller = controllerClass
                 lazy val method = MethodUtils.getMatchingAccessibleMethod(controller, "httpOut")
-              }
-              case "abort" => new JavaAction {
-                def invocation = Accessor.abort
-                lazy val controller = classOf[Accessor]
-                lazy val method = MethodUtils.getMatchingAccessibleMethod(controller, "abort")
               }
             }
           }
-          case "POST" => new JavaAction {
-            def invocation = Accessor.httpIn
-            lazy val controller = classOf[Accessor]
-            lazy val method = MethodUtils.getMatchingAccessibleMethod(controller, "httpIn")
+          case "abort" => new JavaAction {
+            def invocation = socketController.abort
+            val controller = controllerClass
+            lazy val method = MethodUtils.getMatchingAccessibleMethod(controller, "abort")
           }
         }
       }
-      case None => null
+      case "POST" => new JavaAction {
+        def invocation = socketController.httpIn
+        val controller = controllerClass
+        lazy val method = MethodUtils.getMatchingAccessibleMethod(controller, "httpIn")
+      }
     }
   }
   

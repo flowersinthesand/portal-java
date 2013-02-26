@@ -29,29 +29,29 @@ import com.github.flowersinthesand.portal.support.AbstractSocketFactory;
 @Bean("socketFactory")
 public class PlaySocketFactory extends AbstractSocketFactory {
 
-	WebSocket<String> openWs(Request request) {
-		WsSocket socket = new WsSocket(request);
+	WebSocket<String> openWs(Request req) {
+		WsSocket socket = new WsSocket(req);
 		sockets.put(socket.id(), socket);
 
 		return socket.webSocket;
 	}
 
-	Chunks<String> openHttp(Request request, Response response) {
-		String when = request.queryString().get("when")[0];
-		String id = request.queryString().get("id")[0];
-		String transport = request.queryString().get("transport")[0];
+	Chunks<String> openHttp(Request req, Response res) {
+		String when = req.queryString().get("when")[0];
+		String id = req.queryString().get("id")[0];
+		String transport = req.queryString().get("transport")[0];
 
 		HttpSocket socket = null;
 		if (transport.equals("sse") || transport.startsWith("stream")) {
-			socket = new StreamSocket(request, response);
+			socket = new StreamSocket(req, res);
 			sockets.put(id, socket);
 		} else if (transport.startsWith("longpoll")) {
 			if (when.equals("open")) {
-				socket = new LongPollSocket(request, response);
+				socket = new LongPollSocket(req, res);
 				sockets.put(id, socket);
 			} else if (when.equals("poll")) {
 				socket = (LongPollSocket) sockets.get(id);
-				((LongPollSocket) socket).refresh(request, response, false);
+				((LongPollSocket) socket).refresh(req, res, false);
 			}
 		}
 
@@ -63,8 +63,8 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 		private WebSocket<String> webSocket;
 		private WebSocket.Out<String> out;
 
-		public WsSocket(Request request) {
-			this.params = params(request.queryString());
+		public WsSocket(Request req) {
+			this.params = params(req.queryString());
 			this.webSocket = new WebSocket<String>() {
 				@Override
 				public void onReady(WebSocket.In<String> in, Out<String> oout) {
@@ -107,9 +107,9 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 
 	class StreamSocket extends HttpSocket {
 
-		public StreamSocket(Request request, Response response) {
-			this.params = params(request.queryString());
-			this.isAndroid = isAndroid(request.getHeader("user-agent"));
+		public StreamSocket(Request req, Response res) {
+			this.params = params(req.queryString());
+			this.isAndroid = isAndroid(req.getHeader("user-agent"));
 			this.chunks = new Chunks<String>(JavaResults.writeString(Codec.utf_8()), JavaResults.contentTypeOfString((Codec.utf_8()))) {
 				@Override
 				public void onReady(Chunks.Out<String> oout) {
@@ -129,7 +129,7 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 					onOpen();
 				}
 			};
-			response.setContentType(streamContentType() + "; charset=utf-8");
+			res.setContentType(streamContentType() + "; charset=utf-8");
 		}
 
 		@Override
@@ -148,12 +148,12 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 
 	class LongPollSocket extends HttpSocket {
 		
-		public LongPollSocket(Request request, Response response) {
-			this.params = params(request.queryString());
-			refresh(request, response, true);
+		public LongPollSocket(Request req, Response res) {
+			this.params = params(req.queryString());
+			refresh(req, res, true);
 		}
 
-		private void refresh(final Request request, Response response, final boolean open) {
+		private void refresh(final Request req, Response res, final boolean open) {
 			this.chunks = new Chunks<String>(JavaResults.writeString(Codec.utf_8()), JavaResults.contentTypeOfString((Codec.utf_8()))) {
 				@Override
 				public void onReady(Chunks.Out<String> oout) {
@@ -171,12 +171,12 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 						out.close();
 						onOpen();
 					} else {
-						String[] value = request.queryString().get("lastEventIds");
+						String[] value = req.queryString().get("lastEventIds");
 						retrieveCache(value != null ? value[0] : null);
 					}
 				}
 			};
-			response.setContentType(longpollContentType() + "; charset=utf-8");
+			res.setContentType(longpollContentType() + "; charset=utf-8");
 		}
 
 		@Override
@@ -193,9 +193,9 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 		protected void disconnect() {
 			if (out != null) {
 				out.close();
+				// onDisconnected is not fired by close method 
+				onClose();
 			}
-			// onDisconnected is not fired by close method 
-			onClose();
 		}
 
 	}

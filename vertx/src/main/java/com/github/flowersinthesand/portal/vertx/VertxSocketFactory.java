@@ -33,13 +33,13 @@ import com.github.flowersinthesand.portal.support.AbstractSocketFactory;
 @Bean("socketFactory")
 public class VertxSocketFactory extends AbstractSocketFactory {
 
-	public void openWs(ServerWebSocket webSocket) {
+	void openWs(ServerWebSocket webSocket) {
 		WsSocket socket = new WsSocket(webSocket);
 		sockets.put(socket.id(), socket);
 		socket.onOpen();
 	}
 
-	public void openHttp(HttpServerRequest req) {
+	void openHttp(HttpServerRequest req) {
 		String when = req.params().get("when");
 		String id = req.params().get("id");
 		String transport = req.params().get("transport");
@@ -171,6 +171,7 @@ public class VertxSocketFactory extends AbstractSocketFactory {
 			res.putHeader("content-type", longpollContentType() + "; charset=utf-8");
 			if (open) {
 				res.end();
+				res.close();
 			} else {
 				retrieveCache(req.params().get("lastEventIds"));
 			}

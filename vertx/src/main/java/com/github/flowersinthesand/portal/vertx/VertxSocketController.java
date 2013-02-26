@@ -31,9 +31,11 @@ import org.vertx.java.core.http.ServerWebSocket;
 import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.Init;
 import com.github.flowersinthesand.portal.Wire;
+import com.github.flowersinthesand.portal.spi.SocketController;
+import com.github.flowersinthesand.portal.support.AbstractSocketFactory;
 
-@Bean
-public class VertxSocketController {
+@Bean("socketController")
+public class VertxSocketController implements SocketController {
 
 	@Wire
 	private String url;
@@ -71,7 +73,8 @@ public class VertxSocketController {
 		routeMatcher.get(url, new Handler<HttpServerRequest>() {
 			@Override
 			public void handle(HttpServerRequest req) {
-				setHeaders(req);
+				req.response.headers().putAll(AbstractSocketFactory.noCacheHeader());
+				req.response.headers().putAll(AbstractSocketFactory.corsHeader(req.headers().get("Origin")));
 				String when = req.params().get("when");
 				if (when.equals("open") || when.equals("poll")) {
 					socketFactory.openHttp(req);
@@ -83,7 +86,8 @@ public class VertxSocketController {
 		routeMatcher.post(url, new Handler<HttpServerRequest>() {
 			@Override
 			public void handle(HttpServerRequest req) {
-				setHeaders(req);
+				req.response.headers().putAll(AbstractSocketFactory.noCacheHeader());
+				req.response.headers().putAll(AbstractSocketFactory.corsHeader(req.headers().get("Origin")));
 				req.bodyHandler(new Handler<Buffer>() {
 					@Override
 					public void handle(Buffer body) {
@@ -108,15 +112,6 @@ public class VertxSocketController {
 				}
 			}
 		});
-	}
-
-	private void setHeaders(HttpServerRequest req) {
-		req.response
-		.putHeader("Expires", "-1")
-		.putHeader("Cache-Control", "no-store, no-cache, must-revalidate")
-		.putHeader("Pragma", "no-cache")
-		.putHeader("Access-Control-Allow-Origin", req.headers().containsKey("Origin") ? req.headers().get("Origin") : "*")
-		.putHeader("Access-Control-Allow-Credentials", "true");
 	}
 
 	private void write(InputStream in, OutputStream out) throws IOException {

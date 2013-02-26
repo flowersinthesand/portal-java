@@ -15,12 +15,6 @@
  */
 package com.github.flowersinthesand.portal.spi;
 
-import com.github.flowersinthesand.portal.Socket;
-
-public interface SocketFactory {
-	
-	// open or openWs or openHttp
-
-	Socket find(String id);
+public interface SocketController {
 
 }
