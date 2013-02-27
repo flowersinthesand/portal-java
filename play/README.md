@@ -1,8 +1,8 @@
 # Play
-`portal-play` module integrates the portal application with the [Play framework](http://www.playframework.org/) 2 which is a high productivity Java and Scala Web application framework.
+`portal-play` module integrates the portal application with the [Play framework](http://www.playframework.org/) 2 which is a high productivity Java and Scala web application framework.
 
 ## Installing
-### Updating Build.scala
+### Adding dependency
 Add the following dependency to your Build.scala:
 ```scala
 "com.github.flowersinthesand" % "portal-play" % "${portal.version}"
@@ -26,13 +26,8 @@ Then, call the above reverse controller.
 <script src="@routes.PortalAssets.at("play.js")"></script>
 ```
 
-### Creating the module
-Use the following constructor:
-```java
-PlayModule()
-```
-
-`Global` is a recommended entry point where the application starts. Let `Handlers` intercept an incoming request. It will return a proper handler if an incoming request is for the portal automatically.
+## Gluing
+To run an application in Play framework, define the `Global` and create an `App` with the module in the `onStart` method. Also, let `Handlers` intercept an incoming request. It will return a proper handler if an incoming request is for the portal automatically.
 
 ```java
 public class Global extends GlobalSettings {

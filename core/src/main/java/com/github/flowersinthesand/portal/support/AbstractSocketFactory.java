@@ -201,7 +201,7 @@ public abstract class AbstractSocketFactory implements SocketFactory {
 		}
 
 		protected Map<String, String> params(Map<String, String[]> params) {
-			Map<String, String> map = new LinkedHashMap<String, String>();
+			Map<String, String> map = new LinkedHashMap<String, String>(params.size());
 			for (Entry<String, String[]> entry : params.entrySet()) {
 				map.put(entry.getKey(), entry.getValue()[0]);
 			}

@@ -2,7 +2,7 @@
 `portal-spring` module delegates bean creation to the [Spring framework](http://www.springsource.org/spring-framework). Therefore, Portal application can consist of Spring beans completely, and service or repository beans in Spring can be called by browser directly via the portal inversely. Spring bean is found by the name and the type of Portal bean, and if there is no matching bean, it will be created as usual.
 
 ## Installing
-### Updating pom.xml
+### Adding dependency
 Add the following dependency to your pom.xml:
 ```xml
 <dependency>

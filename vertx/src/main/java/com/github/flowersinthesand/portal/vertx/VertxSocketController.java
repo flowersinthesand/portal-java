@@ -47,30 +47,42 @@ public class VertxSocketController implements SocketController {
 	@Init
 	public void init() {
 		RouteMatcher routeMatcher = new RouteMatcher();
-		routeMatcher.get("/portal/:file.js", new Handler<HttpServerRequest>() {
+		routeMatcher.get("/portal/:file.js", resource());
+		routeMatcher.get(url, httpIn());
+		routeMatcher.post(url, httpOut());
+		routeMatcher.noMatch(httpServer.requestHandler());
+		
+		httpServer.requestHandler(routeMatcher);
+		httpServer.websocketHandler(ws());
+	}
+
+	private Handler<HttpServerRequest> resource() {
+		return new Handler<HttpServerRequest>() {
 			@Override
 			public void handle(HttpServerRequest req) {
-				// TODO enhance 
 				URL url = Thread.currentThread().getContextClassLoader().getResource("META-INF/resources" + req.path);
 				if (url == null) {
 					req.response.statusCode = 404;
 					req.response.end();
-				}
+				} else {
+					ByteArrayOutputStream baos = new ByteArrayOutputStream();
+					try {
+						write(url.openStream(), baos);
+					} catch (IOException e) {
+						throw new RuntimeException(e);
+					}
 
-				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				try {
-					write(url.openStream(), baos);
-				} catch (IOException e) {
-					throw new RuntimeException(e);
+					req.response
+					.putHeader("Content-Type", "application/javascript")
+					.putHeader("Content-Length", String.valueOf(baos.size()))
+					.end(new Buffer(baos.toByteArray()));
 				}
-
-				req.response
-				.putHeader("Content-Type", "application/javascript")
-				.putHeader("Content-Length", String.valueOf(baos.size()))
-				.end(new Buffer(baos.toByteArray()));
 			}
-		});
-		routeMatcher.get(url, new Handler<HttpServerRequest>() {
+		};
+	}
+
+	private Handler<HttpServerRequest> httpIn() {
+		return new Handler<HttpServerRequest>() {
 			@Override
 			public void handle(HttpServerRequest req) {
 				req.response.headers().putAll(AbstractSocketFactory.noCacheHeader());
@@ -82,8 +94,11 @@ public class VertxSocketController implements SocketController {
 					socketFactory.abort(req.params().get("id"));
 				}
 			}
-		});
-		routeMatcher.post(url, new Handler<HttpServerRequest>() {
+		};
+	}
+
+	private Handler<HttpServerRequest> httpOut() {
+		return new Handler<HttpServerRequest>() {
 			@Override
 			public void handle(HttpServerRequest req) {
 				req.response.headers().putAll(AbstractSocketFactory.noCacheHeader());
@@ -96,11 +111,11 @@ public class VertxSocketController implements SocketController {
 				});
 				req.response.end();
 			}
-		});
-		routeMatcher.noMatch(httpServer.requestHandler());
-		httpServer.requestHandler(routeMatcher);
+		};
+	}
 
-		httpServer.websocketHandler(new Handler<ServerWebSocket>() {
+	private Handler<ServerWebSocket> ws() {
+		return new Handler<ServerWebSocket>() {
 			Handler<ServerWebSocket> old = httpServer.websocketHandler();
 			@Override
 			public void handle(ServerWebSocket webSocket) {
@@ -111,7 +126,7 @@ public class VertxSocketController implements SocketController {
 					old.handle(webSocket);
 				}
 			}
-		});
+		};
 	}
 
 	private void write(InputStream in, OutputStream out) throws IOException {

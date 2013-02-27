@@ -2,7 +2,7 @@
 `portal-atmosphere` module integrates the portal application with the [Atmosphere framework](https://github.com/atmosphere/atmosphere/) which makes the application run on most servlet containers that support the Servlet Specification 2.3.
 
 ## Installing
-### Updating pom.xml
+### Adding dependency
 Add the following dependency to your pom.xml:
 ```xml
 <dependency>
@@ -17,43 +17,15 @@ The following static resources are located in `META-INF/resources/portal/` in th
 
 * [`atmosphere.js`](https://github.com/flowersinthesand/portal-java/blob/master/atmosphere/src/main/resources/META-INF/resources/portal/atmosphere.js), [`atmosphere.min.js`](https://github.com/flowersinthesand/portal-java/blob/master/atmosphere/src/main/resources/META-INF/resources/portal/atmosphere.min.js): A set of options to fully benefit from the integration with the atmosphere module.
 
-#### Servlet 3
-According to Servlet 3 spec, every file in a `META-INF/resources` directory in a jar in `WEB-INF/lib` directory should be automatically exposed as a static resource. So, you don't need to configure anything.
+you don't need to configure anything. According to the spec, every file in a `META-INF/resources` directory in a jar in `WEB-INF/lib` directory should be automatically exposed as a static resource.
 
 ```html
 <script src="/portal/portal.js"></script>
 <script src="/portal/atmosphere.js"></script>
 ```
 
-#### Servlet 2.x
-Install the following fallback filter in web.xml:
-
-```xml
-<filter>
-    <filter-name>portalResource</filter-name>
-    <filter-class>com.github.flowersinthesand.portal.atmosphere.StaticResourceFilter</filter-class>
-</filter>
-<filter-mapping>
-    <filter-name>portalResource</filter-name>
-    <url-pattern>/*</url-pattern>
-</filter-mapping>
-```
-
-Then, you can import scripts like with Servlet 3.
-
-```html
-<script src="/portal/portal.js"></script>
-<script src="/portal/atmosphere.js"></script>
-```
-
-### Creating the module
-Use the following constructor in accordance with your servlet container
-
-#### Servlet 3
-```java
-AtmosphereModule(ServletContext)
-```
-Thanks to dynamic registration support in Servlet 3, you don't need to install the Atmosphere and find `AtmosphereFramework` manually. Instead, only `ServletContext` is required. The Atmosphere will be installed automatically per app. In this case, `ServletContextListener` is a recommended entry point where the application starts. 
+## Gluing
+To run an application in Servlet environment, define a `ServletContextListener` and create an `App` with the module created with the `ServletContext` in the `contextInitialized` method. The Atmosphere will be installed automatically per app.
 
 ```java
 @WebListener
@@ -74,9 +46,11 @@ public class Initializer implements ServletContextListener {
 }
 ```
 
-You can access a registration object for AtmosphereServlet through `modifyAtmosphereServletRegistration` method of the module.
+### Configuring Atmosphere
+You can configure Atmosphere by setting initialization parameters of AtmosphereServlet in the `modifyAtmosphereServletRegistration` method of the module. For more about options, [see this table](http://pastehtml.com/view/cgwfei5nu.html).
+
 ```java
-new App(new Options().url("/event").packageOf(this), new AtmosphereModule(servletContext) {
+new App(options, new AtmosphereModule(servletContext) {
 
     @Override
     protected void modifyAtmosphereServletRegistration(ServletRegistration.Dynamic registration) {
@@ -86,12 +60,31 @@ new App(new Options().url("/event").packageOf(this), new AtmosphereModule(servle
 });
 ```
 
-#### Servlet 2.x
-```java
-AtmosphereModule(AtmosphereFramework)
+
+## Workaround for Servlet 2.x
+### Loading resources
+Install the fallback filter in web.xml:
+
+```xml
+<filter>
+    <filter-name>portalResource</filter-name>
+    <filter-class>com.github.flowersinthesand.portal.atmosphere.StaticResourceFilter</filter-class>
+</filter>
+<filter-mapping>
+    <filter-name>portalResource</filter-name>
+    <url-pattern>/*</url-pattern>
+</filter-mapping>
 ```
 
-To install Atmosphere and initialize application, you have to write a servlet extending `AtmosphereServlet` and declare it in web.xml. The initialization can be done in `void init(ServletConfig)` method only after calling the method of the super class.
+Then, you can import scripts like with Servlet 3.
+
+```html
+<script src="/portal/portal.js"></script>
+<script src="/portal/atmosphere.js"></script>
+```
+
+### Gluing
+Install Atmosphere by writing a servlet extending `AtmosphereServlet` and declaring it in web.xml. In this case, the module have to be created with `AtmosphereFramework`. 
 
 ```java
 public class Initializer extends AtmosphereServlet {

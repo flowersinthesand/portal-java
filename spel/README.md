@@ -2,7 +2,7 @@
 `portal-spel` module allows handler to use the [Spring Expression Language](http://static.springsource.org/spring/docs/3.2.x/spring-framework-reference/html/expressions.html) when evaluating a data expression. Utilizing expression language, sophisticated operation in handler becomes possible.
 
 ## Installing
-### Updating pom.xml
+### Adding dependency
 Add the following dependency to your pom.xml:
 ```xml
 <dependency>

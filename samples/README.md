@@ -14,7 +14,7 @@ cd portal-java/samples/chat-atmosphere
 
 The way to run an application varies with runtime environment, of course. However, because core API has nothing to do with runtime environment, you can switch runtime environment with no modifications on the application unless the application use extended API depending on runtime environment.
 
-### Servlet container
+### Atmosphere
 Applications powered by the `portal-atmosphere` module requires a servlet container. By typing the following command, you can run the application on the [Jetty](http://www.eclipse.org/jetty/).
 ```
 mvn jetty:run-war
@@ -28,7 +28,7 @@ mvn tomcat7:run
 Then, open a browser and connect to `http://localhost:8080`.
 
 ### Play
-Applications powered by the `portal-play` module requires the [Play](http://www.playframework.org/) 2. Because the whole project is managed by Maven, the Play application also can run by Maven. Note that the play should be executable on your `PATH`.
+Applications powered by the `portal-play` module requires the [Play](http://www.playframework.org/) 2. Play applications also can run by Maven by the help of the [play2-maven-plugin](https://github.com/cescoffier/maven-play2-plugin). Note that the `play` should be executable on your `PATH`.
 ```
 mvn package play2:run
 ```
@@ -41,17 +41,22 @@ play run
 Then, open a browser and connect to `http://localhost:9000`.
 
 ### Vert.x
-TODO
+Applications powered by the `portal-vertx` module requires the [Vert.x](http://vertx.io/). Vert.x applications also can run by Maven by the help of [vertx-maven-plugin](https://github.com/rhart/vertx-maven-plugin/). Note that the `vertx` should be executable on your `PATH`.
+```
+mvn vertx:run
+```
 
-## Applications
-### Chat for Atmosphere
-A simple chat application using `Room` to broadcast message which can run on servlet container.
+If you want to run the application without Maven as usual, execute the following commands, replacing `${portal.version}` with a real version you want. However, these commands differ on a case by case.
 
-### Chat for Play
-A simple chat application using `Room` to broadcast message which can run on the Play.
+```
+mvn compile
+mkdir -p temp/src/main/webapp
+cp -r src/main/webapp temp/src/main/webapp
+cd temp
+vertx run samples.Server -includes com.github.flowersinthesand.portal-vertx-v${portal.version}
+```
 
-### Chat for Vert.x
-TODO
+Then, open a browser and connect to `http://localhost:8080`.
 
 ## External applications
 ### [Demos](http://ha-bio.rasc.ch/portal-demos/) by [Ralph](https://github.com/ralscha)

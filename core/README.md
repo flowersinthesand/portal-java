@@ -4,7 +4,7 @@
 Requires Java 6.
 
 ## Installing
-### Updating pom.xml
+### Adding dependency
 Add the following dependency:
 ```xml
 <dependency>

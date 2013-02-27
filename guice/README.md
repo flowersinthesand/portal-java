@@ -2,7 +2,7 @@
 `portal-guice` module delegates bean creation to the [Guice](http://code.google.com/p/google-guice/). Therefore, Portal application can consist of Guice beans completely, and service or repository beans in Guice can be called by browser directly via the portal inversely. Guice bean is found by only the type of Portal bean, and if there is no matching bean, it will be created as usual.
 
 ## Installing
-### Updating pom.xml
+### Adding dependency
 Add the following dependency to your pom.xml:
 ```xml
 <dependency>

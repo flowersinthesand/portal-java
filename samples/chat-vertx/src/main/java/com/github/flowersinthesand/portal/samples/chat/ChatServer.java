@@ -32,7 +32,6 @@ public class ChatServer extends Verticle {
 		httpServer.requestHandler(new Handler<HttpServerRequest>() {
 			public void handle(HttpServerRequest req) {
 				if (req.path.equals("/")) {
-					// TODO Well...
 					req.response.sendFile("src/main/webapp/index.html");
 				}
 			}

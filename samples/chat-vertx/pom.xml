@@ -20,6 +20,14 @@
 			<artifactId>portal-vertx</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.vert-x</groupId>
+			<artifactId>vertx-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.vert-x</groupId>
+			<artifactId>vertx-platform</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
