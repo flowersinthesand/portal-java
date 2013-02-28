@@ -43,7 +43,7 @@ import com.github.flowersinthesand.portal.support.NewObjectFactory;
 
 import eu.infomas.annotation.AnnotationDetector;
 
-public final class App {
+public class App {
 
 	private final static String FIRST = App.class.getName() + ".first";
 
