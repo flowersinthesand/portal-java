@@ -283,6 +283,8 @@ public class App {
 
 		beans.clear();
 		attrs.clear();
+		repository().remove(FIRST, this);
+		repository().remove(name);
 	}
 
 	private void destroyBean(Object bean, Method method) {

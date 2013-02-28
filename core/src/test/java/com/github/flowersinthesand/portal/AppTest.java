@@ -106,7 +106,7 @@ public class AppTest {
 	
 	@Test
 	public void close() {
-		App app = new App(new Options().url("/t").packageOf(new EventsHandler())).set("xx", "yy");
+		App app = new App(new Options().url("/t").packageOf(new EventsHandler()).register(true)).set("xx", "yy");
 		Assert.assertEquals(app.get("xx"), "yy");
 		Assert.assertNotNull(app.bean(EventsHandler.class));
 
@@ -118,6 +118,7 @@ public class AppTest {
 		} catch (IllegalArgumentException e) {
 			Assert.assertTrue(true);
 		}
+		Assert.assertNull(App.find("/t"));
 	}
 
 }
