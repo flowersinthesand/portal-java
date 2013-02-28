@@ -15,7 +15,6 @@
  */
 package com.github.flowersinthesand.portal.vertx;
 
-import org.vertx.java.core.Vertx;
 import org.vertx.java.core.http.HttpServer;
 
 import com.github.flowersinthesand.portal.Options;
@@ -23,17 +22,15 @@ import com.github.flowersinthesand.portal.spi.Module;
 
 public class VertxModule implements Module {
 
-	private Vertx vertx;
 	private HttpServer httpServer;
 
-	public VertxModule(Vertx vertx, HttpServer httpServer) {
-		this.vertx = vertx;
+	public VertxModule(HttpServer httpServer) {
 		this.httpServer = httpServer;
 	}
 
 	@Override
 	public void configure(Options options) {
-		options.bean("url", options.url()).bean(Vertx.class.getName(), vertx).bean(HttpServer.class.getName(), httpServer);
+		options.bean("url", options.url()).bean(HttpServer.class.getName(), httpServer);
 	}
 
 }

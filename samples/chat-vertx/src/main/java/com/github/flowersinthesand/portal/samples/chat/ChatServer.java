@@ -37,7 +37,7 @@ public class ChatServer extends Verticle {
 			}
 		});
 		
-		new App(new Options().url("/chat").packageOf(this), new VertxModule(vertx, httpServer));
+		new App(new Options().url("/chat").packageOf(this), new VertxModule(httpServer));
 		httpServer.listen(8080);
 	}
 

@@ -23,7 +23,7 @@ In the server where an application is installed, these resources will be exposed
 ```
 
 ## Gluing
-To run an application in Vert.x, define a `Verticle` and create an `App` with the module created with the `Vertx` and `HttpServer` in the `start` method.
+To run an application in Vert.x, define a `Verticle` and create an `App` with the module created with `HttpServer` in the `start` method.
 
 ```java
 public class Initializer extends Verticle {
@@ -39,7 +39,7 @@ public class Initializer extends Verticle {
             }
         });
         
-        new App(new Options().url("/portal").packageOf(this), new VertxModule(vertx, httpServer));
+        new App(new Options().url("/portal").packageOf(this), new VertxModule(httpServer));
         httpServer.listen(8080);
     }
 
