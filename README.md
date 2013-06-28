@@ -21,7 +21,7 @@ The following list of modules are available.
     * [`spel`](https://github.com/flowersinthesand/portal-java/tree/master/spel): Spring Expression Language.
 
 ## Demos
-The easiest way to get started with Portal is to try out and look at examples. Thanks to [Ralph](https://github.com/ralscha), various online demos and source codes are available now at http://ha-bio.rasc.ch/portal-demos Try out!
+The easiest way to get started with Portal is to try out and look at examples. Thanks to [Ralph](https://github.com/ralscha), various online demos and source codes are available now at http://demo.rasc.ch/portal/ Try out!
 
 Also, officialy a [very simple chat application](https://github.com/flowersinthesand/portal-java/tree/master/samples) is provided with each bridge module to help getting started.
 
