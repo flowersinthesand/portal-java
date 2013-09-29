@@ -44,7 +44,7 @@
 	</developers>
 	<properties>
 		<vertx.version>2.0.1-final</vertx.version>
-		<jackson.version>1.9.12</jackson.version>
+		<jackson.version>2.2.3</jackson.version>
 		<slf4j.version>1.7.5</slf4j.version>
 		<spring.version>3.2.4.RELEASE</spring.version>
 	</properties>
@@ -102,13 +102,8 @@
 				<version>${slf4j.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.codehaus.jackson</groupId>
-				<artifactId>jackson-core-asl</artifactId>
-				<version>${jackson.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.codehaus.jackson</groupId>
-				<artifactId>jackson-mapper-asl</artifactId>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-databind</artifactId>
 				<version>${jackson.version}</version>
 			</dependency>
 			<dependency>

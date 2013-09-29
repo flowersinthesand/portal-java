@@ -28,10 +28,10 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.flowersinthesand.portal.Bean;
 import com.github.flowersinthesand.portal.Data;
 import com.github.flowersinthesand.portal.Order;
