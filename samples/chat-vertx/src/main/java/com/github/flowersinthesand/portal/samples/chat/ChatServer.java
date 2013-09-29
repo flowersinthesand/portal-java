@@ -18,7 +18,7 @@ package com.github.flowersinthesand.portal.samples.chat;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.http.HttpServer;
 import org.vertx.java.core.http.HttpServerRequest;
-import org.vertx.java.deploy.Verticle;
+import org.vertx.java.platform.Verticle;
 
 import com.github.flowersinthesand.portal.App;
 import com.github.flowersinthesand.portal.Options;
@@ -27,16 +27,16 @@ import com.github.flowersinthesand.portal.vertx.VertxModule;
 public class ChatServer extends Verticle {
 
 	@Override
-	public void start() throws Exception {
+	public void start() {
 		HttpServer httpServer = vertx.createHttpServer();
 		httpServer.requestHandler(new Handler<HttpServerRequest>() {
 			public void handle(HttpServerRequest req) {
-				if (req.path.equals("/")) {
-					req.response.sendFile("src/main/webapp/index.html");
+				if (req.path().equals("/")) {
+					req.response().sendFile("webapp/index.html");
 				}
 			}
 		});
-		
+
 		new App(new Options().url("/chat").packageOf(this), new VertxModule(httpServer));
 		httpServer.listen(8080);
 	}

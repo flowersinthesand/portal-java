@@ -15,13 +15,15 @@
  */
 package com.github.flowersinthesand.portal.vertx;
 
+import io.netty.handler.codec.http.QueryStringDecoder;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
-import org.jboss.netty.handler.codec.http.QueryStringDecoder;
 import org.vertx.java.core.Handler;
-import org.vertx.java.core.SimpleHandler;
+import org.vertx.java.core.VoidHandler;
 import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.http.HttpServerRequest;
 import org.vertx.java.core.http.HttpServerResponse;
@@ -65,7 +67,8 @@ public class VertxSocketFactory extends AbstractSocketFactory {
 
 		public WsSocket(ServerWebSocket webSocket) {
 			this.webSocket = webSocket;
-			Map<String, List<String>> paramMap = new QueryStringDecoder(webSocket.path.replaceFirst("@", "?")).getParameters();
+			webSocket.query();
+			Map<String, List<String>> paramMap = new QueryStringDecoder("?" + webSocket.query()).parameters();
 			params = new LinkedHashMap<>(paramMap.size());
 			for (Map.Entry<String, List<String>> entry : paramMap.entrySet()) {
 				params.put(entry.getKey(), entry.getValue().get(0));
@@ -77,13 +80,13 @@ public class VertxSocketFactory extends AbstractSocketFactory {
 					fire(data.toString());
 				}
 			});
-			webSocket.exceptionHandler(new Handler<Exception>() {
+			webSocket.exceptionHandler(new Handler<Throwable>() {
 				@Override
-				public void handle(Exception event) {
+				public void handle(Throwable event) {
 					onClose();
 				}
 			});
-			webSocket.closedHandler(new SimpleHandler() {
+			webSocket.closeHandler(new VoidHandler() {
 				@Override
 				protected void handle() {
 					onClose();
@@ -108,16 +111,19 @@ public class VertxSocketFactory extends AbstractSocketFactory {
 		private HttpServerResponse res;
 
 		public StreamSocket(HttpServerRequest req) {
-			this.res = req.response;
-			this.params = req.params();
+			this.res = req.response();
+			this.params = new LinkedHashMap<>();
+			for (Entry<String, String> entry : req.params()) {
+				this.params.put(entry.getKey(), entry.getValue());
+			}
 			this.isAndroid = isAndroid(req.headers().get("user-agent"));
-			res.exceptionHandler(new Handler<Exception>() {
+			res.exceptionHandler(new Handler<Throwable>() {
 				@Override
-				public void handle(Exception event) {
+				public void handle(Throwable event) {
 					onClose();
 				}
 			});
-			res.closeHandler(new SimpleHandler() {
+			res.closeHandler(new VoidHandler() {
 				@Override
 				protected void handle() {
 					onClose();
@@ -148,19 +154,22 @@ public class VertxSocketFactory extends AbstractSocketFactory {
 		private HttpServerResponse res;
 
 		public LongPollSocket(HttpServerRequest req) {
-			this.params = req.params();
+			this.params = new LinkedHashMap<>();
+			for (Entry<String, String> entry : req.params()) {
+				this.params.put(entry.getKey(), entry.getValue());
+			}
 			refresh(req, true);
 		}
 
 		private void refresh(HttpServerRequest req, final boolean open) {
-			res = req.response;
-			res.exceptionHandler(new Handler<Exception>() {
+			res = req.response();
+			res.exceptionHandler(new Handler<Throwable>() {
 				@Override
-				public void handle(Exception event) {
+				public void handle(Throwable event) {
 					onClose();
 				}
 			});
-			res.closeHandler(new SimpleHandler() {
+			res.closeHandler(new VoidHandler() {
 				@Override
 				protected void handle() {
 					if (!open && res != null) {

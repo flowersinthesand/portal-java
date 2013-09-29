@@ -9,9 +9,4 @@
 (function(portal) {
 	portal.defaults.heartbeat = 20000;
 	portal.defaults.notifyAbort = true;
-	portal.defaults._urlBuilder = portal.defaults.urlBuilder;
-	portal.defaults.urlBuilder = function(url, params, when) {
-		var value = portal.defaults._urlBuilder.apply(this, arguments);
-		return (when === "open" && params.transport === "ws") ? value.replace("?", "@") : value;
-	};
 })(window.portal);

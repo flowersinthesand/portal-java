@@ -60,10 +60,9 @@ public class VertxSocketController implements SocketController {
 		return new Handler<HttpServerRequest>() {
 			@Override
 			public void handle(HttpServerRequest req) {
-				URL url = Thread.currentThread().getContextClassLoader().getResource("META-INF/resources" + req.path);
+				URL url = Thread.currentThread().getContextClassLoader().getResource("META-INF/resources" + req.path());
 				if (url == null) {
-					req.response.statusCode = 404;
-					req.response.end();
+					req.response().setStatusCode(404).end();
 				} else {
 					ByteArrayOutputStream baos = new ByteArrayOutputStream();
 					try {
@@ -72,7 +71,7 @@ public class VertxSocketController implements SocketController {
 						throw new RuntimeException(e);
 					}
 
-					req.response
+					req.response()
 					.putHeader("Content-Type", "application/javascript")
 					.putHeader("Content-Length", String.valueOf(baos.size()))
 					.end(new Buffer(baos.toByteArray()));
@@ -85,8 +84,7 @@ public class VertxSocketController implements SocketController {
 		return new Handler<HttpServerRequest>() {
 			@Override
 			public void handle(HttpServerRequest req) {
-				req.response.headers().putAll(AbstractSocketFactory.noCacheHeader());
-				req.response.headers().putAll(AbstractSocketFactory.corsHeader(req.headers().get("Origin")));
+				req.response().headers().add(AbstractSocketFactory.noCacheHeader()).add(AbstractSocketFactory.corsHeader(req.headers().get("Origin")));
 				String when = req.params().get("when");
 				if (when.equals("open") || when.equals("poll")) {
 					socketFactory.openHttp(req);
@@ -101,15 +99,14 @@ public class VertxSocketController implements SocketController {
 		return new Handler<HttpServerRequest>() {
 			@Override
 			public void handle(HttpServerRequest req) {
-				req.response.headers().putAll(AbstractSocketFactory.noCacheHeader());
-				req.response.headers().putAll(AbstractSocketFactory.corsHeader(req.headers().get("Origin")));
+				req.response().headers().add(AbstractSocketFactory.noCacheHeader()).add(AbstractSocketFactory.corsHeader(req.headers().get("Origin")));
 				req.bodyHandler(new Handler<Buffer>() {
 					@Override
 					public void handle(Buffer body) {
 						socketFactory.fire(body.toString().substring("data=".length()));
 					};
 				});
-				req.response.end();
+				req.response().end();
 			}
 		};
 	}
@@ -119,7 +116,7 @@ public class VertxSocketController implements SocketController {
 			Handler<ServerWebSocket> old = httpServer.websocketHandler();
 			@Override
 			public void handle(ServerWebSocket webSocket) {
-				if (webSocket.path.startsWith(url)) {
+				if (webSocket.path().startsWith(url)) {
 					socketFactory.openWs(webSocket);
 				}
 				if (old != null) {
