@@ -16,14 +16,14 @@ The following static resources are located in `META-INF/resources/portal/` in th
 Add new route for portal resources to the routes file.
 
 ```
-GET     /portal/*file               controllers.PortalAssets.at(file)
+GET     /portal/*file               com.github.flowersinthesand.portal.play.Assets.at(file)
 ```
 
 Then, call the above reverse controller.
 
 ```scala
-<script src="@routes.PortalAssets.at("portal.js")"></script>
-<script src="@routes.PortalAssets.at("play.js")"></script>
+<script src="@com.github.flowersinthesand.portal.play.routes.Assets.at("portal.js")"></script>
+<script src="@com.github.flowersinthesand.portal.play.routes.Assets.at("play.js")"></script>
 ```
 
 ## Gluing

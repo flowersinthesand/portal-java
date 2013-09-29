@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package controllers
+package com.github.flowersinthesand.portal.play
 
 import play.api.mvc.{Action, AnyContent}
 
-object PortalAssets {
+object Assets {
   
   def at(file: String): Action[AnyContent] = {
-    Assets.at("/META-INF/resources/portal", file)
+    controllers.Assets.at("/META-INF/resources/portal", file)
   }
   
 }
