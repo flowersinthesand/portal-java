@@ -21,7 +21,7 @@ GET     /portal/*file               com.github.flowersinthesand.portal.play.Asse
 
 Then, call the above reverse controller.
 
-```scala
+```html
 <script src="@com.github.flowersinthesand.portal.play.routes.Assets.at("portal.js")"></script>
 <script src="@com.github.flowersinthesand.portal.play.routes.Assets.at("play.js")"></script>
 ```
@@ -32,7 +32,7 @@ To run an application in Play framework, define the `Global` and create an `App`
 ```java
 public class Global extends GlobalSettings {
 
-    prviate App app;
+    private App app;
 
     @Override
     public void onStart(Application application) {
