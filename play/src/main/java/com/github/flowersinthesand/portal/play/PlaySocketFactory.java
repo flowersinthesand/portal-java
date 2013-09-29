@@ -110,7 +110,7 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 		public StreamSocket(Request req, Response res) {
 			this.params = params(req.queryString());
 			this.isAndroid = isAndroid(req.getHeader("user-agent"));
-			this.chunks = new Chunks<String>(JavaResults.writeString(Codec.utf_8()), JavaResults.contentTypeOfString((Codec.utf_8()))) {
+			this.chunks = new Chunks<String>(JavaResults.writeString(Codec.utf_8())) {
 				@Override
 				public void onReady(Chunks.Out<String> oout) {
 					out = oout;
@@ -154,7 +154,7 @@ public class PlaySocketFactory extends AbstractSocketFactory {
 		}
 
 		private void refresh(final Request req, Response res, final boolean open) {
-			this.chunks = new Chunks<String>(JavaResults.writeString(Codec.utf_8()), JavaResults.contentTypeOfString((Codec.utf_8()))) {
+			this.chunks = new Chunks<String>(JavaResults.writeString(Codec.utf_8())) {
 				@Override
 				public void onReady(Chunks.Out<String> oout) {
 					out = oout;

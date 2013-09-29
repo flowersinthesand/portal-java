@@ -1,6 +1,6 @@
 import sbt._
 import Keys._
-import PlayProject._
+import play.Project._
 
 object ApplicationBuild extends Build {
 
@@ -19,6 +19,6 @@ object ApplicationBuild extends Build {
         // "com.github.flowersinthesand" % "portal-play" % "${portal.version}"
     )
 
-    val main = PlayProject(appName, appVersion, appDependencies, mainLang = JAVA).settings()
+    val main = play.Project(appName, appVersion, appDependencies).settings()
 
 }
