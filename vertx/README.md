@@ -3,12 +3,19 @@
 
 ## Installing
 ### Including module
-Include the following module when running verticle or module:
+Include the following module in a basic manner:
 ```
-com.github.flowersinthesand.portal-vertx-v${portal.version}
+com.github.flowersinthesand~portal-vertx~${portal.version}
 ```
 
-After executing `mvn package`, the module is generated as a zip file called `mod.zip` under the `target` folder.
+Or if you are using the Vert.x Maven archetype, add the following dependency to your pom.xml:
+```xml
+<dependency>
+    <groupId>com.github.flowersinthesand</groupId>
+    <artifactId>portal-vertx</artifactId>
+    <version>${portal.version}</version>
+</dependency>
+```
 
 ### Loading resources
 The following static resources are located in `META-INF/resources/portal/` in the jar.
@@ -23,18 +30,18 @@ In the server where an application is installed, these resources will be exposed
 ```
 
 ## Gluing
-To run an application in Vert.x, define a `Verticle` and create an `App` with the module created with `HttpServer` in the `start` method.
+To run an application in Vert.x, define a `Verticle` and create an `App` with the module created with `HttpServer` in the `start` method. You should call `HttpServer`'s `listen` method explicitly.
 
 ```java
 public class Initializer extends Verticle {
 
     @Override
-    public void start() throws Exception {
+    public void start() {
         HttpServer httpServer = vertx.createHttpServer();
         httpServer.requestHandler(new Handler<HttpServerRequest>() {
             public void handle(HttpServerRequest req) {
-                if (req.path.equals("/")) {
-                    req.response.sendFile("web/index.html");
+                if (req.path().equals("/")) {
+                    req.response().sendFile("webapp/index.html");
                 }
             }
         });
