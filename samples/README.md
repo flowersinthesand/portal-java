@@ -59,5 +59,5 @@ vertx run samples.Server -includes com.github.flowersinthesand.portal-vertx-v${p
 Then, open a browser and connect to `http://localhost:8080`.
 
 ## External applications
-### [Demos](http://ha-bio.rasc.ch/portal-demos/) by [Ralph](https://github.com/ralscha)
+### [Demos](https://demo.rasc.ch/portal/) by [Ralph](https://github.com/ralscha)
 Source codes and online applications of chat, scheduler, twitter, snake, etc are available.
