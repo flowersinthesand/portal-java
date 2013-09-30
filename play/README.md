@@ -21,7 +21,7 @@ GET     /portal/*file               com.github.flowersinthesand.portal.play.Asse
 
 Then, call the above reverse controller.
 
-```html
+```scala
 <script src="@com.github.flowersinthesand.portal.play.routes.Assets.at("portal.js")"></script>
 <script src="@com.github.flowersinthesand.portal.play.routes.Assets.at("play.js")"></script>
 ```
