@@ -19,11 +19,12 @@
 		<finalName>${project.artifactId}</finalName>
 		<plugins>
 			<plugin>
-				<groupId>org.mortbay.jetty</groupId>
+				<!-- For Servlet 2.5 -->
+				<!-- <groupId>org.mortbay.jetty</groupId> -->
+				<!-- <version>	7.6.13.v20130916</version> for Servlet 2.5 -->
+				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-maven-plugin</artifactId>
-				<!-- <version>8.1.11.v20130520</version> for Servlet 3.0 -->
-				<!-- <version>7.6.11.v20130520</version> for Servlet 2.5 -->
-				<version>8.1.11.v20130520</version>
+				<version>9.0.5.v20130815</version>
 				<configuration>
 					<scanIntervalSeconds>1</scanIntervalSeconds>
 					<webAppConfig>
