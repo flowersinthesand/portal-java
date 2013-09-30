@@ -65,6 +65,7 @@ public class AtmosphereModule implements Module {
 
 		ServletRegistration.Dynamic registration = context.addServlet("portal#" + options.name(), servlet);
 		registration.setLoadOnStartup(0);
+		registration.setAsyncSupported(true);
 		registration.addMapping(options.url());
 		registration.setInitParameter(ApplicationConfig.DISABLE_ATMOSPHEREINTERCEPTOR, Boolean.FALSE.toString());
 		modifyAtmosphereServletRegistration(registration);
