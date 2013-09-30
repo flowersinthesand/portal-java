@@ -8,7 +8,7 @@
 	<groupId>com.github.flowersinthesand</groupId>
 	<artifactId>portal-chat-vertx</artifactId>
 	<version>0.8-SNAPSHOT</version>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 	<name>Chat for Vert.x</name>
 	<properties>
 		<vertx.pullInDeps>false</vertx.pullInDeps>
