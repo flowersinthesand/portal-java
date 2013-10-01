@@ -32,33 +32,33 @@ object Handlers {
       return null
     }
     
-    val controllerClass = classOf[PlaySocketController]
-    val socketController = app.bean(controllerClass)
+    val c = classOf[PlaySocketController]
+    val b = app.bean(c)
     
     request.method match {
       case "GET" => {
         request.queryString.get("when")(0) match {
           case "open" | "poll" => {
             request.queryString.get("transport")(0) match {
-              case "ws" => JavaWebSocket.ofString(socketController.ws)
+              case "ws" => JavaWebSocket.ofString(b.ws)
               case _ => new JavaAction {
-                def invocation = socketController.httpOut
-                val controller = controllerClass
-                lazy val method = MethodUtils.getMatchingAccessibleMethod(controller, "httpOut")
+                val annotations = new JavaActionAnnotations(c, c.getMethod("httpOut"))
+                val parser = annotations.parser
+                def invocation = b.httpOut
               }
             }
           }
           case "abort" => new JavaAction {
-            def invocation = socketController.abort
-            val controller = controllerClass
-            lazy val method = MethodUtils.getMatchingAccessibleMethod(controller, "abort")
+            val annotations = new JavaActionAnnotations(c, c.getMethod("abort"))
+            val parser = annotations.parser
+            def invocation = b.abort
           }
         }
       }
       case "POST" => new JavaAction {
-        def invocation = socketController.httpIn
-        val controller = controllerClass
-        lazy val method = MethodUtils.getMatchingAccessibleMethod(controller, "httpIn")
+        val annotations = new JavaActionAnnotations(c, c.getMethod("httpIn"))
+        val parser = annotations.parser
+        def invocation = b.httpIn
       }
     }
   }

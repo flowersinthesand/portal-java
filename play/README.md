@@ -1,5 +1,5 @@
 # Play
-`portal-play` module integrates the portal application with the [Play framework](http://www.playframework.org/) 2 which is a high productivity Java and Scala web application framework. The latest version supported is `2.1.1`. 
+`portal-play` module integrates the portal application with the [Play framework](http://www.playframework.org/) 2 which is a high productivity Java and Scala web application framework. The minimum supported version is `2.1.2`. 
 
 ## Installing
 ### Adding dependency
