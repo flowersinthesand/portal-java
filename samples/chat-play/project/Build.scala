@@ -20,6 +20,14 @@ object ApplicationBuild extends Build {
         // "com.github.flowersinthesand" % "portal-play" % "${portal.version}"
     )
 
-    val main = play.Project(appName, appVersion, appDependencies).settings()
+    // play2-maven-plugin 1.2.2 can't handle new dist structure of Play 2.2.0
+    // workaround by @maccamlc
+    // https://github.com/nanoko-project/maven-play2-plugin/issues/15#issuecomment-24977753
+    val distFolder = new File("target/dist")
+    distFolder.mkdirs()
+
+    val main = play.Project(appName, appVersion, appDependencies).settings(
+        target in com.typesafe.sbt.SbtNativePackager.Universal := distFolder
+    )
 
 }

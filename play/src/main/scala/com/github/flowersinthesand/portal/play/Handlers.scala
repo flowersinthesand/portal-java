@@ -21,6 +21,7 @@ import play.api.mvc.Handler
 import play.core._
 import play.core.j._
 import play.mvc.Http.RequestHeader
+import play.libs.F.Promise
 
 import com.github.flowersinthesand.portal.App
 
@@ -44,21 +45,21 @@ object Handlers {
               case _ => new JavaAction {
                 val annotations = new JavaActionAnnotations(c, c.getMethod("httpOut"))
                 val parser = annotations.parser
-                def invocation = b.httpOut
+                def invocation = Promise.pure(b.httpOut)
               }
             }
           }
           case "abort" => new JavaAction {
             val annotations = new JavaActionAnnotations(c, c.getMethod("abort"))
             val parser = annotations.parser
-            def invocation = b.abort
+            def invocation = Promise.pure(b.abort)
           }
         }
       }
       case "POST" => new JavaAction {
         val annotations = new JavaActionAnnotations(c, c.getMethod("httpIn"))
         val parser = annotations.parser
-        def invocation = b.httpIn
+        def invocation = Promise.pure(b.httpIn)
       }
     }
   }
