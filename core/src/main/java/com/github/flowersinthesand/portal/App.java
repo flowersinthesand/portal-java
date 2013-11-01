@@ -138,35 +138,38 @@ public final class App {
 	private Map<String, Class<?>> scan(List<String> packages) {
 		final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 		final Map<String, Class<?>> classes = new LinkedHashMap<String, Class<?>>();
-		AnnotationDetector detector = new AnnotationDetector(new AnnotationDetector.TypeReporter() {
 
-			@Override
-			public Class<? extends Annotation>[] annotations() {
-				return new Class[] { Bean.class };
-			}
-
-			@Override
-			public void reportTypeAnnotation(Class<? extends Annotation> annotation, String className) {
-				Class<?> clazz;
-				try {
-					clazz = classLoader.loadClass(className);
-				} catch (ClassNotFoundException e) {
-					logger.error("Bean '" + className + "' not found", e);
-					throw new IllegalArgumentException(e);
-				}
-				
-				String name = clazz.getAnnotation(Bean.class).value();
-				if (name.length() == 0) {
-					name = Introspector.decapitalize(className.substring(className.lastIndexOf('.') + 1).replace('$', '.'));
-				}
-				
-				classes.put(name, clazz);
-				logger.debug("Scanned @Bean(\"{}\") on '{}'", name, className);
-			}
-		});
-
-		for (String packageName : packages) {
+		for (final String packageName : packages) {
 			logger.debug("Scanning the package '{}'", packageName);
+			AnnotationDetector detector = new AnnotationDetector(new AnnotationDetector.TypeReporter() {
+
+				@Override
+				public Class<? extends Annotation>[] annotations() {
+					return new Class[] { Bean.class };
+				}
+
+				@Override
+				public void reportTypeAnnotation(Class<? extends Annotation> annotation, String className) {
+					// To avoid https://github.com/rmuller/infomas-asl/issues/14
+					if (className.startsWith(packageName)) {
+						Class<?> clazz;
+						try {
+							clazz = classLoader.loadClass(className);
+						} catch (ClassNotFoundException e) {
+							logger.error("Bean '" + className + "' not found", e);
+							throw new IllegalArgumentException(e);
+						}
+						
+						String name = clazz.getAnnotation(Bean.class).value();
+						if (name.length() == 0) {
+							name = Introspector.decapitalize(className.substring(className.lastIndexOf('.') + 1).replace('$', '.'));
+						}
+						
+						classes.put(name, clazz);
+						logger.debug("Scanned @Bean(\"{}\") on '{}'", name, className);
+					}
+				}
+			});
 
 			try {
 				detector.detect(packageName);
