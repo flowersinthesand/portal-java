@@ -7,7 +7,7 @@
 	</parent>
 	<groupId>com.github.flowersinthesand</groupId>
 	<artifactId>portal-parent</artifactId>
-	<version>0.6</version>
+	<version>0.6.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Portal</name>
 	<url>http://github.com/flowersinthesand/portal-java</url>
