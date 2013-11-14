@@ -210,7 +210,7 @@ public abstract class AbstractSocketFactory implements SocketFactory {
 		}
 
 		protected boolean isAndroid(String userAgent) {
-			return userAgent.matches(".*Android\\s[23]\\..*");
+			return userAgent != null && userAgent.matches(".*Android\\s[23]\\..*");
 		}
 
 		protected void retrieveCache(String lastEventIdsString) {
