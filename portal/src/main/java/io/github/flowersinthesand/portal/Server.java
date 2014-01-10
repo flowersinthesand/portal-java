@@ -70,12 +70,12 @@ public interface Server {
 	Server socketAction(Action<Socket> action);
 
 	/**
-	 * ServerHttpExchange action to install in wes 
+	 * ServerHttpExchange action to install in wes
 	 */
 	Action<ServerHttpExchange> httpAction();
-	
+
 	/**
-	 * ServerWebSocket action to install in wes 
+	 * ServerWebSocket action to install in wes
 	 */
 	Action<ServerWebSocket> websocketAction();
 

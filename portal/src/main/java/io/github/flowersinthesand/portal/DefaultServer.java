@@ -29,14 +29,12 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.CharBuffer;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -58,6 +56,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Default implementation of {@link Server}.
+ * <p>
+ * This implementation provides and manages {@link Socket} processing HTTP
+ * request and WebSocket following the portal protocol.
+ * <p>
+ * As options, the following methods can be overridden.
+ * <ul>
+ * <li>{@link DefaultServer#parseURI(String)}
+ * </ul> 
  * 
  * @author Donghwan Kim
  */
@@ -72,12 +78,12 @@ public class DefaultServer implements Server {
 		public void on(final ServerHttpExchange http) {
 			switch (http.method()) {
 			case "GET":
-				Map<String, List<String>> params = parseQuery(http.uri());
+				Map<String, String> params = parseURI(http.uri());
 				setNocache(http);
 				setCors(http);
-				switch (params.get("when").get(0)) {
+				switch (params.get("when")) {
 				case "open":
-					switch (params.get("transport").get(0)) {
+					switch (params.get("transport")) {
 					case "sse":
 					case "streamxhr":
 					case "streamxdr":
@@ -90,12 +96,12 @@ public class DefaultServer implements Server {
 						socketActions.fire(new DefaultSocket(new LongpollTransport(params, http)));
 						break;
 					default:
-						log.error("Transport, {}, is not supported", params.get("transport").get(0));
+						log.error("Transport, {}, is not supported", params.get("transport"));
 						http.setStatus(HttpStatus.NOT_IMPLEMENTED).close();
 					}
 					break;
 				case "poll": {
-					String id = params.get("id").get(0);
+					String id = params.get("id");
 					DefaultSocket socket = sockets.get(id);
 					if (socket != null) {
 						Transport transport = socket.transport;
@@ -111,7 +117,7 @@ public class DefaultServer implements Server {
 					}
 					break; }
 				case "abort": {
-					String id = params.get("id").get(0);
+					String id = params.get("id");
 					Socket socket = sockets.get(id);
 					if (socket != null) {
 						socket.close();
@@ -119,7 +125,7 @@ public class DefaultServer implements Server {
 					http.setResponseHeader("content-type", "text/javascript; charset=utf-8").close();
 					break; }
 				default:
-					log.error("when, {}, is not supported", params.get("when").get(0));
+					log.error("when, {}, is not supported", params.get("when"));
 					http.setStatus(HttpStatus.NOT_IMPLEMENTED).close();
 					break;
 				}
@@ -185,18 +191,23 @@ public class DefaultServer implements Server {
 	private Action<ServerWebSocket> websocketAction = new Action<ServerWebSocket>() {
 		@Override
 		public void on(ServerWebSocket ws) {
-			Map<String, List<String>> params = parseQuery(ws.uri());
+			Map<String, String> params = parseURI(ws.uri());
 			socketActions.fire(new DefaultSocket(new WebSocketTransport(params, ws)));
 		}
 	};
-	
-	private Map<String, List<String>> parseQuery(String uri) {
-		Map<String, List<String>> map = new LinkedHashMap<>();
+
+	/**
+	 * Takes a portal URI and returns a map of parameters.
+	 * <p>
+	 * This is a counterpart of {@code urlBuilder} from client option.
+	 */
+	protected Map<String, String> parseURI(String uri) {
+		Map<String, String> map = new LinkedHashMap<>();
 		String query = URI.create(uri).getQuery();
 		if ((query == null) || (query.equals(""))) {
 			return map;
 		}
-		
+
 		String[] params = query.split("&");
 		for (String param : params) {
 			try {
@@ -204,18 +215,15 @@ public class DefaultServer implements Server {
 				String name = URLDecoder.decode(pair[0], "UTF-8");
 				if (name == "") {
 					continue;
-				} else if (!map.containsKey(name)) {
-					map.put(name, new ArrayList<String>());
 				}
-				
-				map.get(name).add(pair.length > 1 ? URLDecoder.decode(pair[1], "UTF-8") : "");
+
+				map.put(name, pair.length > 1 ? URLDecoder.decode(pair[1], "UTF-8") : "");
 			} catch (UnsupportedEncodingException e) {}
 		}
-		
-		return map;
+
+		return Collections.unmodifiableMap(map);
 	}
-
-
+	
 	@Override
 	public Server all(Action<Socket> action) {
 		for (Socket socket : sockets.values()) {
@@ -266,14 +274,11 @@ public class DefaultServer implements Server {
 	}
 
 	private abstract class Transport {
-		final Map<String, List<String>> params;
+		final Map<String, String> params;
 		Actions<String> messageActions = new ConcurrentActions<>();
 		Actions<Void> closeActions = new ConcurrentActions<>();
 
-		Transport(Map<String, List<String>> params) {
-			for (Entry<String, List<String>> entry : params.entrySet()) {
-				entry.setValue(Collections.unmodifiableList(entry.getValue()));
-			}
+		Transport(Map<String, String> params) {
 			this.params = params;
 		}
 		
@@ -285,7 +290,7 @@ public class DefaultServer implements Server {
 	private class WebSocketTransport extends Transport {
 		final ServerWebSocket ws;
 		
-		WebSocketTransport(Map<String, List<String>> params, ServerWebSocket ws) {
+		WebSocketTransport(Map<String, String> params, ServerWebSocket ws) {
 			super(params);
 			this.ws = ws;
 			ws.closeAction(new VoidAction() {
@@ -321,7 +326,7 @@ public class DefaultServer implements Server {
 	private abstract class HttpTransport extends Transport {
 		final ServerHttpExchange http;
 		
-		HttpTransport(Map<String, List<String>> params, ServerHttpExchange http) {
+		HttpTransport(Map<String, String> params, ServerHttpExchange http) {
 			super(params);
 			this.http = http;
 		}
@@ -337,7 +342,7 @@ public class DefaultServer implements Server {
 	private class StreamTransport extends HttpTransport {
 		final boolean isAndroidLowerThan3;
 		
-		StreamTransport(Map<String, List<String>> params, ServerHttpExchange http) {
+		StreamTransport(Map<String, String> params, ServerHttpExchange http) {
 			super(params, http);
 			String ua = http.requestHeader("user-agent");
 			this.isAndroidLowerThan3 = ua == null ? false : ua.matches(".*Android\\s[23]\\..*");
@@ -348,7 +353,7 @@ public class DefaultServer implements Server {
 				}
 			})
 			.setResponseHeader("content-type",
-				"text/" + (params.get("transport").get(0).equals("sse") ? "event-stream" : "plain") + "; charset=utf-8")
+				"text/" + (params.get("transport").equals("sse") ? "event-stream" : "plain") + "; charset=utf-8")
 			.write((isAndroidLowerThan3 ? text2KB : "") + text2KB + "\n");
 		}
 		
@@ -375,18 +380,18 @@ public class DefaultServer implements Server {
 		Set<String> buffer = new CopyOnWriteArraySet<>(); 
 		AtomicReference<Timer> closeTimer = new AtomicReference<>();
 		
-		LongpollTransport(Map<String, List<String>> params, ServerHttpExchange http) {
+		LongpollTransport(Map<String, String> params, ServerHttpExchange http) {
 			super(params, http);
 			refresh(http);
 		}
 
 		void refresh(ServerHttpExchange http) {
-			final Map<String, List<String>> parameters = parseQuery(http.uri());
+			final Map<String, String> parameters = parseURI(http.uri());
 			http.closeAction(new VoidAction() {
 				@Override
 				public void on() {
 					closed.set(true);
-					if (parameters.get("when").get(0).equals("poll") && !written.get()) {
+					if (parameters.get("when").equals("poll") && !written.get()) {
 						closeActions.fire();
 					}
 					Timer timer = new Timer(true);
@@ -400,9 +405,9 @@ public class DefaultServer implements Server {
 				}
 			})
 			.setResponseHeader("content-type", 
-				"text/" + (params.get("transport").get(0).equals("longpolljsonp") ? "javascript" : "plain") + "; charset=utf-8");
+				"text/" + (params.get("transport").equals("longpolljsonp") ? "javascript" : "plain") + "; charset=utf-8");
 			
-			if (parameters.get("when").get(0).equals("open")) {
+			if (parameters.get("when").equals("open")) {
 				http.close();
 			} else {
 				httpRef.set(http);
@@ -413,7 +418,7 @@ public class DefaultServer implements Server {
 					timer.cancel();
 				}
 				if (parameters.containsKey("lastEventIds")) {
-					String[] lastEventIds = parameters.get("lastEventIds").get(0).split(",");
+					String[] lastEventIds = parameters.get("lastEventIds").split(",");
 					for (String eventId : lastEventIds) {
 						for (String message : buffer) {
 							if (eventId.equals(findEventId(message))) {
@@ -449,8 +454,8 @@ public class DefaultServer implements Server {
 				written.set(true);
 				String payload;
 				try {
-					payload = params.get("transport").get(0).equals("longpolljsonp") ? 
-						params.get("callback").get(0) + "(" + new ObjectMapper().writeValueAsString(data) + ");" : 
+					payload = params.get("transport").equals("longpolljsonp") ? 
+						params.get("callback") + "(" + new ObjectMapper().writeValueAsString(data) + ");" : 
 						data; 
 				} catch (JsonProcessingException e) {
 					throw new RuntimeException(e);
@@ -479,7 +484,7 @@ public class DefaultServer implements Server {
 			transport.closeActions.add(new VoidAction() {
 				@Override
 				public void on() {
-					sockets.remove(transport.params.get("id").get(0));
+					sockets.remove(transport.params.get("id"));
 					Actions<Object> closeActions = actionsMap.get("close");
 					if (closeActions != null) {
 						closeActions.fire();
@@ -554,7 +559,7 @@ public class DefaultServer implements Server {
 				}
 			});
 			try {
-				new HeartbeatHelper(Long.valueOf(transport.params.get("heartbeat").get(0)));
+				new HeartbeatHelper(Long.valueOf(transport.params.get("heartbeat")));
 			} catch (NumberFormatException e) {}
 			
 			sockets.put(id(), this);
@@ -590,7 +595,7 @@ public class DefaultServer implements Server {
 
 		@Override
 		public String id() {
-			return transport.params.get("id").get(0);
+			return transport.params.get("id");
 		}
 
 		@Override
