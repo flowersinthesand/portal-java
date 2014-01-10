@@ -48,7 +48,7 @@ public interface Socket {
 	/**
 	 * Adds a given event handler for a given event.
 	 * <p>
-	 * The allowed types for <code>T</code> are Java types corresponding to JSON types.
+	 * The allowed types for {@code T} are Java types corresponding to JSON types.
 	 * <table>
 	 * <thead>
 	 * <tr>
@@ -71,20 +71,20 @@ public interface Socket {
 	 * </tr>
 	 * <tr>
 	 * <td>Array</td>
-	 * <td>{@link List}, <code>List&lt;T&gt;</code> in generic</td>
+	 * <td>{@link List}, {@code List<T>} in generic</td>
 	 * </tr>
 	 * <tr>
 	 * <td>Object</td>
-	 * <td>{@link Map}, <code>Map&lt;String, T&gt;</code> in generic</td>
+	 * <td>{@link Map}, {@code Map<String, T>} in generic</td>
 	 * </tr>
 	 * <tr>
 	 * <td>null</td>
-	 * <td>null, {@link Void} for convenience</td>
+	 * <td>{@code null}, {@link Void} for convenience</td>
 	 * </tr>
 	 * </tbody>
 	 * </table>
 	 * 
-	 * If the counterpart sends an event with callback, <code>T</code> should be {@link Reply}.
+	 * If the counterpart sends an event with callback, {@code T} should be {@link Reply}.
 	 */
 	<T> Socket on(String event, Action<T> action);
 
@@ -106,7 +106,7 @@ public interface Socket {
 	/**
 	 * Sends a given event with data registering callback.
 	 * <p>
-	 * For the allowed types for <code>T</code>, see {@link Socket#on(String, Action)}. 
+	 * For the allowed types for {@code T}, see {@link Socket#on(String, Action)}. 
 	 */
 	<T> Socket send(String event, Object data, Action<T> reply);
 
@@ -118,7 +118,7 @@ public interface Socket {
 	/**
 	 * Interface to deal with reply.
 	 * <p>
-	 * For the allowed types for <code>T</code>, see {@link Socket#on(String, Action)}. 
+	 * For the allowed types for {@code T}, see {@link Socket#on(String, Action)}. 
 	 * 
 	 * @author Donghwan Kim
 	 */
