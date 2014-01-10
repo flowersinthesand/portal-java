@@ -20,7 +20,7 @@ import javax.servlet.annotation.WebListener;
  * <p>
  * To start the server on http://localhost:8080/,
  * <p>
- * <code>$ mvn jetty:run</code>
+ * <code>$ mvn jetty:run-war</code>
  * <p>
  * Then connect to http://localhost:8080/test/ using any test suite client.
  * Also, this web server serves up test suite client running on browser written
@@ -30,7 +30,7 @@ import javax.servlet.annotation.WebListener;
  * To run the test suite in cross-origin, start another server on
  * http://localhost:8090/,
  * <p>
- * <code>$ mvn jetty:run -Djetty.port=8090</code>
+ * <code>$ mvn jetty:run-war -Djetty.port=8090</code>
  * <p>
  * Then open http://localhost:8090 in your browser. Test suite on 8090 will
  * connect to 8080, cross-origin.

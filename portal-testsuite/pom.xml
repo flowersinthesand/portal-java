@@ -7,6 +7,7 @@
 	</parent>
 	<artifactId>portal-testsuite</artifactId>
 	<name>Portal test suite</name>
+	<packaging>war</packaging>
 	<description>This module contains a client and server implementation of Portal test suite written in Java.</description>
 	<dependencies>
 		<dependency>
@@ -23,12 +24,67 @@
 			<scope>runtime</scope>
 		</dependency>
 	</dependencies>
+	<properties>
+		<portal.version>1.1.1</portal.version>
+	</properties>
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<failOnMissingWebXml>false</failOnMissingWebXml>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-maven-plugin</artifactId>
 				<version>9.1.0.v20131115</version>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>wagon-maven-plugin</artifactId>
+				<version>1.0-beta-4</version>
+				<executions>
+					<execution>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>download-single</goal>
+						</goals>
+						<configuration>
+							<url>https://github.com/flowersinthesand/portal/archive/</url>
+							<fromFile>${portal.version}.zip</fromFile>
+							<toFile>${project.build.directory}/temp.zip</toFile>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.7</version>
+				<executions>
+					<execution>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<unzip src="${project.build.directory}/temp.zip" dest="${project.build.directory}" />
+								<move todir="${project.build.directory}/${build.finalName}">
+									<fileset dir="${project.build.directory}/portal-${portal.version}/test/webapp" />
+									<filelist dir="${project.build.directory}/portal-${portal.version}/">
+										<file name="portal.js" />
+										<file name="portal.min.js" />
+									</filelist>
+								</move>
+								<delete file="${project.build.directory}/temp.zip" />
+								<delete dir="${project.build.directory}/portal-${portal.version}" />
+							</target>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
