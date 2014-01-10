@@ -114,11 +114,6 @@ public interface Socket {
 	 * Closes the session.
 	 */
 	Socket close();
-	
-	/**
-	 * Adds a close event handler.
-	 */
-	Socket closeAction(Action<Void> action);
 
 	/**
 	 * Interface to deal with reply.
