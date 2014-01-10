@@ -670,6 +670,11 @@ public class DefaultServer implements Server {
 		}
 
 		@Override
+		public Socket closeAction(Action<Void> action) {
+			return on("close", action);
+		}
+
+		@Override
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
