@@ -270,7 +270,7 @@ public class DefaultServer implements Server {
 		Actions<String> messageActions = new ConcurrentActions<>();
 		Actions<Void> closeActions = new ConcurrentActions<>();
 
-		public Transport(Map<String, List<String>> params) {
+		Transport(Map<String, List<String>> params) {
 			for (Entry<String, List<String>> entry : params.entrySet()) {
 				entry.setValue(Collections.unmodifiableList(entry.getValue()));
 			}
@@ -285,7 +285,7 @@ public class DefaultServer implements Server {
 	private class WebSocketTransport extends Transport {
 		final ServerWebSocket ws;
 		
-		public WebSocketTransport(Map<String, List<String>> params, ServerWebSocket ws) {
+		WebSocketTransport(Map<String, List<String>> params, ServerWebSocket ws) {
 			super(params);
 			this.ws = ws;
 			ws.closeAction(new VoidAction() {
@@ -321,7 +321,7 @@ public class DefaultServer implements Server {
 	private abstract class HttpTransport extends Transport {
 		final ServerHttpExchange http;
 		
-		public HttpTransport(Map<String, List<String>> params, ServerHttpExchange http) {
+		HttpTransport(Map<String, List<String>> params, ServerHttpExchange http) {
 			super(params);
 			this.http = http;
 		}
@@ -337,7 +337,7 @@ public class DefaultServer implements Server {
 	private class StreamTransport extends HttpTransport {
 		final boolean isAndroidLowerThan3;
 		
-		public StreamTransport(Map<String, List<String>> params, ServerHttpExchange http) {
+		StreamTransport(Map<String, List<String>> params, ServerHttpExchange http) {
 			super(params, http);
 			String ua = http.requestHeader("user-agent");
 			this.isAndroidLowerThan3 = ua == null ? false : ua.matches(".*Android\\s[23]\\..*");
@@ -375,12 +375,12 @@ public class DefaultServer implements Server {
 		Set<String> buffer = new CopyOnWriteArraySet<>(); 
 		AtomicReference<Timer> closeTimer = new AtomicReference<>();
 		
-		public LongpollTransport(Map<String, List<String>> params, ServerHttpExchange http) {
+		LongpollTransport(Map<String, List<String>> params, ServerHttpExchange http) {
 			super(params, http);
 			refresh(http);
 		}
 
-		public void refresh(ServerHttpExchange http) {
+		void refresh(ServerHttpExchange http) {
 			final Map<String, List<String>> parameters = parseQuery(http.uri());
 			http.closeAction(new VoidAction() {
 				@Override
@@ -474,7 +474,7 @@ public class DefaultServer implements Server {
 		ConcurrentMap<String, Actions<Object>> actionsMap = new ConcurrentHashMap<>();
 		ConcurrentMap<String, Action<Object>> replyMap = new ConcurrentHashMap<>();
 
-		public DefaultSocket(final Transport transport) {
+		DefaultSocket(final Transport transport) {
 			this.transport = transport;
 			transport.closeActions.add(new VoidAction() {
 				@Override
@@ -564,7 +564,7 @@ public class DefaultServer implements Server {
 			final long delay;
 			AtomicReference<Timer> timer = new AtomicReference<>();
 			
-			public HeartbeatHelper(long delay) {
+			HeartbeatHelper(long delay) {
 				this.delay = delay;
 				timer.set(createTimer());
 				on("heartbeat", new VoidAction() {
