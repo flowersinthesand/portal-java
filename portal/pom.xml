@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>io.github.flowersinthesand</groupId>
 		<artifactId>portal-parent</artifactId>
-		<version>0.8.0-SNAPSHOT</version>
+		<version>0.8.0</version>
 	</parent>
 	<artifactId>portal</artifactId>
 	<name>Portal for Java</name>
