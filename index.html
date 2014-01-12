@@ -45,7 +45,7 @@ public class ServerBootstrap implements ServletContextListener {
         <hr />
         <h2>API</h2>
         <p>Let's take a brief look at API usage.</p>
-        <h3><a href="{{ site.baseurl }}/0.8.0-SNAPSHOT/api/io/github/flowersinthesand/portal/Server.html">Server</a></h3>
+        <h3><a href="{{ site.baseurl }}/0.8.0/api/io/github/flowersinthesand/portal/Server.html">Server</a></h3>
         <p>Server provides and manages socket processing HTTP message and WebSocket.</p>
         <h4>Handling socket</h4>
         <p>When a socket is opened, actions added via <code>socketAction</code> are executed with it. It's allowed to add several actions before and after installation, so you don't need to centralize all your code to one class.</p>
@@ -98,7 +98,7 @@ server.byTag("room#201", new Action<Socket>() {
 ```
 {% endcapture %}{{ panel | markdownify }}
         <h4>Customizing</h4>
-        <p>As options to customize protocol, there are the following methods defined in <a href="{{ site.baseurl }}/0.8.0-SNAPSHOT/api/io/github/flowersinthesand/portal/DefaultServer.html">DefaultServer</a>.</p>
+        <p>As options to customize protocol, there are the following methods defined in <a href="{{ site.baseurl }}/0.8.0/api/io/github/flowersinthesand/portal/DefaultServer.html">DefaultServer</a>.</p>
 {% capture panel %}
 ```java
 Server server = new DefaultServer() {
@@ -119,7 +119,7 @@ Server server = new DefaultServer() {
 };
 ```
 {% endcapture %}{{ panel | markdownify }}
-        <h3><a href="{{ site.baseurl }}/0.8.0-SNAPSHOT/api/io/github/flowersinthesand/portal/Server.html">Socket</a></h3>
+        <h3><a href="{{ site.baseurl }}/0.8.0/api/io/github/flowersinthesand/portal/Server.html">Socket</a></h3>
         <p>Socket is a connectivity between the two portal endpoints where event occurs. Do not hold a reference on socket unless the reference shares the same life cycle of socket. It makes things complicated since it is stateful and also may result in a problem in clustered environment. Always create a socket action and pass it to server to access socket.</p>
         <h4>Properties</h4>
         <p>These are read only.</p>
@@ -154,7 +154,7 @@ tags.add("account#flowersinthesand");
             </div>
         </div>
         <h4>Receiving events</h4>
-        <p><code>on</code> attaches an event handler. Allowed <a href="{{ site.baseurl }}/0.8.0-SNAPSHOT/api/io/github/flowersinthesand/portal/Socket.html#on(java.lang.String, io.github.flowersinthesand.wes.Action)">Java types</a> for data corresponding to JSON types. As reserved event, when a socket has been closed, <code>close</code> event is fired without data.</p>
+        <p><code>on</code> attaches an event handler. Allowed <a href="{{ site.baseurl }}/0.8.0/api/io/github/flowersinthesand/portal/Socket.html#on(java.lang.String, io.github.flowersinthesand.wes.Action)">Java types</a> for data corresponding to JSON types. As reserved event, when a socket has been closed, <code>close</code> event is fired without data.</p>
 {% capture panel %}
 ```java
 socket.on("event", new Action<Map<String, Object>>() {
@@ -201,7 +201,7 @@ socket.send("event", "data", new Action<Object>() {
         <hr />
         <h2>Test Suite</h2>
         <p>Portal for Java provides a server for Portal test suite. It's available on <a href="http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22io.github.flowersinthesand%22%20AND%20a%3A%22portal-testsuite%22">Maven Central</a>. This module's a goal is to provide a complete form of test suite in Java and it will be done as soon as wes starts to support client-side frameworks.</p>
-        <p>With that server, you can test your client implementation. It comes with <a href="https://github.com/flowersinthesand/portal/tree/master/test/webapp">test suite</a> from the portal repository so you can see how Portal for Java passes the test suite in your browser. For how to start the server, see <a href="{{ site.baseurl }}/0.8.0-SNAPSHOT/api/io/github/flowersinthesand/portal/testsuite/ServerBootstrap.html">ServerBootstrap</a>.</p>
+        <p>With that server, you can test your client implementation. It comes with <a href="https://github.com/flowersinthesand/portal/tree/master/test/webapp">test suite</a> from the portal repository so you can see how Portal for Java passes the test suite in your browser. For how to start the server, see <a href="{{ site.baseurl }}/0.8.0/api/io/github/flowersinthesand/portal/testsuite/ServerBootstrap.html">ServerBootstrap</a>.</p>
         <hr />
         <h2>Integrating with others</h2>
         <p>In the Java world, there are many awesome projects. Let's find a way to integrate Portal for Java with them.</p>
