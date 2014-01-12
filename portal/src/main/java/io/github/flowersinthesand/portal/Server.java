@@ -65,7 +65,9 @@ public interface Server {
 	Server byTag(String[] names, Action<Socket> action);
 
 	/**
-	 * Registers an action to be called when the socket has been opened.
+	 * Registers an action to be called when the socket has been opened. It's
+	 * allowed to add several actions before and after installation, so you
+	 * don't need to centralize all your code to one class.
 	 */
 	Server socketAction(Action<Socket> action);
 

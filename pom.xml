@@ -119,7 +119,7 @@
 					<bottom><![CDATA[Copyright {inceptionYear}-{currentYear}, <a href="https://twitter.com/flowersits">Donghwan Kim</a>]]></bottom>
 					<packagesheader>Portal for Java</packagesheader>
 					<links>
-						<link>http://flowersinthesand.github.io/wes/documentation/0.1.1/apidocs</link>
+						<link>http://flowersinthesand.github.io/wes/documentation/${wes.version}/apidocs</link>
 						<link>http://docs.oracle.com/javaee/7/api/</link>
 					</links>
 					<linksource>true</linksource>
