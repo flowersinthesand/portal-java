@@ -1,0 +1,20 @@
+html {font-size: 90%;}
+body {font-family: "Open Sans", "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;}
+pre code {font-size: 90%; font-weight: normal; color: inherit;}
+
+.row {max-width: 80rem;}
+.top-bar {height: auto;}
+
+.top-bar-wrapper {background: #333;}
+.highlight {margin-bottom: 1.25rem; line-height: 1.35rem;}
+
+.footer {margin-top: 20px; padding: 10px 0; color: #777;}
+.footer p, .footer li {font-size: 0.9rem;}
+.footer p:not(:last-of-type) {margin: 0;}
+.footer ul {margin-left: 0; margin-bottom: 0.9rem;}
+.footer p:last-of-type {margin-bottom: 0.9rem;}
+.social-buttons li {display: inline-block;}
+.github-btn {border: 0; overflow: hidden;}
+.footer-links li {display: inline; padding: 0 2px;}
+
+.main > p:first-child {margin-top: 2em;}

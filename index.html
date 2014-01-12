@@ -1,0 +1,300 @@
+---
+layout: home 
+title: Portal for Java 
+---
+<div class="row">
+    <div class="large-12 columns main">
+        <p>A server implementation of the <a href="http://flowersinthesand.github.io/portal">Portal</a> written in Java, JavaScript library for real-time web application development.</p>
+        <hr />
+        <h2>Getting Started</h2>
+        <h3>Installing</h3>
+        <p>Portal for Java is distributed through <a href="http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22io.github.flowersinthesand%22%20AND%20a%3A%22portal%22">Maven Central</a>, only one artifact: <code>io.github.flowersinthesand:portal:0.8.0</code> and is a server-side wes application so that it can run on any framework wes supports. See <a href="http://flowersinthesand.github.io/wes">wes</a> documentation for what frameworks are supported and how to install portal on them. The following example shows how to install a portal server in Java Servlet with the help of Atmosphere framework.</p>
+{% capture panel %}
+```java
+@WebListener
+public class ServerBootstrap implements ServletContextListener {
+    
+    @Override
+    public void contextInitialized(ServletContextEvent event) {
+        // Create a portal server
+        Server server = new DefaultServer();
+        
+        // Adds a socket action
+        server.socketAction(new Action<Socket>() {
+            @Override
+            public void on(final Socket socket) {
+                socket.send("greeting", "Hello").on("echo", new Action<Object>() {
+                    @Override
+                    public void on(Object data) {
+                        socket.send("echo", data);
+                    }
+                });
+            }
+        });
+        
+        // Install server by specifying path and attaching its wes actions to wes bridge
+        new AtmosphereBridge(event.getServletContext(), "/test").httpAction(server.httpAction()).websocketAction(server.websocketAction());
+    }
+    
+    @Override
+    public void contextDestroyed(ServletContextEvent sce) {}
+    
+}
+```
+{% endcapture %}{{ panel | markdownify }}
+        <hr />
+        <h2>API</h2>
+        <p>Let's take a brief look at API usage.</p>
+        <h3><a href="{{ site.baseurl }}/0.8.0-SNAPSHOT/api/io/github/flowersinthesand/portal/Server.html">Server</a></h3>
+        <p>Server provides and manages socket processing HTTP message and WebSocket.</p>
+        <h4>Handling socket</h4>
+        <p>When a socket is opened, actions added via <code>socketAction</code> are executed with it. It's allowed to add several actions before and after installation, so you don't need to centralize all your code to one class.</p>
+{% capture panel %}
+```java
+server.socketAction(new Action<Socket>() {
+    @Override
+    public void on(Socket socket) {
+        // Your logic here
+    }
+});
+```
+{% endcapture %}{{ panel | markdownify }}
+        <h4>Selecting sockets</h4>
+        <p>It's a common use case to select some sockets and do something with them like dealing with persistence entity or HTML elements. When a socket has been closed, it is evicted from the server, so socket being passed to action is always in open state where I/O operations are available.</p>
+        <h5>All</h5>
+        <p><code>all</code> executes the given action finding all of the socket in this server.</p>
+{% capture panel %}
+```java
+server.all(new Action<Socket>() {
+    @Override
+    public void on(Socket socket) {
+        // Your logic here
+    }
+});
+```
+{% endcapture %}{{ panel | markdownify }}
+        <h5>By Id</h5>
+        <p>Every socket has a unique id. <code>byId</code> finds socket by id and executes the given action only once or not if no socket is found.</p>
+{% capture panel %}
+```java
+server.byId("59f3e826-3684-4e0e-813d-8394ac7fb7c0", new Action<Socket>() {
+    @Override
+    public void on(Socket socket) {
+        // Your logic here
+    }
+});
+```
+{% endcapture %}{{ panel | markdownify }}
+        <h5>By Tag</h5>
+        <p>A socket may have several tags and a tag may have several sockets like many-to-many relationship. <code>byTag</code> find socket accepting one or more tag names and executes the given action. It is desirable to use tag when dealing with a specific concept in the real world (e.g. person and topic). Tag set is managed only by server and unknown to client.</p>
+{% capture panel %}
+```java
+server.byTag("room#201", new Action<Socket>() {
+    @Override
+    public void on(Socket socket) {
+        // Your logic here
+    }
+});
+```
+{% endcapture %}{{ panel | markdownify }}
+        <h4>Customizing</h4>
+        <p>As options to customize protocol, there are the following methods defined in <a href="{{ site.baseurl }}/0.8.0-SNAPSHOT/api/io/github/flowersinthesand/portal/DefaultServer.html">DefaultServer</a>.</p>
+{% capture panel %}
+```java
+Server server = new DefaultServer() {
+    @Override
+    protected Map<String, String> parseURI(String uri) {
+        // Return a map of socket parameters from uri.
+    }
+
+    @Override
+    protected Map<String, Object> parseEvent(String text) {
+        // Return an event object from a stringified event.
+    }
+
+    @Override
+    protected String stringifyEvent(Map<String, Object> event) {
+        // Returns a stringified event from an event object.
+    }
+};
+```
+{% endcapture %}{{ panel | markdownify }}
+        <h3><a href="{{ site.baseurl }}/0.8.0-SNAPSHOT/api/io/github/flowersinthesand/portal/Server.html">Socket</a></h3>
+        <p>Socket is a connectivity between the two portal endpoints where event occurs. Do not hold a reference on socket unless the reference shares the same life cycle of socket. It makes things complicated since it is stateful and also may result in a problem in clustered environment. Always create a socket action and pass it to server to access socket.</p>
+        <h4>Properties</h4>
+        <p>These are read only.</p>
+        <div class="row">
+            <div class="large-4 columns">
+                <h5>Id</h5>
+                <p>A unique identifier in the form of UUID generated by client by default.</p>
+{% capture panel %}
+```java
+socket.id();
+```
+        {% endcapture %}{{ panel | markdownify }}
+            </div>
+            <div class="large-4 columns">
+                <h5>URI</h5>
+                <p>A URI used to connect. To work with URI parts, use <code>java.net.URI</code> or something like that.</p>
+{% capture panel %}
+```java
+URI.create(socket.uri()).getQuery();
+```
+{% endcapture %}{{ panel | markdownify }}
+            </div>
+            <div class="large-4 columns">
+                <h5>Tags</h5>
+                <p>A set of tag names. It's modifiable, deal with it as a plain set.</p>
+{% capture panel %}
+```java
+Set<String> tags = socket.tags();
+tags.add("account#flowersinthesand");
+```
+{% endcapture %}{{ panel | markdownify }}
+            </div>
+        </div>
+        <h4>Receiving events</h4>
+        <p><code>on</code> attaches an event handler. Allowed <a href="{{ site.baseurl }}/0.8.0-SNAPSHOT/api/io/github/flowersinthesand/portal/Socket.html#on(java.lang.String, io.github.flowersinthesand.wes.Action)">Java types</a> for data corresponding to JSON types. As reserved event, when a socket has been closed, <code>close</code> event is fired without data.</p>
+{% capture panel %}
+```java
+socket.on("event", new Action<Map<String, Object>>() {
+    @Override
+    public void on(Map<String, Object> object) {
+        // Your logic here
+    }
+});
+```
+{% endcapture %}{{ panel | markdownify }}
+        <p>In the case where client sends an event with callback like Remote Procedure Call, you can handle it using <code>Reply</code> in an asynchronous manner.</p>
+{% capture panel %}
+```java
+socket.on("account:findById", new Action<Reply<String>>() {
+    @Override
+    public void on(Reply<String> reply) {
+        try {
+            reply.done(Account.find.byId(reply.data()));
+        } catch(EntityNotFoundException e) {
+            reply.fail();
+        }
+    }
+});
+```
+{% endcapture %}{{ panel | markdownify }}
+        <h4>Sending events</h4>
+        <p><code>send</code> sends an event with or without data. Unlike when receiving event, when sending event you can use any type of data and it will be stringified by Jackson. Don't rely on features of Jackson too much, i.e. annotation. There is no restriction on event name but to avoid confusion don't use <code>connecting</code>, <code>waiting</code>, <code>open</code> and <code>close</code> as event name, which are reserved event in client.</p>
+{% capture panel %}
+```java
+socket.send("event").send("event", "data");
+```
+{% endcapture %}{{ panel | markdownify }}
+        <p>Server also can send an event with callback to client as Remote Procedure Call. Allowed Java types are the same when action added via <code>on</code> receives data.</p>
+{% capture panel %}
+```java
+socket.send("event", "data", new Action<Object>() {
+    @Override
+    public void on(Object result) {
+        // Your logic here
+    }
+});
+```
+{% endcapture %}{{ panel | markdownify }}
+        <hr />
+        <h2>Test Suite</h2>
+        <p>Portal for Java provides a server for Portal test suite. It's available on <a href="http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22io.github.flowersinthesand%22%20AND%20a%3A%22portal-testsuite%22">Maven Central</a>. This module's a goal is to provide a complete form of test suite in Java and it will be done as soon as wes starts to support client-side frameworks.</p>
+        <p>With that server, you can test your client implementation. It comes with <a href="https://github.com/flowersinthesand/portal/tree/master/test/webapp">test suite</a> from the portal repository so you can see how Portal for Java passes the test suite in your browser. For how to start the server, see <a href="{{ site.baseurl }}/0.8.0-SNAPSHOT/api/io/github/flowersinthesand/portal/testsuite/ServerBootstrap.html">ServerBootstrap</a>.</p>
+        <hr />
+        <h2>Integrating with others</h2>
+        <p>In the Java world, there are many awesome projects. Let's find a way to integrate Portal for Java with them.</p>
+        <h3>Platform</h3>
+        <p>Actually this is already mentioned but it is worth noting again. There are many <a href="http://www.techempower.com/benchmarks/">high-performance</a> platforms and frameworks in Java where you can build your application and Portal for Java is built on top of <a href="http://flowersinthesand.github.io/wes">wes</a> so it can run on as many framework as wes supports. For now, only a few frameworks are supported but of course more will be supported.</p>
+        <p>Just for your information, I am an author of wes and it is derived from Portal for Java 0.7.</p>
+        <h3>Dependency Injection</h3>
+        <p>With Dependency Injection framework like <a href="http://projects.spring.io/spring-framework/">Spring</a> and <a href="https://code.google.com/p/google-guice/">Guice</a>, you can inject <code>Server</code> as a dependency cleanly wherever you need to handle sockets.</p>
+        <h4>Spring</h4>
+        <p>Making <code>Server</code> as a bean.</p>
+{% capture panel %}
+```java
+@Configuration
+public class Config {
+    @Inject
+    ServletContext servletContext;
+
+    @Bean
+    public Server server() {
+        Server server = new DefaultServer();
+        new AtmosphereBridge(servletContext, "/test").httpAction(server.httpAction()).websocketAction(server.websocketAction());
+        return server;
+    }
+}
+```
+{% endcapture %}{{ panel | markdownify }}
+        <p>Injecting <code>Server</code>. I think socket event goes well <code>@Controller</code> and selector action goes well with <code>@Service</code></p>
+{% capture panel %}
+```java
+@Component
+public class AwesomeEventListener implements ApplicationListener<AwesomeEvent> {
+    @Inject
+    Server server;
+    
+    @PostConstruct
+    void post() {
+        server.socketAction(new Action<Socket>() {
+            @Override
+            public void on(Socket socket) {
+                // Your logic here
+            }
+        });
+    }
+
+    @Override
+    public void onApplicationEvent(AwesomeEvent event) {
+        server.byTag("awesome", new Action<Socket>() {
+            @Override
+            public void on(Socket socket) {
+                // Your logic here
+            }
+        });
+    }
+}
+```
+{% endcapture %}{{ panel | markdownify }}
+        <h3>Data Type Conversion</h3>
+        <p>The corresponding Java type of JSON object is <code>Map&lt;String, Object&gt;</code> that probably is the most used type to receive event data. If you want to convert Map to Java bean, there are many ways you can try. e.g. reflection and serialization.</p>
+        <h4>Jackson</h4>
+        <p>The action for type conversion.</p>
+{% capture panel %}
+```java
+public abstract class Handler<T> implements Action<Map<String, Object>> {
+    private final Class<T> desiredType;
+
+    @SuppressWarnings("unchecked")
+    public Handler() {
+    	// Each casting is not safe. Improve if you want to use in production
+        ParameterizedType pt = (ParameterizedType) this.getClass().getGenericSuperclass();
+        desiredType = (Class<T>) pt.getActualTypeArguments()[0];
+    }
+
+    @Override
+    public void on(Map<String, Object> map) {
+        // The convertValue will convert map to JSON and JSON to desired type of object
+        // Reflection lib like Apache Commons BeanUtils may be better in performance
+        handle(new ObjectMapper().convertValue(map, desiredType));
+    }
+
+    public abstract void handle(T t);
+}
+```
+{% endcapture %}{{ panel | markdownify }}
+		<p>Use the action declaring data type.</p>
+{% capture panel %}
+```java
+socket.on(new Handler<Book>() {
+    @Override
+    public void handle(Book book) {
+        // Your logic here
+    }
+});
+```
+{% endcapture %}{{ panel | markdownify }}
+    </div>
+</div>
