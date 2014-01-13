@@ -44,7 +44,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<slf4j.version>1.7.5</slf4j.version>
-		<wes.version>0.1.1</wes.version>
+		<wes.version>0.1.2</wes.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
