@@ -48,7 +48,7 @@ public class ServerBootstrap implements ServletContextListener {
         <p>Let's take a brief look at API usage.</p>
         <h3><a href="{{ site.baseurl }}/0.8.0/api/io/github/flowersinthesand/portal/Server.html">Server</a></h3>
         <p>Server provides and manages socket processing HTTP message and WebSocket.</p>
-        <h4>Handling socket</h4>
+        <h4>Handling Socket</h4>
         <p>When a socket is opened, actions added via <code>socketAction</code> are executed with it. It's allowed to add several actions before and after installation, so you don't need to centralize all your code to one class.</p>
 {% capture panel %}
 ```java
@@ -60,7 +60,7 @@ server.socketAction(new Action<Socket>() {
 });
 ```
 {% endcapture %}{{ panel | markdownify }}
-        <h4>Selecting sockets</h4>
+        <h4>Selecting Sockets</h4>
         <p>It's a common use case to select some sockets and do something with them like dealing with persistence entity or HTML elements. When a socket has been closed, it is evicted from the server, so socket being passed to action is always in open state where I/O operations are available.</p>
         <h5>All</h5>
         <p><code>all</code> executes the given action finding all of the socket in this server.</p>
@@ -154,7 +154,7 @@ tags.add("account#flowersinthesand");
 {% endcapture %}{{ panel | markdownify }}
             </div>
         </div>
-        <h4>Receiving events</h4>
+        <h4>Receiving Events</h4>
         <p><code>on</code> attaches an event handler. Allowed <a href="{{ site.baseurl }}/0.8.0/api/io/github/flowersinthesand/portal/Socket.html#on(java.lang.String, io.github.flowersinthesand.wes.Action)">Java types</a> for data corresponding to JSON types. As reserved event, when a socket has been closed, <code>close</code> event is fired without data.</p>
 {% capture panel %}
 ```java
@@ -181,7 +181,7 @@ socket.on("account:findById", new Action<Reply<String>>() {
 });
 ```
 {% endcapture %}{{ panel | markdownify }}
-        <h4>Sending events</h4>
+        <h4>Sending Events</h4>
         <p><code>send</code> sends an event with or without data. Unlike when receiving event, when sending event you can use any type of data and it will be stringified by Jackson. Don't rely on features of Jackson too much, i.e. annotation. There is no restriction on event name but to avoid confusion don't use <code>connecting</code>, <code>waiting</code>, <code>open</code> and <code>close</code> as event name, which are reserved event in client.</p>
 {% capture panel %}
 ```java
@@ -204,18 +204,17 @@ socket.send("event", "data", new Action<Object>() {
         <p>Portal for Java provides a server for Portal test suite. It's available on <a href="http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22io.github.flowersinthesand%22%20AND%20a%3A%22portal-testsuite%22">Maven Central</a>. This module's a goal is to provide a complete form of test suite in Java and it will be done as soon as wes starts to support client-side frameworks.</p>
         <p>With that server, you can test your client implementation. It comes with <a href="https://github.com/flowersinthesand/portal/tree/master/test/webapp">test suite</a> from the portal repository so you can see how Portal for Java passes the test suite in your browser. For how to start the server, see <a href="{{ site.baseurl }}/0.8.0/api/io/github/flowersinthesand/portal/testsuite/ServerBootstrap.html">ServerBootstrap</a>.</p>
         <hr />
-        <h2>Integrating with others</h2>
-        <p>In the Java world, there are many awesome projects. Let's find a way to integrate Portal for Java with them.</p>
+        <h2>Examples</h2>
+        <p>The followings are brief introduction of <a href="https://github.com/flowersinthesand/portal-java-examples/">working example applications</a>.</p>
         <h3>Platform</h3>
-        <p>Actually this is already mentioned but it is worth noting again. There are many <a href="http://www.techempower.com/benchmarks/">high-performance</a> platforms and frameworks in Java where you can build your application and Portal for Java is built on top of <a href="http://flowersinthesand.github.io/wes">wes</a> so it can run on as many framework as wes supports.</p>
-        <p>It's confirmed that Portal for Java runs on the following platform.</p>
+        <p>Portal for Java is an embeddable web application built on top of <a href="http://flowersinthesand.github.io/wes">wes</a> and it can run on as many platform as wes supports. It's confirmed that Portal for Java runs on the following platform.</p>
 		<ul class="inline-list">
-			<li>Atmosphere 2</li>
-			<li>Vert.x 2</li>
-			<li>Servlet 3 and Java WebSocket API 1</li>
+			<li><a href="https://github.com/flowersinthesand/portal-java-examples/tree/master/server/platform/atmosphere2">Atmosphere 2</a></li>
+			<li><a href="https://github.com/flowersinthesand/portal-java-examples/tree/master/server/platform/vertx2">Vert.x 2</a></li>
+			<li><a href="https://github.com/flowersinthesand/portal-java-examples/tree/master/server/platform/jee7">Servlet 3 and Java WebSocket API 1</a></li>
 		</ul>
         <h3>Dependency Injection</h3>
-        <p>With Dependency Injection framework like <a href="http://projects.spring.io/spring-framework/">Spring</a> and <a href="https://code.google.com/p/google-guice/">Guice</a>, you can inject <code>Server</code> as a dependency cleanly wherever you need to handle sockets.</p>
+        <p>With dependency injection, you can make <code>Server</code> as component and inject it wherever you need to handle sockets cleanly without static keyword.</p>
         <h4>Spring</h4>
         <p>Making <code>Server</code> as a bean.</p>
 {% capture panel %}
