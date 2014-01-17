@@ -17,4 +17,4 @@ pre code {font-size: 90%; font-weight: normal; color: inherit;}
 .github-btn {border: 0; overflow: hidden;}
 .footer-links li {display: inline; padding: 0 2px;}
 
-.main > p:first-child {margin-top: 2em;}
+.main > p:first-child, .main > h1:first-child {margin-top: 2rem;}

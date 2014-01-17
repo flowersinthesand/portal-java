@@ -4,10 +4,11 @@ title: Portal for Java
 ---
 <div class="row">
     <div class="large-12 columns main">
-        <p>A server implementation of the <a href="http://flowersinthesand.github.io/portal">Portal</a> written in Java, JavaScript library for real-time web application development.</p>
+    	<h1>Getting Started <small>v0.8.0</small></h1>
+        <p>The <strong>Portal for Java</strong> is a server implementation of the <a href="http://flowersinthesand.github.io/portal">Portal</a> written in Java, JavaScript library for real-time web application development.</p>
         <hr />
-        <h2>Getting Started</h2>
-        <h3>Installing</h3>
+        <h2></h2>
+        <h2>Installing</h2>
         <p>Portal for Java is distributed through <a href="http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22io.github.flowersinthesand%22%20AND%20a%3A%22portal%22">Maven Central</a>, only one artifact: <code>io.github.flowersinthesand:portal:0.8.0</code> and is a server-side wes application so that it can run on any framework wes supports. See <a href="http://flowersinthesand.github.io/wes">wes</a> documentation for what frameworks are supported and how to install portal on them. The following example shows how to install a portal server in Java Servlet with the help of Atmosphere framework.</p>
 {% capture panel %}
 ```java
@@ -206,8 +207,13 @@ socket.send("event", "data", new Action<Object>() {
         <h2>Integrating with others</h2>
         <p>In the Java world, there are many awesome projects. Let's find a way to integrate Portal for Java with them.</p>
         <h3>Platform</h3>
-        <p>Actually this is already mentioned but it is worth noting again. There are many <a href="http://www.techempower.com/benchmarks/">high-performance</a> platforms and frameworks in Java where you can build your application and Portal for Java is built on top of <a href="http://flowersinthesand.github.io/wes">wes</a> so it can run on as many framework as wes supports. For now, only a few frameworks are supported but of course more will be supported.</p>
-        <p>Just for your information, I am an author of wes and it is derived from Portal for Java 0.7.</p>
+        <p>Actually this is already mentioned but it is worth noting again. There are many <a href="http://www.techempower.com/benchmarks/">high-performance</a> platforms and frameworks in Java where you can build your application and Portal for Java is built on top of <a href="http://flowersinthesand.github.io/wes">wes</a> so it can run on as many framework as wes supports.</p>
+        <p>It's confirmed that Portal for Java runs on the following platform.</p>
+		<ul class="inline-list">
+			<li>Atmosphere 2</li>
+			<li>Vert.x 2</li>
+			<li>Servlet 3 and Java WebSocket API 1</li>
+		</ul>
         <h3>Dependency Injection</h3>
         <p>With Dependency Injection framework like <a href="http://projects.spring.io/spring-framework/">Spring</a> and <a href="https://code.google.com/p/google-guice/">Guice</a>, you can inject <code>Server</code> as a dependency cleanly wherever you need to handle sockets.</p>
         <h4>Spring</h4>
