@@ -207,99 +207,22 @@ socket.send("event", "data", new Action<Object>() {
         <h2>Examples</h2>
         <p>The followings are brief introduction of <a href="https://github.com/flowersinthesand/portal-java-examples/">working example applications</a>.</p>
         <h3>Platform</h3>
-        <p>Portal for Java is an embeddable web application built on top of <a href="http://flowersinthesand.github.io/wes">wes</a> and it can run on as many platform as wes supports. It's confirmed that Portal for Java runs on the following platform.</p>
+        <p>Portal for Java is an embeddable web application built on top of <a href="http://flowersinthesand.github.io/wes">wes</a> and it can run on as many platform as wes supports.</p>
 		<ul class="inline-list">
 			<li><a href="https://github.com/flowersinthesand/portal-java-examples/tree/master/server/platform/atmosphere2">Atmosphere 2</a></li>
 			<li><a href="https://github.com/flowersinthesand/portal-java-examples/tree/master/server/platform/vertx2">Vert.x 2</a></li>
 			<li><a href="https://github.com/flowersinthesand/portal-java-examples/tree/master/server/platform/jee7">Servlet 3 and Java WebSocket API 1</a></li>
 		</ul>
         <h3>Dependency Injection</h3>
-        <p>With dependency injection, you can make <code>Server</code> as component and inject it wherever you need to handle sockets cleanly without static keyword.</p>
-        <h4>Spring</h4>
-        <p>Making <code>Server</code> as a bean.</p>
-{% capture panel %}
-```java
-@Configuration
-public class Config {
-    @Inject
-    ServletContext servletContext;
-
-    @Bean
-    public Server server() {
-        Server server = new DefaultServer();
-        new AtmosphereBridge(servletContext, "/test").httpAction(server.httpAction()).websocketAction(server.websocketAction());
-        return server;
-    }
-}
-```
-{% endcapture %}{{ panel | markdownify }}
-        <p>Injecting <code>Server</code>. I think socket event goes well <code>@Controller</code> and selector action goes well with <code>@Service</code></p>
-{% capture panel %}
-```java
-@Component
-public class AwesomeEventListener implements ApplicationListener<AwesomeEvent> {
-    @Inject
-    Server server;
-    
-    @PostConstruct
-    void post() {
-        server.socketAction(new Action<Socket>() {
-            @Override
-            public void on(Socket socket) {
-                // Your logic here
-            }
-        });
-    }
-
-    @Override
-    public void onApplicationEvent(AwesomeEvent event) {
-        server.byTag("awesome", new Action<Socket>() {
-            @Override
-            public void on(Socket socket) {
-                // Your logic here
-            }
-        });
-    }
-}
-```
-{% endcapture %}{{ panel | markdownify }}
+        <p>With dependency injection support by framework or container, you can make <code>Server</code> as component and inject it wherever you need to handle sockets cleanly without static keyword.</p>
+		<ul class="inline-list">
+			<li><a href="https://github.com/flowersinthesand/portal-java-examples/tree/master/server/di/spring">Spring</a></li>
+		</ul>
         <h3>Data Type Conversion</h3>
         <p>The corresponding Java type of JSON object is <code>Map&lt;String, Object&gt;</code> that probably is the most used type to receive event data. If you want to convert Map to Java bean, there are many ways you can try. e.g. reflection and serialization.</p>
-        <h4>Jackson</h4>
-        <p>The action for type conversion.</p>
-{% capture panel %}
-```java
-public abstract class Handler<T> implements Action<Map<String, Object>> {
-    private final Class<T> desiredType;
-
-    @SuppressWarnings("unchecked")
-    public Handler() {
-    	// Each casting is not safe. Improve if you want to use in production
-        ParameterizedType pt = (ParameterizedType) this.getClass().getGenericSuperclass();
-        desiredType = (Class<T>) pt.getActualTypeArguments()[0];
-    }
-
-    @Override
-    public void on(Map<String, Object> map) {
-        // The convertValue will convert map to JSON and JSON to desired type of object
-        // Reflection lib like Apache Commons BeanUtils may be better in performance
-        handle(new ObjectMapper().convertValue(map, desiredType));
-    }
-
-    public abstract void handle(T t);
-}
-```
-{% endcapture %}{{ panel | markdownify }}
-		<p>Use the action declaring data type.</p>
-{% capture panel %}
-```java
-socket.on(new Handler<Book>() {
-    @Override
-    public void handle(Book book) {
-        // Your logic here
-    }
-});
-```
-{% endcapture %}{{ panel | markdownify }}
+        
+		<ul class="inline-list">
+			<li><a href="https://gist.github.com/flowersinthesand/8486640">Jackson</a></li>
+		</ul>
     </div>
 </div>
