@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>io.github.flowersinthesand</groupId>
 		<artifactId>portal-parent</artifactId>
-		<version>0.9.0-SNAPSHOT</version>
+		<version>0.8.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>portal-testsuite</artifactId>
 	<name>Portal test suite</name>
