@@ -273,7 +273,7 @@ public class DefaultServer implements Server {
 
 	@Override
 	public Server byTag(String name, Action<Socket> action) {
-		return byTag(name, action);
+		return byTag(new String[] { name }, action);
 	}
 
 	@Override
