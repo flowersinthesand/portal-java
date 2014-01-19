@@ -23,12 +23,12 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Socket is a connectivity between the two portal endpoints.
+ * {@code Socket} is a connectivity between the two portal endpoints.
  * <p>
- * Do not hold a reference on socket unless the reference shares the same life
- * cycle of socket. It makes things complicated since it is stateful and also
- * may result in a problem in clustered environment. Always create a socket
- * action and pass it to server to access socket.
+ * Do not hold a reference on {@code Socket} unless the reference shares the
+ * same life cycle with it. It makes things complicated since it is stateful and
+ * also may result in a problem in clustered environment. Always create a socket
+ * action and pass it to {@link Server} to access {@code Socket}.
  * <p>
  * Sockets may be accessed by multiple threads.
  * 

@@ -20,21 +20,25 @@ import io.github.flowersinthesand.wes.ServerHttpExchange;
 import io.github.flowersinthesand.wes.ServerWebSocket;
 
 /**
- * Server for Portal.
+ * Interface used to interact with the socket.
  * <p>
- * Server is a server-side wes application which provides and manages
- * {@link Socket} processing HTTP request and WebSocket so that it can run on
- * any framework wes supports. See <a
- * href="http://flowersinthesand.github.io/wes" target="_parent">wes</a>
- * documentation for how to install and what frameworks are supported.
+ * A {@code Server} instance provides {@link Socket} processing HTTP request and
+ * WebSocket under the specific URI pattern and manages their life cycles. The
+ * {@code Server} API is used to accept socket and to find socket by id and tag.
+ * If you are using dependency injection support, make a {@code Server} as
+ * component and inject it wherever you need to handle socket.
  * <p>
- * If you are using dependency injection framework like Spring, you can create
- * Server as component of singleton scope and inject it where you need to
- * communicate with client in real time.
+ * The {@code Server} is a wes application so can be installed on any platform
+ * like Servlet wes supports. For that reason, {@code Server} doesn't concern
+ * I/O details and I/O details should be configured in the platform following
+ * its policy.
  * <p>
  * Server may be accessed by multiple threads.
  * 
  * @author Donghwan Kim
+ * @see <a
+ *      href="https://github.com/flowersinthesand/portal-java-examples/tree/master/server/platform/"
+ *      target="_parent">Examples to install portal</a>
  */
 public interface Server {
 

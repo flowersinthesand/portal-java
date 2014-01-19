@@ -65,7 +65,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * <li>{@link DefaultServer#parseURI(String)}
  * <li>{@link DefaultServer#parseEvent(String)}
  * <li>{@link DefaultServer#stringifyEvent(Map)}
- * </ul> 
+ * </ul>
  * 
  * @author Donghwan Kim
  */
