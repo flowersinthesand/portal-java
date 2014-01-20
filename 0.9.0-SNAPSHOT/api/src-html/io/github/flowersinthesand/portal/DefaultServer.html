@@ -263,470 +263,500 @@
 <span class="sourceLineNo">255</span>    }<a name="line.255"></a>
 <span class="sourceLineNo">256</span>    <a name="line.256"></a>
 <span class="sourceLineNo">257</span>    @Override<a name="line.257"></a>
-<span class="sourceLineNo">258</span>    public Server all(Action&lt;Socket&gt; action) {<a name="line.258"></a>
-<span class="sourceLineNo">259</span>        for (Socket socket : sockets.values()) {<a name="line.259"></a>
-<span class="sourceLineNo">260</span>            action.on(socket);<a name="line.260"></a>
-<span class="sourceLineNo">261</span>        }<a name="line.261"></a>
-<span class="sourceLineNo">262</span>        return this;<a name="line.262"></a>
-<span class="sourceLineNo">263</span>    }<a name="line.263"></a>
-<span class="sourceLineNo">264</span><a name="line.264"></a>
-<span class="sourceLineNo">265</span>    @Override<a name="line.265"></a>
-<span class="sourceLineNo">266</span>    public Server byId(String id, Action&lt;Socket&gt; action) {<a name="line.266"></a>
-<span class="sourceLineNo">267</span>        Socket socket = sockets.get(id);<a name="line.267"></a>
-<span class="sourceLineNo">268</span>        if (socket != null) {<a name="line.268"></a>
-<span class="sourceLineNo">269</span>            action.on(socket);<a name="line.269"></a>
-<span class="sourceLineNo">270</span>        }<a name="line.270"></a>
-<span class="sourceLineNo">271</span>        return this;<a name="line.271"></a>
-<span class="sourceLineNo">272</span>    }<a name="line.272"></a>
-<span class="sourceLineNo">273</span><a name="line.273"></a>
-<span class="sourceLineNo">274</span>    @Override<a name="line.274"></a>
-<span class="sourceLineNo">275</span>    public Server byTag(String name, Action&lt;Socket&gt; action) {<a name="line.275"></a>
-<span class="sourceLineNo">276</span>        return byTag(new String[] { name }, action);<a name="line.276"></a>
-<span class="sourceLineNo">277</span>    }<a name="line.277"></a>
-<span class="sourceLineNo">278</span><a name="line.278"></a>
-<span class="sourceLineNo">279</span>    @Override<a name="line.279"></a>
-<span class="sourceLineNo">280</span>    public Server byTag(String[] names, Action&lt;Socket&gt; action) {<a name="line.280"></a>
-<span class="sourceLineNo">281</span>        List&lt;String&gt; nameList = Arrays.asList(names);<a name="line.281"></a>
-<span class="sourceLineNo">282</span>        for (Socket socket : sockets.values()) {<a name="line.282"></a>
-<span class="sourceLineNo">283</span>            if (socket.tags().containsAll(nameList)) {<a name="line.283"></a>
-<span class="sourceLineNo">284</span>                action.on(socket);<a name="line.284"></a>
-<span class="sourceLineNo">285</span>            }<a name="line.285"></a>
-<span class="sourceLineNo">286</span>        }<a name="line.286"></a>
-<span class="sourceLineNo">287</span>        return this;<a name="line.287"></a>
-<span class="sourceLineNo">288</span>    }<a name="line.288"></a>
-<span class="sourceLineNo">289</span><a name="line.289"></a>
-<span class="sourceLineNo">290</span>    @Override<a name="line.290"></a>
-<span class="sourceLineNo">291</span>    public Server socketAction(Action&lt;Socket&gt; action) {<a name="line.291"></a>
-<span class="sourceLineNo">292</span>        socketActions.add(action);<a name="line.292"></a>
-<span class="sourceLineNo">293</span>        return this;<a name="line.293"></a>
-<span class="sourceLineNo">294</span>    }<a name="line.294"></a>
-<span class="sourceLineNo">295</span><a name="line.295"></a>
-<span class="sourceLineNo">296</span>    @Override<a name="line.296"></a>
-<span class="sourceLineNo">297</span>    public Action&lt;ServerHttpExchange&gt; httpAction() {<a name="line.297"></a>
-<span class="sourceLineNo">298</span>        return httpAction;<a name="line.298"></a>
-<span class="sourceLineNo">299</span>    }<a name="line.299"></a>
-<span class="sourceLineNo">300</span><a name="line.300"></a>
-<span class="sourceLineNo">301</span>    @Override<a name="line.301"></a>
-<span class="sourceLineNo">302</span>    public Action&lt;ServerWebSocket&gt; websocketAction() {<a name="line.302"></a>
-<span class="sourceLineNo">303</span>        return websocketAction;<a name="line.303"></a>
-<span class="sourceLineNo">304</span>    }<a name="line.304"></a>
-<span class="sourceLineNo">305</span><a name="line.305"></a>
-<span class="sourceLineNo">306</span>    private abstract class Transport {<a name="line.306"></a>
-<span class="sourceLineNo">307</span>        final Map&lt;String, String&gt; params;<a name="line.307"></a>
-<span class="sourceLineNo">308</span>        Actions&lt;String&gt; messageActions = new ConcurrentActions&lt;&gt;();<a name="line.308"></a>
-<span class="sourceLineNo">309</span>        Actions&lt;Void&gt; closeActions = new ConcurrentActions&lt;&gt;();<a name="line.309"></a>
-<span class="sourceLineNo">310</span><a name="line.310"></a>
-<span class="sourceLineNo">311</span>        Transport(Map&lt;String, String&gt; params) {<a name="line.311"></a>
-<span class="sourceLineNo">312</span>            this.params = params;<a name="line.312"></a>
-<span class="sourceLineNo">313</span>        }<a name="line.313"></a>
-<span class="sourceLineNo">314</span>        <a name="line.314"></a>
-<span class="sourceLineNo">315</span>        abstract String uri();<a name="line.315"></a>
-<span class="sourceLineNo">316</span>        abstract void send(String data);<a name="line.316"></a>
-<span class="sourceLineNo">317</span>        abstract void close();<a name="line.317"></a>
+<span class="sourceLineNo">258</span>    public Sentence all() {<a name="line.258"></a>
+<span class="sourceLineNo">259</span>        return new Sentence(new Action&lt;Action&lt;Socket&gt;&gt;() {<a name="line.259"></a>
+<span class="sourceLineNo">260</span>            @Override<a name="line.260"></a>
+<span class="sourceLineNo">261</span>            public void on(Action&lt;Socket&gt; action) {<a name="line.261"></a>
+<span class="sourceLineNo">262</span>                all(action);<a name="line.262"></a>
+<span class="sourceLineNo">263</span>            }<a name="line.263"></a>
+<span class="sourceLineNo">264</span>        });<a name="line.264"></a>
+<span class="sourceLineNo">265</span>    }<a name="line.265"></a>
+<span class="sourceLineNo">266</span>    <a name="line.266"></a>
+<span class="sourceLineNo">267</span>    @Override<a name="line.267"></a>
+<span class="sourceLineNo">268</span>    public Server all(Action&lt;Socket&gt; action) {<a name="line.268"></a>
+<span class="sourceLineNo">269</span>        for (Socket socket : sockets.values()) {<a name="line.269"></a>
+<span class="sourceLineNo">270</span>            action.on(socket);<a name="line.270"></a>
+<span class="sourceLineNo">271</span>        }<a name="line.271"></a>
+<span class="sourceLineNo">272</span>        return this;<a name="line.272"></a>
+<span class="sourceLineNo">273</span>    }<a name="line.273"></a>
+<span class="sourceLineNo">274</span>    <a name="line.274"></a>
+<span class="sourceLineNo">275</span>    @Override<a name="line.275"></a>
+<span class="sourceLineNo">276</span>    public Sentence byId(final String id) {<a name="line.276"></a>
+<span class="sourceLineNo">277</span>        return new Sentence(new Action&lt;Action&lt;Socket&gt;&gt;() {<a name="line.277"></a>
+<span class="sourceLineNo">278</span>            @Override<a name="line.278"></a>
+<span class="sourceLineNo">279</span>            public void on(Action&lt;Socket&gt; action) {<a name="line.279"></a>
+<span class="sourceLineNo">280</span>                byId(id, action);<a name="line.280"></a>
+<span class="sourceLineNo">281</span>            }<a name="line.281"></a>
+<span class="sourceLineNo">282</span>        });<a name="line.282"></a>
+<span class="sourceLineNo">283</span>    }<a name="line.283"></a>
+<span class="sourceLineNo">284</span><a name="line.284"></a>
+<span class="sourceLineNo">285</span>    @Override<a name="line.285"></a>
+<span class="sourceLineNo">286</span>    public Server byId(String id, Action&lt;Socket&gt; action) {<a name="line.286"></a>
+<span class="sourceLineNo">287</span>        Socket socket = sockets.get(id);<a name="line.287"></a>
+<span class="sourceLineNo">288</span>        if (socket != null) {<a name="line.288"></a>
+<span class="sourceLineNo">289</span>            action.on(socket);<a name="line.289"></a>
+<span class="sourceLineNo">290</span>        }<a name="line.290"></a>
+<span class="sourceLineNo">291</span>        return this;<a name="line.291"></a>
+<span class="sourceLineNo">292</span>    }<a name="line.292"></a>
+<span class="sourceLineNo">293</span><a name="line.293"></a>
+<span class="sourceLineNo">294</span>    @Override<a name="line.294"></a>
+<span class="sourceLineNo">295</span>    public Sentence byTag(final String... names) {<a name="line.295"></a>
+<span class="sourceLineNo">296</span>        return new Sentence(new Action&lt;Action&lt;Socket&gt;&gt;() {<a name="line.296"></a>
+<span class="sourceLineNo">297</span>            @Override<a name="line.297"></a>
+<span class="sourceLineNo">298</span>            public void on(Action&lt;Socket&gt; action) {<a name="line.298"></a>
+<span class="sourceLineNo">299</span>                byTag(names, action);<a name="line.299"></a>
+<span class="sourceLineNo">300</span>            }<a name="line.300"></a>
+<span class="sourceLineNo">301</span>        });<a name="line.301"></a>
+<span class="sourceLineNo">302</span>    }<a name="line.302"></a>
+<span class="sourceLineNo">303</span><a name="line.303"></a>
+<span class="sourceLineNo">304</span>    @Override<a name="line.304"></a>
+<span class="sourceLineNo">305</span>    public Server byTag(String name, Action&lt;Socket&gt; action) {<a name="line.305"></a>
+<span class="sourceLineNo">306</span>        return byTag(new String[] { name }, action);<a name="line.306"></a>
+<span class="sourceLineNo">307</span>    }<a name="line.307"></a>
+<span class="sourceLineNo">308</span><a name="line.308"></a>
+<span class="sourceLineNo">309</span>    @Override<a name="line.309"></a>
+<span class="sourceLineNo">310</span>    public Server byTag(String[] names, Action&lt;Socket&gt; action) {<a name="line.310"></a>
+<span class="sourceLineNo">311</span>        List&lt;String&gt; nameList = Arrays.asList(names);<a name="line.311"></a>
+<span class="sourceLineNo">312</span>        for (Socket socket : sockets.values()) {<a name="line.312"></a>
+<span class="sourceLineNo">313</span>            if (socket.tags().containsAll(nameList)) {<a name="line.313"></a>
+<span class="sourceLineNo">314</span>                action.on(socket);<a name="line.314"></a>
+<span class="sourceLineNo">315</span>            }<a name="line.315"></a>
+<span class="sourceLineNo">316</span>        }<a name="line.316"></a>
+<span class="sourceLineNo">317</span>        return this;<a name="line.317"></a>
 <span class="sourceLineNo">318</span>    }<a name="line.318"></a>
 <span class="sourceLineNo">319</span><a name="line.319"></a>
-<span class="sourceLineNo">320</span>    private class WebSocketTransport extends Transport {<a name="line.320"></a>
-<span class="sourceLineNo">321</span>        final ServerWebSocket ws;<a name="line.321"></a>
-<span class="sourceLineNo">322</span>        <a name="line.322"></a>
-<span class="sourceLineNo">323</span>        WebSocketTransport(Map&lt;String, String&gt; params, ServerWebSocket ws) {<a name="line.323"></a>
-<span class="sourceLineNo">324</span>            super(params);<a name="line.324"></a>
-<span class="sourceLineNo">325</span>            this.ws = ws;<a name="line.325"></a>
-<span class="sourceLineNo">326</span>            ws.closeAction(new VoidAction() {<a name="line.326"></a>
-<span class="sourceLineNo">327</span>                @Override<a name="line.327"></a>
-<span class="sourceLineNo">328</span>                public void on() {<a name="line.328"></a>
-<span class="sourceLineNo">329</span>                    closeActions.fire();<a name="line.329"></a>
-<span class="sourceLineNo">330</span>                }<a name="line.330"></a>
-<span class="sourceLineNo">331</span>            })<a name="line.331"></a>
-<span class="sourceLineNo">332</span>            .messageAction(new Action&lt;Data&gt;() {<a name="line.332"></a>
-<span class="sourceLineNo">333</span>                @Override<a name="line.333"></a>
-<span class="sourceLineNo">334</span>                public void on(Data data) {<a name="line.334"></a>
-<span class="sourceLineNo">335</span>                    messageActions.fire(data.as(String.class));<a name="line.335"></a>
-<span class="sourceLineNo">336</span>                }<a name="line.336"></a>
-<span class="sourceLineNo">337</span>            });<a name="line.337"></a>
-<span class="sourceLineNo">338</span>        }<a name="line.338"></a>
-<span class="sourceLineNo">339</span>        <a name="line.339"></a>
-<span class="sourceLineNo">340</span>        @Override<a name="line.340"></a>
-<span class="sourceLineNo">341</span>        String uri() {<a name="line.341"></a>
-<span class="sourceLineNo">342</span>            return ws.uri();<a name="line.342"></a>
+<span class="sourceLineNo">320</span>    @Override<a name="line.320"></a>
+<span class="sourceLineNo">321</span>    public Server socketAction(Action&lt;Socket&gt; action) {<a name="line.321"></a>
+<span class="sourceLineNo">322</span>        socketActions.add(action);<a name="line.322"></a>
+<span class="sourceLineNo">323</span>        return this;<a name="line.323"></a>
+<span class="sourceLineNo">324</span>    }<a name="line.324"></a>
+<span class="sourceLineNo">325</span><a name="line.325"></a>
+<span class="sourceLineNo">326</span>    @Override<a name="line.326"></a>
+<span class="sourceLineNo">327</span>    public Action&lt;ServerHttpExchange&gt; httpAction() {<a name="line.327"></a>
+<span class="sourceLineNo">328</span>        return httpAction;<a name="line.328"></a>
+<span class="sourceLineNo">329</span>    }<a name="line.329"></a>
+<span class="sourceLineNo">330</span><a name="line.330"></a>
+<span class="sourceLineNo">331</span>    @Override<a name="line.331"></a>
+<span class="sourceLineNo">332</span>    public Action&lt;ServerWebSocket&gt; websocketAction() {<a name="line.332"></a>
+<span class="sourceLineNo">333</span>        return websocketAction;<a name="line.333"></a>
+<span class="sourceLineNo">334</span>    }<a name="line.334"></a>
+<span class="sourceLineNo">335</span><a name="line.335"></a>
+<span class="sourceLineNo">336</span>    private abstract class Transport {<a name="line.336"></a>
+<span class="sourceLineNo">337</span>        final Map&lt;String, String&gt; params;<a name="line.337"></a>
+<span class="sourceLineNo">338</span>        Actions&lt;String&gt; messageActions = new ConcurrentActions&lt;&gt;();<a name="line.338"></a>
+<span class="sourceLineNo">339</span>        Actions&lt;Void&gt; closeActions = new ConcurrentActions&lt;&gt;();<a name="line.339"></a>
+<span class="sourceLineNo">340</span><a name="line.340"></a>
+<span class="sourceLineNo">341</span>        Transport(Map&lt;String, String&gt; params) {<a name="line.341"></a>
+<span class="sourceLineNo">342</span>            this.params = params;<a name="line.342"></a>
 <span class="sourceLineNo">343</span>        }<a name="line.343"></a>
-<span class="sourceLineNo">344</span><a name="line.344"></a>
-<span class="sourceLineNo">345</span>        @Override<a name="line.345"></a>
-<span class="sourceLineNo">346</span>        synchronized void send(String data) {<a name="line.346"></a>
-<span class="sourceLineNo">347</span>            ws.send(data);<a name="line.347"></a>
-<span class="sourceLineNo">348</span>        }<a name="line.348"></a>
+<span class="sourceLineNo">344</span>        <a name="line.344"></a>
+<span class="sourceLineNo">345</span>        abstract String uri();<a name="line.345"></a>
+<span class="sourceLineNo">346</span>        abstract void send(String data);<a name="line.346"></a>
+<span class="sourceLineNo">347</span>        abstract void close();<a name="line.347"></a>
+<span class="sourceLineNo">348</span>    }<a name="line.348"></a>
 <span class="sourceLineNo">349</span><a name="line.349"></a>
-<span class="sourceLineNo">350</span>        @Override<a name="line.350"></a>
-<span class="sourceLineNo">351</span>        synchronized void close() {<a name="line.351"></a>
-<span class="sourceLineNo">352</span>            ws.close();<a name="line.352"></a>
-<span class="sourceLineNo">353</span>        }<a name="line.353"></a>
-<span class="sourceLineNo">354</span>    }<a name="line.354"></a>
-<span class="sourceLineNo">355</span>    <a name="line.355"></a>
-<span class="sourceLineNo">356</span>    private abstract class HttpTransport extends Transport {<a name="line.356"></a>
-<span class="sourceLineNo">357</span>        final ServerHttpExchange http;<a name="line.357"></a>
-<span class="sourceLineNo">358</span>        <a name="line.358"></a>
-<span class="sourceLineNo">359</span>        HttpTransport(Map&lt;String, String&gt; params, ServerHttpExchange http) {<a name="line.359"></a>
-<span class="sourceLineNo">360</span>            super(params);<a name="line.360"></a>
-<span class="sourceLineNo">361</span>            this.http = http;<a name="line.361"></a>
-<span class="sourceLineNo">362</span>        }<a name="line.362"></a>
-<span class="sourceLineNo">363</span>        <a name="line.363"></a>
-<span class="sourceLineNo">364</span>        @Override<a name="line.364"></a>
-<span class="sourceLineNo">365</span>        String uri() {<a name="line.365"></a>
-<span class="sourceLineNo">366</span>            return http.uri();<a name="line.366"></a>
-<span class="sourceLineNo">367</span>        }<a name="line.367"></a>
-<span class="sourceLineNo">368</span>    }<a name="line.368"></a>
-<span class="sourceLineNo">369</span><a name="line.369"></a>
-<span class="sourceLineNo">370</span>    final static String text2KB = CharBuffer.allocate(2048).toString().replace('\0', ' ');<a name="line.370"></a>
-<span class="sourceLineNo">371</span>    <a name="line.371"></a>
-<span class="sourceLineNo">372</span>    private class StreamTransport extends HttpTransport {<a name="line.372"></a>
-<span class="sourceLineNo">373</span>        final boolean isAndroidLowerThan3;<a name="line.373"></a>
-<span class="sourceLineNo">374</span>        <a name="line.374"></a>
-<span class="sourceLineNo">375</span>        StreamTransport(Map&lt;String, String&gt; params, ServerHttpExchange http) {<a name="line.375"></a>
-<span class="sourceLineNo">376</span>            super(params, http);<a name="line.376"></a>
-<span class="sourceLineNo">377</span>            String ua = http.requestHeader("user-agent");<a name="line.377"></a>
-<span class="sourceLineNo">378</span>            this.isAndroidLowerThan3 = ua == null ? false : ua.matches(".*Android\\s[23]\\..*");<a name="line.378"></a>
-<span class="sourceLineNo">379</span>            http.closeAction(new VoidAction() {<a name="line.379"></a>
-<span class="sourceLineNo">380</span>                @Override<a name="line.380"></a>
-<span class="sourceLineNo">381</span>                public void on() {<a name="line.381"></a>
-<span class="sourceLineNo">382</span>                    closeActions.fire();<a name="line.382"></a>
-<span class="sourceLineNo">383</span>                }<a name="line.383"></a>
-<span class="sourceLineNo">384</span>            })<a name="line.384"></a>
-<span class="sourceLineNo">385</span>            .setResponseHeader("content-type",<a name="line.385"></a>
-<span class="sourceLineNo">386</span>                "text/" + (params.get("transport").equals("sse") ? "event-stream" : "plain") + "; charset=utf-8")<a name="line.386"></a>
-<span class="sourceLineNo">387</span>            .write((isAndroidLowerThan3 ? text2KB : "") + text2KB + "\n");<a name="line.387"></a>
-<span class="sourceLineNo">388</span>        }<a name="line.388"></a>
-<span class="sourceLineNo">389</span>        <a name="line.389"></a>
-<span class="sourceLineNo">390</span>        @Override<a name="line.390"></a>
-<span class="sourceLineNo">391</span>        synchronized void send(String data) {<a name="line.391"></a>
-<span class="sourceLineNo">392</span>            String payload = (isAndroidLowerThan3 ? text2KB + text2KB : "") + "";<a name="line.392"></a>
-<span class="sourceLineNo">393</span>            for (String datum : data.split("\r\n|\r|\n")) {<a name="line.393"></a>
-<span class="sourceLineNo">394</span>                payload += "data: " + datum + "\n";<a name="line.394"></a>
-<span class="sourceLineNo">395</span>            }<a name="line.395"></a>
-<span class="sourceLineNo">396</span>            payload += "\n";<a name="line.396"></a>
-<span class="sourceLineNo">397</span>            http.write(payload);<a name="line.397"></a>
-<span class="sourceLineNo">398</span>        }<a name="line.398"></a>
-<span class="sourceLineNo">399</span>        <a name="line.399"></a>
-<span class="sourceLineNo">400</span>        @Override<a name="line.400"></a>
-<span class="sourceLineNo">401</span>        synchronized void close() {<a name="line.401"></a>
-<span class="sourceLineNo">402</span>            http.close();<a name="line.402"></a>
-<span class="sourceLineNo">403</span>        }<a name="line.403"></a>
-<span class="sourceLineNo">404</span>    }<a name="line.404"></a>
-<span class="sourceLineNo">405</span>    <a name="line.405"></a>
-<span class="sourceLineNo">406</span>    private class LongpollTransport extends HttpTransport {<a name="line.406"></a>
-<span class="sourceLineNo">407</span>        AtomicReference&lt;ServerHttpExchange&gt; httpRef = new AtomicReference&lt;&gt;();<a name="line.407"></a>
-<span class="sourceLineNo">408</span>        AtomicBoolean closed = new AtomicBoolean();<a name="line.408"></a>
-<span class="sourceLineNo">409</span>        AtomicBoolean written = new AtomicBoolean();<a name="line.409"></a>
-<span class="sourceLineNo">410</span>        Set&lt;String&gt; buffer = new CopyOnWriteArraySet&lt;&gt;(); <a name="line.410"></a>
-<span class="sourceLineNo">411</span>        AtomicReference&lt;Timer&gt; closeTimer = new AtomicReference&lt;&gt;();<a name="line.411"></a>
-<span class="sourceLineNo">412</span>        <a name="line.412"></a>
-<span class="sourceLineNo">413</span>        LongpollTransport(Map&lt;String, String&gt; params, ServerHttpExchange http) {<a name="line.413"></a>
-<span class="sourceLineNo">414</span>            super(params, http);<a name="line.414"></a>
-<span class="sourceLineNo">415</span>            refresh(http);<a name="line.415"></a>
-<span class="sourceLineNo">416</span>        }<a name="line.416"></a>
-<span class="sourceLineNo">417</span><a name="line.417"></a>
-<span class="sourceLineNo">418</span>        void refresh(ServerHttpExchange http) {<a name="line.418"></a>
-<span class="sourceLineNo">419</span>            final Map&lt;String, String&gt; parameters = parseURI(http.uri());<a name="line.419"></a>
-<span class="sourceLineNo">420</span>            http.closeAction(new VoidAction() {<a name="line.420"></a>
-<span class="sourceLineNo">421</span>                @Override<a name="line.421"></a>
-<span class="sourceLineNo">422</span>                public void on() {<a name="line.422"></a>
-<span class="sourceLineNo">423</span>                    closed.set(true);<a name="line.423"></a>
-<span class="sourceLineNo">424</span>                    if (parameters.get("when").equals("poll") &amp;&amp; !written.get()) {<a name="line.424"></a>
-<span class="sourceLineNo">425</span>                        closeActions.fire();<a name="line.425"></a>
-<span class="sourceLineNo">426</span>                    }<a name="line.426"></a>
-<span class="sourceLineNo">427</span>                    Timer timer = new Timer(true);<a name="line.427"></a>
-<span class="sourceLineNo">428</span>                    timer.schedule(new TimerTask() {<a name="line.428"></a>
-<span class="sourceLineNo">429</span>                        @Override<a name="line.429"></a>
-<span class="sourceLineNo">430</span>                        public void run() {<a name="line.430"></a>
-<span class="sourceLineNo">431</span>                            closeActions.fire();<a name="line.431"></a>
-<span class="sourceLineNo">432</span>                        }<a name="line.432"></a>
-<span class="sourceLineNo">433</span>                    }, 500);<a name="line.433"></a>
-<span class="sourceLineNo">434</span>                    closeTimer.set(timer);<a name="line.434"></a>
-<span class="sourceLineNo">435</span>                }<a name="line.435"></a>
-<span class="sourceLineNo">436</span>            })<a name="line.436"></a>
-<span class="sourceLineNo">437</span>            .setResponseHeader("content-type", <a name="line.437"></a>
-<span class="sourceLineNo">438</span>                "text/" + (params.get("transport").equals("longpolljsonp") ? "javascript" : "plain") + "; charset=utf-8");<a name="line.438"></a>
-<span class="sourceLineNo">439</span>            <a name="line.439"></a>
-<span class="sourceLineNo">440</span>            if (parameters.get("when").equals("open")) {<a name="line.440"></a>
-<span class="sourceLineNo">441</span>                http.close();<a name="line.441"></a>
-<span class="sourceLineNo">442</span>            } else {<a name="line.442"></a>
-<span class="sourceLineNo">443</span>                httpRef.set(http);<a name="line.443"></a>
-<span class="sourceLineNo">444</span>                closed.set(false);<a name="line.444"></a>
-<span class="sourceLineNo">445</span>                written.set(false);<a name="line.445"></a>
-<span class="sourceLineNo">446</span>                Timer timer = closeTimer.getAndSet(null);<a name="line.446"></a>
-<span class="sourceLineNo">447</span>                if (timer != null) {<a name="line.447"></a>
-<span class="sourceLineNo">448</span>                    timer.cancel();<a name="line.448"></a>
-<span class="sourceLineNo">449</span>                }<a name="line.449"></a>
-<span class="sourceLineNo">450</span>                if (parameters.containsKey("lastEventIds")) {<a name="line.450"></a>
-<span class="sourceLineNo">451</span>                    String[] lastEventIds = parameters.get("lastEventIds").split(",");<a name="line.451"></a>
-<span class="sourceLineNo">452</span>                    for (String eventId : lastEventIds) {<a name="line.452"></a>
-<span class="sourceLineNo">453</span>                        for (String message : buffer) {<a name="line.453"></a>
-<span class="sourceLineNo">454</span>                            if (eventId.equals(findEventId(message))) {<a name="line.454"></a>
-<span class="sourceLineNo">455</span>                                buffer.remove(message);<a name="line.455"></a>
-<span class="sourceLineNo">456</span>                            }<a name="line.456"></a>
-<span class="sourceLineNo">457</span>                        }<a name="line.457"></a>
-<span class="sourceLineNo">458</span>                    }<a name="line.458"></a>
-<span class="sourceLineNo">459</span>                    if (!buffer.isEmpty()) {<a name="line.459"></a>
-<span class="sourceLineNo">460</span>                        Iterator&lt;String&gt; iterator = buffer.iterator();<a name="line.460"></a>
-<span class="sourceLineNo">461</span>                        String string = iterator.next();<a name="line.461"></a>
-<span class="sourceLineNo">462</span>                        while (iterator.hasNext()) {<a name="line.462"></a>
-<span class="sourceLineNo">463</span>                            string += "," + iterator.next();<a name="line.463"></a>
-<span class="sourceLineNo">464</span>                        }<a name="line.464"></a>
-<span class="sourceLineNo">465</span>                        send("[" + string + "]");<a name="line.465"></a>
-<span class="sourceLineNo">466</span>                    }<a name="line.466"></a>
-<span class="sourceLineNo">467</span>                }<a name="line.467"></a>
-<span class="sourceLineNo">468</span>            }<a name="line.468"></a>
-<span class="sourceLineNo">469</span>        }<a name="line.469"></a>
-<span class="sourceLineNo">470</span><a name="line.470"></a>
-<span class="sourceLineNo">471</span>        private String findEventId(String text) {<a name="line.471"></a>
-<span class="sourceLineNo">472</span>            Matcher matcher = Pattern.compile("\"id\":\"([^\"]+)\"").matcher(text);<a name="line.472"></a>
-<span class="sourceLineNo">473</span>            matcher.find();<a name="line.473"></a>
-<span class="sourceLineNo">474</span>            return matcher.group(1);<a name="line.474"></a>
-<span class="sourceLineNo">475</span>        }<a name="line.475"></a>
-<span class="sourceLineNo">476</span><a name="line.476"></a>
-<span class="sourceLineNo">477</span>        @Override<a name="line.477"></a>
-<span class="sourceLineNo">478</span>        synchronized void send(String data) {<a name="line.478"></a>
-<span class="sourceLineNo">479</span>            if (!data.startsWith("[")) {<a name="line.479"></a>
-<span class="sourceLineNo">480</span>                buffer.add(data);<a name="line.480"></a>
-<span class="sourceLineNo">481</span>            }<a name="line.481"></a>
-<span class="sourceLineNo">482</span>            ServerHttpExchange http = httpRef.getAndSet(null);<a name="line.482"></a>
-<span class="sourceLineNo">483</span>            if (http != null &amp;&amp; !closed.get()) {<a name="line.483"></a>
-<span class="sourceLineNo">484</span>                written.set(true);<a name="line.484"></a>
-<span class="sourceLineNo">485</span>                String payload;<a name="line.485"></a>
-<span class="sourceLineNo">486</span>                try {<a name="line.486"></a>
-<span class="sourceLineNo">487</span>                    payload = params.get("transport").equals("longpolljsonp") ? <a name="line.487"></a>
-<span class="sourceLineNo">488</span>                        params.get("callback") + "(" + new ObjectMapper().writeValueAsString(data) + ");" : <a name="line.488"></a>
-<span class="sourceLineNo">489</span>                        data; <a name="line.489"></a>
-<span class="sourceLineNo">490</span>                } catch (JsonProcessingException e) {<a name="line.490"></a>
-<span class="sourceLineNo">491</span>                    throw new RuntimeException(e);<a name="line.491"></a>
-<span class="sourceLineNo">492</span>                }<a name="line.492"></a>
-<span class="sourceLineNo">493</span>                http.close(payload);<a name="line.493"></a>
-<span class="sourceLineNo">494</span>            }<a name="line.494"></a>
-<span class="sourceLineNo">495</span>        }<a name="line.495"></a>
-<span class="sourceLineNo">496</span>        <a name="line.496"></a>
-<span class="sourceLineNo">497</span>        @Override<a name="line.497"></a>
-<span class="sourceLineNo">498</span>        synchronized void close() {<a name="line.498"></a>
-<span class="sourceLineNo">499</span>            ServerHttpExchange http = httpRef.getAndSet(null);<a name="line.499"></a>
-<span class="sourceLineNo">500</span>            if (http != null &amp;&amp; !closed.get()) {<a name="line.500"></a>
-<span class="sourceLineNo">501</span>                http.close();<a name="line.501"></a>
-<span class="sourceLineNo">502</span>            }<a name="line.502"></a>
-<span class="sourceLineNo">503</span>        }<a name="line.503"></a>
-<span class="sourceLineNo">504</span>    }<a name="line.504"></a>
-<span class="sourceLineNo">505</span>    <a name="line.505"></a>
-<span class="sourceLineNo">506</span>    private class DefaultSocket implements Socket {<a name="line.506"></a>
-<span class="sourceLineNo">507</span>        final Transport transport;<a name="line.507"></a>
-<span class="sourceLineNo">508</span>        Set&lt;String&gt; tags = new CopyOnWriteArraySet&lt;&gt;();<a name="line.508"></a>
-<span class="sourceLineNo">509</span>        ConcurrentMap&lt;String, Actions&lt;Object&gt;&gt; actionsMap = new ConcurrentHashMap&lt;&gt;();<a name="line.509"></a>
-<span class="sourceLineNo">510</span>        ConcurrentMap&lt;String, Action&lt;Object&gt;&gt; replyMap = new ConcurrentHashMap&lt;&gt;();<a name="line.510"></a>
-<span class="sourceLineNo">511</span><a name="line.511"></a>
-<span class="sourceLineNo">512</span>        DefaultSocket(final Transport transport) {<a name="line.512"></a>
-<span class="sourceLineNo">513</span>            this.transport = transport;<a name="line.513"></a>
-<span class="sourceLineNo">514</span>            transport.closeActions.add(new VoidAction() {<a name="line.514"></a>
-<span class="sourceLineNo">515</span>                @Override<a name="line.515"></a>
-<span class="sourceLineNo">516</span>                public void on() {<a name="line.516"></a>
-<span class="sourceLineNo">517</span>                    sockets.remove(transport.params.get("id"));<a name="line.517"></a>
-<span class="sourceLineNo">518</span>                    Actions&lt;Object&gt; closeActions = actionsMap.get("close");<a name="line.518"></a>
-<span class="sourceLineNo">519</span>                    if (closeActions != null) {<a name="line.519"></a>
-<span class="sourceLineNo">520</span>                        closeActions.fire();<a name="line.520"></a>
-<span class="sourceLineNo">521</span>                    }<a name="line.521"></a>
+<span class="sourceLineNo">350</span>    private class WebSocketTransport extends Transport {<a name="line.350"></a>
+<span class="sourceLineNo">351</span>        final ServerWebSocket ws;<a name="line.351"></a>
+<span class="sourceLineNo">352</span>        <a name="line.352"></a>
+<span class="sourceLineNo">353</span>        WebSocketTransport(Map&lt;String, String&gt; params, ServerWebSocket ws) {<a name="line.353"></a>
+<span class="sourceLineNo">354</span>            super(params);<a name="line.354"></a>
+<span class="sourceLineNo">355</span>            this.ws = ws;<a name="line.355"></a>
+<span class="sourceLineNo">356</span>            ws.closeAction(new VoidAction() {<a name="line.356"></a>
+<span class="sourceLineNo">357</span>                @Override<a name="line.357"></a>
+<span class="sourceLineNo">358</span>                public void on() {<a name="line.358"></a>
+<span class="sourceLineNo">359</span>                    closeActions.fire();<a name="line.359"></a>
+<span class="sourceLineNo">360</span>                }<a name="line.360"></a>
+<span class="sourceLineNo">361</span>            })<a name="line.361"></a>
+<span class="sourceLineNo">362</span>            .messageAction(new Action&lt;Data&gt;() {<a name="line.362"></a>
+<span class="sourceLineNo">363</span>                @Override<a name="line.363"></a>
+<span class="sourceLineNo">364</span>                public void on(Data data) {<a name="line.364"></a>
+<span class="sourceLineNo">365</span>                    messageActions.fire(data.as(String.class));<a name="line.365"></a>
+<span class="sourceLineNo">366</span>                }<a name="line.366"></a>
+<span class="sourceLineNo">367</span>            });<a name="line.367"></a>
+<span class="sourceLineNo">368</span>        }<a name="line.368"></a>
+<span class="sourceLineNo">369</span>        <a name="line.369"></a>
+<span class="sourceLineNo">370</span>        @Override<a name="line.370"></a>
+<span class="sourceLineNo">371</span>        String uri() {<a name="line.371"></a>
+<span class="sourceLineNo">372</span>            return ws.uri();<a name="line.372"></a>
+<span class="sourceLineNo">373</span>        }<a name="line.373"></a>
+<span class="sourceLineNo">374</span><a name="line.374"></a>
+<span class="sourceLineNo">375</span>        @Override<a name="line.375"></a>
+<span class="sourceLineNo">376</span>        synchronized void send(String data) {<a name="line.376"></a>
+<span class="sourceLineNo">377</span>            ws.send(data);<a name="line.377"></a>
+<span class="sourceLineNo">378</span>        }<a name="line.378"></a>
+<span class="sourceLineNo">379</span><a name="line.379"></a>
+<span class="sourceLineNo">380</span>        @Override<a name="line.380"></a>
+<span class="sourceLineNo">381</span>        synchronized void close() {<a name="line.381"></a>
+<span class="sourceLineNo">382</span>            ws.close();<a name="line.382"></a>
+<span class="sourceLineNo">383</span>        }<a name="line.383"></a>
+<span class="sourceLineNo">384</span>    }<a name="line.384"></a>
+<span class="sourceLineNo">385</span>    <a name="line.385"></a>
+<span class="sourceLineNo">386</span>    private abstract class HttpTransport extends Transport {<a name="line.386"></a>
+<span class="sourceLineNo">387</span>        final ServerHttpExchange http;<a name="line.387"></a>
+<span class="sourceLineNo">388</span>        <a name="line.388"></a>
+<span class="sourceLineNo">389</span>        HttpTransport(Map&lt;String, String&gt; params, ServerHttpExchange http) {<a name="line.389"></a>
+<span class="sourceLineNo">390</span>            super(params);<a name="line.390"></a>
+<span class="sourceLineNo">391</span>            this.http = http;<a name="line.391"></a>
+<span class="sourceLineNo">392</span>        }<a name="line.392"></a>
+<span class="sourceLineNo">393</span>        <a name="line.393"></a>
+<span class="sourceLineNo">394</span>        @Override<a name="line.394"></a>
+<span class="sourceLineNo">395</span>        String uri() {<a name="line.395"></a>
+<span class="sourceLineNo">396</span>            return http.uri();<a name="line.396"></a>
+<span class="sourceLineNo">397</span>        }<a name="line.397"></a>
+<span class="sourceLineNo">398</span>    }<a name="line.398"></a>
+<span class="sourceLineNo">399</span><a name="line.399"></a>
+<span class="sourceLineNo">400</span>    final static String text2KB = CharBuffer.allocate(2048).toString().replace('\0', ' ');<a name="line.400"></a>
+<span class="sourceLineNo">401</span>    <a name="line.401"></a>
+<span class="sourceLineNo">402</span>    private class StreamTransport extends HttpTransport {<a name="line.402"></a>
+<span class="sourceLineNo">403</span>        final boolean isAndroidLowerThan3;<a name="line.403"></a>
+<span class="sourceLineNo">404</span>        <a name="line.404"></a>
+<span class="sourceLineNo">405</span>        StreamTransport(Map&lt;String, String&gt; params, ServerHttpExchange http) {<a name="line.405"></a>
+<span class="sourceLineNo">406</span>            super(params, http);<a name="line.406"></a>
+<span class="sourceLineNo">407</span>            String ua = http.requestHeader("user-agent");<a name="line.407"></a>
+<span class="sourceLineNo">408</span>            this.isAndroidLowerThan3 = ua == null ? false : ua.matches(".*Android\\s[23]\\..*");<a name="line.408"></a>
+<span class="sourceLineNo">409</span>            http.closeAction(new VoidAction() {<a name="line.409"></a>
+<span class="sourceLineNo">410</span>                @Override<a name="line.410"></a>
+<span class="sourceLineNo">411</span>                public void on() {<a name="line.411"></a>
+<span class="sourceLineNo">412</span>                    closeActions.fire();<a name="line.412"></a>
+<span class="sourceLineNo">413</span>                }<a name="line.413"></a>
+<span class="sourceLineNo">414</span>            })<a name="line.414"></a>
+<span class="sourceLineNo">415</span>            .setResponseHeader("content-type",<a name="line.415"></a>
+<span class="sourceLineNo">416</span>                "text/" + (params.get("transport").equals("sse") ? "event-stream" : "plain") + "; charset=utf-8")<a name="line.416"></a>
+<span class="sourceLineNo">417</span>            .write((isAndroidLowerThan3 ? text2KB : "") + text2KB + "\n");<a name="line.417"></a>
+<span class="sourceLineNo">418</span>        }<a name="line.418"></a>
+<span class="sourceLineNo">419</span>        <a name="line.419"></a>
+<span class="sourceLineNo">420</span>        @Override<a name="line.420"></a>
+<span class="sourceLineNo">421</span>        synchronized void send(String data) {<a name="line.421"></a>
+<span class="sourceLineNo">422</span>            String payload = (isAndroidLowerThan3 ? text2KB + text2KB : "") + "";<a name="line.422"></a>
+<span class="sourceLineNo">423</span>            for (String datum : data.split("\r\n|\r|\n")) {<a name="line.423"></a>
+<span class="sourceLineNo">424</span>                payload += "data: " + datum + "\n";<a name="line.424"></a>
+<span class="sourceLineNo">425</span>            }<a name="line.425"></a>
+<span class="sourceLineNo">426</span>            payload += "\n";<a name="line.426"></a>
+<span class="sourceLineNo">427</span>            http.write(payload);<a name="line.427"></a>
+<span class="sourceLineNo">428</span>        }<a name="line.428"></a>
+<span class="sourceLineNo">429</span>        <a name="line.429"></a>
+<span class="sourceLineNo">430</span>        @Override<a name="line.430"></a>
+<span class="sourceLineNo">431</span>        synchronized void close() {<a name="line.431"></a>
+<span class="sourceLineNo">432</span>            http.close();<a name="line.432"></a>
+<span class="sourceLineNo">433</span>        }<a name="line.433"></a>
+<span class="sourceLineNo">434</span>    }<a name="line.434"></a>
+<span class="sourceLineNo">435</span>    <a name="line.435"></a>
+<span class="sourceLineNo">436</span>    private class LongpollTransport extends HttpTransport {<a name="line.436"></a>
+<span class="sourceLineNo">437</span>        AtomicReference&lt;ServerHttpExchange&gt; httpRef = new AtomicReference&lt;&gt;();<a name="line.437"></a>
+<span class="sourceLineNo">438</span>        AtomicBoolean closed = new AtomicBoolean();<a name="line.438"></a>
+<span class="sourceLineNo">439</span>        AtomicBoolean written = new AtomicBoolean();<a name="line.439"></a>
+<span class="sourceLineNo">440</span>        Set&lt;String&gt; buffer = new CopyOnWriteArraySet&lt;&gt;(); <a name="line.440"></a>
+<span class="sourceLineNo">441</span>        AtomicReference&lt;Timer&gt; closeTimer = new AtomicReference&lt;&gt;();<a name="line.441"></a>
+<span class="sourceLineNo">442</span>        <a name="line.442"></a>
+<span class="sourceLineNo">443</span>        LongpollTransport(Map&lt;String, String&gt; params, ServerHttpExchange http) {<a name="line.443"></a>
+<span class="sourceLineNo">444</span>            super(params, http);<a name="line.444"></a>
+<span class="sourceLineNo">445</span>            refresh(http);<a name="line.445"></a>
+<span class="sourceLineNo">446</span>        }<a name="line.446"></a>
+<span class="sourceLineNo">447</span><a name="line.447"></a>
+<span class="sourceLineNo">448</span>        void refresh(ServerHttpExchange http) {<a name="line.448"></a>
+<span class="sourceLineNo">449</span>            final Map&lt;String, String&gt; parameters = parseURI(http.uri());<a name="line.449"></a>
+<span class="sourceLineNo">450</span>            http.closeAction(new VoidAction() {<a name="line.450"></a>
+<span class="sourceLineNo">451</span>                @Override<a name="line.451"></a>
+<span class="sourceLineNo">452</span>                public void on() {<a name="line.452"></a>
+<span class="sourceLineNo">453</span>                    closed.set(true);<a name="line.453"></a>
+<span class="sourceLineNo">454</span>                    if (parameters.get("when").equals("poll") &amp;&amp; !written.get()) {<a name="line.454"></a>
+<span class="sourceLineNo">455</span>                        closeActions.fire();<a name="line.455"></a>
+<span class="sourceLineNo">456</span>                    }<a name="line.456"></a>
+<span class="sourceLineNo">457</span>                    Timer timer = new Timer(true);<a name="line.457"></a>
+<span class="sourceLineNo">458</span>                    timer.schedule(new TimerTask() {<a name="line.458"></a>
+<span class="sourceLineNo">459</span>                        @Override<a name="line.459"></a>
+<span class="sourceLineNo">460</span>                        public void run() {<a name="line.460"></a>
+<span class="sourceLineNo">461</span>                            closeActions.fire();<a name="line.461"></a>
+<span class="sourceLineNo">462</span>                        }<a name="line.462"></a>
+<span class="sourceLineNo">463</span>                    }, 500);<a name="line.463"></a>
+<span class="sourceLineNo">464</span>                    closeTimer.set(timer);<a name="line.464"></a>
+<span class="sourceLineNo">465</span>                }<a name="line.465"></a>
+<span class="sourceLineNo">466</span>            })<a name="line.466"></a>
+<span class="sourceLineNo">467</span>            .setResponseHeader("content-type", <a name="line.467"></a>
+<span class="sourceLineNo">468</span>                "text/" + (params.get("transport").equals("longpolljsonp") ? "javascript" : "plain") + "; charset=utf-8");<a name="line.468"></a>
+<span class="sourceLineNo">469</span>            <a name="line.469"></a>
+<span class="sourceLineNo">470</span>            if (parameters.get("when").equals("open")) {<a name="line.470"></a>
+<span class="sourceLineNo">471</span>                http.close();<a name="line.471"></a>
+<span class="sourceLineNo">472</span>            } else {<a name="line.472"></a>
+<span class="sourceLineNo">473</span>                httpRef.set(http);<a name="line.473"></a>
+<span class="sourceLineNo">474</span>                closed.set(false);<a name="line.474"></a>
+<span class="sourceLineNo">475</span>                written.set(false);<a name="line.475"></a>
+<span class="sourceLineNo">476</span>                Timer timer = closeTimer.getAndSet(null);<a name="line.476"></a>
+<span class="sourceLineNo">477</span>                if (timer != null) {<a name="line.477"></a>
+<span class="sourceLineNo">478</span>                    timer.cancel();<a name="line.478"></a>
+<span class="sourceLineNo">479</span>                }<a name="line.479"></a>
+<span class="sourceLineNo">480</span>                if (parameters.containsKey("lastEventIds")) {<a name="line.480"></a>
+<span class="sourceLineNo">481</span>                    String[] lastEventIds = parameters.get("lastEventIds").split(",");<a name="line.481"></a>
+<span class="sourceLineNo">482</span>                    for (String eventId : lastEventIds) {<a name="line.482"></a>
+<span class="sourceLineNo">483</span>                        for (String message : buffer) {<a name="line.483"></a>
+<span class="sourceLineNo">484</span>                            if (eventId.equals(findEventId(message))) {<a name="line.484"></a>
+<span class="sourceLineNo">485</span>                                buffer.remove(message);<a name="line.485"></a>
+<span class="sourceLineNo">486</span>                            }<a name="line.486"></a>
+<span class="sourceLineNo">487</span>                        }<a name="line.487"></a>
+<span class="sourceLineNo">488</span>                    }<a name="line.488"></a>
+<span class="sourceLineNo">489</span>                    if (!buffer.isEmpty()) {<a name="line.489"></a>
+<span class="sourceLineNo">490</span>                        Iterator&lt;String&gt; iterator = buffer.iterator();<a name="line.490"></a>
+<span class="sourceLineNo">491</span>                        String string = iterator.next();<a name="line.491"></a>
+<span class="sourceLineNo">492</span>                        while (iterator.hasNext()) {<a name="line.492"></a>
+<span class="sourceLineNo">493</span>                            string += "," + iterator.next();<a name="line.493"></a>
+<span class="sourceLineNo">494</span>                        }<a name="line.494"></a>
+<span class="sourceLineNo">495</span>                        send("[" + string + "]");<a name="line.495"></a>
+<span class="sourceLineNo">496</span>                    }<a name="line.496"></a>
+<span class="sourceLineNo">497</span>                }<a name="line.497"></a>
+<span class="sourceLineNo">498</span>            }<a name="line.498"></a>
+<span class="sourceLineNo">499</span>        }<a name="line.499"></a>
+<span class="sourceLineNo">500</span><a name="line.500"></a>
+<span class="sourceLineNo">501</span>        private String findEventId(String text) {<a name="line.501"></a>
+<span class="sourceLineNo">502</span>            Matcher matcher = Pattern.compile("\"id\":\"([^\"]+)\"").matcher(text);<a name="line.502"></a>
+<span class="sourceLineNo">503</span>            matcher.find();<a name="line.503"></a>
+<span class="sourceLineNo">504</span>            return matcher.group(1);<a name="line.504"></a>
+<span class="sourceLineNo">505</span>        }<a name="line.505"></a>
+<span class="sourceLineNo">506</span><a name="line.506"></a>
+<span class="sourceLineNo">507</span>        @Override<a name="line.507"></a>
+<span class="sourceLineNo">508</span>        synchronized void send(String data) {<a name="line.508"></a>
+<span class="sourceLineNo">509</span>            if (!data.startsWith("[")) {<a name="line.509"></a>
+<span class="sourceLineNo">510</span>                buffer.add(data);<a name="line.510"></a>
+<span class="sourceLineNo">511</span>            }<a name="line.511"></a>
+<span class="sourceLineNo">512</span>            ServerHttpExchange http = httpRef.getAndSet(null);<a name="line.512"></a>
+<span class="sourceLineNo">513</span>            if (http != null &amp;&amp; !closed.get()) {<a name="line.513"></a>
+<span class="sourceLineNo">514</span>                written.set(true);<a name="line.514"></a>
+<span class="sourceLineNo">515</span>                String payload;<a name="line.515"></a>
+<span class="sourceLineNo">516</span>                try {<a name="line.516"></a>
+<span class="sourceLineNo">517</span>                    payload = params.get("transport").equals("longpolljsonp") ? <a name="line.517"></a>
+<span class="sourceLineNo">518</span>                        params.get("callback") + "(" + new ObjectMapper().writeValueAsString(data) + ");" : <a name="line.518"></a>
+<span class="sourceLineNo">519</span>                        data; <a name="line.519"></a>
+<span class="sourceLineNo">520</span>                } catch (JsonProcessingException e) {<a name="line.520"></a>
+<span class="sourceLineNo">521</span>                    throw new RuntimeException(e);<a name="line.521"></a>
 <span class="sourceLineNo">522</span>                }<a name="line.522"></a>
-<span class="sourceLineNo">523</span>            });<a name="line.523"></a>
-<span class="sourceLineNo">524</span>            transport.messageActions.add(new Action&lt;String&gt;() {<a name="line.524"></a>
-<span class="sourceLineNo">525</span>                @Override<a name="line.525"></a>
-<span class="sourceLineNo">526</span>                public void on(String text) {<a name="line.526"></a>
-<span class="sourceLineNo">527</span>                    final Map&lt;String, Object&gt; event = parseEvent(text);<a name="line.527"></a>
-<span class="sourceLineNo">528</span>                    Actions&lt;Object&gt; actions = actionsMap.get(event.get("type"));<a name="line.528"></a>
-<span class="sourceLineNo">529</span>                    if (actions != null) {<a name="line.529"></a>
-<span class="sourceLineNo">530</span>                        if ((Boolean) event.get("reply")) {<a name="line.530"></a>
-<span class="sourceLineNo">531</span>                            actions.fire(new Reply&lt;Object&gt;() {<a name="line.531"></a>
-<span class="sourceLineNo">532</span>                                @Override<a name="line.532"></a>
-<span class="sourceLineNo">533</span>                                public Object data() {<a name="line.533"></a>
-<span class="sourceLineNo">534</span>                                    return event.get("data");<a name="line.534"></a>
-<span class="sourceLineNo">535</span>                                }<a name="line.535"></a>
-<span class="sourceLineNo">536</span><a name="line.536"></a>
-<span class="sourceLineNo">537</span>                                @Override<a name="line.537"></a>
-<span class="sourceLineNo">538</span>                                public void done() {<a name="line.538"></a>
-<span class="sourceLineNo">539</span>                                    done(null);<a name="line.539"></a>
-<span class="sourceLineNo">540</span>                                }<a name="line.540"></a>
+<span class="sourceLineNo">523</span>                http.close(payload);<a name="line.523"></a>
+<span class="sourceLineNo">524</span>            }<a name="line.524"></a>
+<span class="sourceLineNo">525</span>        }<a name="line.525"></a>
+<span class="sourceLineNo">526</span>        <a name="line.526"></a>
+<span class="sourceLineNo">527</span>        @Override<a name="line.527"></a>
+<span class="sourceLineNo">528</span>        synchronized void close() {<a name="line.528"></a>
+<span class="sourceLineNo">529</span>            ServerHttpExchange http = httpRef.getAndSet(null);<a name="line.529"></a>
+<span class="sourceLineNo">530</span>            if (http != null &amp;&amp; !closed.get()) {<a name="line.530"></a>
+<span class="sourceLineNo">531</span>                http.close();<a name="line.531"></a>
+<span class="sourceLineNo">532</span>            }<a name="line.532"></a>
+<span class="sourceLineNo">533</span>        }<a name="line.533"></a>
+<span class="sourceLineNo">534</span>    }<a name="line.534"></a>
+<span class="sourceLineNo">535</span>    <a name="line.535"></a>
+<span class="sourceLineNo">536</span>    private class DefaultSocket implements Socket {<a name="line.536"></a>
+<span class="sourceLineNo">537</span>        final Transport transport;<a name="line.537"></a>
+<span class="sourceLineNo">538</span>        Set&lt;String&gt; tags = new CopyOnWriteArraySet&lt;&gt;();<a name="line.538"></a>
+<span class="sourceLineNo">539</span>        ConcurrentMap&lt;String, Actions&lt;Object&gt;&gt; actionsMap = new ConcurrentHashMap&lt;&gt;();<a name="line.539"></a>
+<span class="sourceLineNo">540</span>        ConcurrentMap&lt;String, Action&lt;Object&gt;&gt; replyMap = new ConcurrentHashMap&lt;&gt;();<a name="line.540"></a>
 <span class="sourceLineNo">541</span><a name="line.541"></a>
-<span class="sourceLineNo">542</span>                                @Override<a name="line.542"></a>
-<span class="sourceLineNo">543</span>                                public void done(Object value) {<a name="line.543"></a>
-<span class="sourceLineNo">544</span>                                    sendReply(value, false);<a name="line.544"></a>
-<span class="sourceLineNo">545</span>                                }<a name="line.545"></a>
-<span class="sourceLineNo">546</span><a name="line.546"></a>
-<span class="sourceLineNo">547</span>                                @Override<a name="line.547"></a>
-<span class="sourceLineNo">548</span>                                public void fail() {<a name="line.548"></a>
-<span class="sourceLineNo">549</span>                                    fail(null);<a name="line.549"></a>
-<span class="sourceLineNo">550</span>                                }<a name="line.550"></a>
-<span class="sourceLineNo">551</span><a name="line.551"></a>
-<span class="sourceLineNo">552</span>                                @Override<a name="line.552"></a>
-<span class="sourceLineNo">553</span>                                public void fail(Object value) {<a name="line.553"></a>
-<span class="sourceLineNo">554</span>                                    sendReply(value, true);<a name="line.554"></a>
-<span class="sourceLineNo">555</span>                                }<a name="line.555"></a>
-<span class="sourceLineNo">556</span><a name="line.556"></a>
-<span class="sourceLineNo">557</span>                                AtomicBoolean sent = new AtomicBoolean();<a name="line.557"></a>
-<span class="sourceLineNo">558</span>                                private void sendReply(Object value, boolean exception) {<a name="line.558"></a>
-<span class="sourceLineNo">559</span>                                    if (sent.compareAndSet(false, true)) {<a name="line.559"></a>
-<span class="sourceLineNo">560</span>                                        Map&lt;String, Object&gt; result = new LinkedHashMap&lt;String, Object&gt;();<a name="line.560"></a>
-<span class="sourceLineNo">561</span>                                        result.put("id", event.get("id"));<a name="line.561"></a>
-<span class="sourceLineNo">562</span>                                        result.put("data", value);<a name="line.562"></a>
-<span class="sourceLineNo">563</span>                                        result.put("exception", exception);<a name="line.563"></a>
-<span class="sourceLineNo">564</span>                                        send("reply", result);<a name="line.564"></a>
-<span class="sourceLineNo">565</span>                                    }<a name="line.565"></a>
-<span class="sourceLineNo">566</span>                                }<a name="line.566"></a>
-<span class="sourceLineNo">567</span>                            });<a name="line.567"></a>
-<span class="sourceLineNo">568</span>                        } else {<a name="line.568"></a>
-<span class="sourceLineNo">569</span>                            actions.fire(event.get("data"));<a name="line.569"></a>
-<span class="sourceLineNo">570</span>                        }<a name="line.570"></a>
-<span class="sourceLineNo">571</span>                    }<a name="line.571"></a>
-<span class="sourceLineNo">572</span>                }<a name="line.572"></a>
-<span class="sourceLineNo">573</span>            });<a name="line.573"></a>
-<span class="sourceLineNo">574</span>            on("reply", new Action&lt;Map&lt;String, Object&gt;&gt;() {<a name="line.574"></a>
-<span class="sourceLineNo">575</span>                @Override<a name="line.575"></a>
-<span class="sourceLineNo">576</span>                public void on(Map&lt;String, Object&gt; info) {<a name="line.576"></a>
-<span class="sourceLineNo">577</span>                    Action&lt;Object&gt; reply = replyMap.remove(info.get("id"));<a name="line.577"></a>
-<span class="sourceLineNo">578</span>                    if (reply != null) {<a name="line.578"></a>
-<span class="sourceLineNo">579</span>                        reply.on(info.get("data"));<a name="line.579"></a>
-<span class="sourceLineNo">580</span>                    } else {<a name="line.580"></a>
-<span class="sourceLineNo">581</span>                        log.error("Reply callback not found in socket#{} with info, {}", id(), info);<a name="line.581"></a>
-<span class="sourceLineNo">582</span>                    }<a name="line.582"></a>
-<span class="sourceLineNo">583</span>                }<a name="line.583"></a>
-<span class="sourceLineNo">584</span>            });<a name="line.584"></a>
-<span class="sourceLineNo">585</span>            try {<a name="line.585"></a>
-<span class="sourceLineNo">586</span>                new HeartbeatHelper(Long.valueOf(transport.params.get("heartbeat")));<a name="line.586"></a>
-<span class="sourceLineNo">587</span>            } catch (NumberFormatException e) {}<a name="line.587"></a>
-<span class="sourceLineNo">588</span>            <a name="line.588"></a>
-<span class="sourceLineNo">589</span>            sockets.put(id(), this);<a name="line.589"></a>
-<span class="sourceLineNo">590</span>        }<a name="line.590"></a>
-<span class="sourceLineNo">591</span>        <a name="line.591"></a>
-<span class="sourceLineNo">592</span>        class HeartbeatHelper {<a name="line.592"></a>
-<span class="sourceLineNo">593</span>            final long delay;<a name="line.593"></a>
-<span class="sourceLineNo">594</span>            AtomicReference&lt;Timer&gt; timer = new AtomicReference&lt;&gt;();<a name="line.594"></a>
-<span class="sourceLineNo">595</span>            <a name="line.595"></a>
-<span class="sourceLineNo">596</span>            HeartbeatHelper(long delay) {<a name="line.596"></a>
-<span class="sourceLineNo">597</span>                this.delay = delay;<a name="line.597"></a>
-<span class="sourceLineNo">598</span>                timer.set(createTimer());<a name="line.598"></a>
-<span class="sourceLineNo">599</span>                on("heartbeat", new VoidAction() {<a name="line.599"></a>
-<span class="sourceLineNo">600</span>                    @Override<a name="line.600"></a>
-<span class="sourceLineNo">601</span>                    public void on() {<a name="line.601"></a>
-<span class="sourceLineNo">602</span>                        timer.getAndSet(createTimer()).cancel();<a name="line.602"></a>
-<span class="sourceLineNo">603</span>                        send("heartbeat");<a name="line.603"></a>
-<span class="sourceLineNo">604</span>                    }<a name="line.604"></a>
-<span class="sourceLineNo">605</span>                });<a name="line.605"></a>
-<span class="sourceLineNo">606</span>            }<a name="line.606"></a>
-<span class="sourceLineNo">607</span>            <a name="line.607"></a>
-<span class="sourceLineNo">608</span>            Timer createTimer() {<a name="line.608"></a>
-<span class="sourceLineNo">609</span>                Timer timer = new Timer(true);<a name="line.609"></a>
-<span class="sourceLineNo">610</span>                timer.schedule(new TimerTask() {<a name="line.610"></a>
-<span class="sourceLineNo">611</span>                    @Override<a name="line.611"></a>
-<span class="sourceLineNo">612</span>                    public void run() {<a name="line.612"></a>
-<span class="sourceLineNo">613</span>                        close();<a name="line.613"></a>
-<span class="sourceLineNo">614</span>                    }<a name="line.614"></a>
-<span class="sourceLineNo">615</span>                }, delay);<a name="line.615"></a>
-<span class="sourceLineNo">616</span>                return timer;<a name="line.616"></a>
-<span class="sourceLineNo">617</span>            }<a name="line.617"></a>
-<span class="sourceLineNo">618</span>        }<a name="line.618"></a>
-<span class="sourceLineNo">619</span><a name="line.619"></a>
-<span class="sourceLineNo">620</span>        @Override<a name="line.620"></a>
-<span class="sourceLineNo">621</span>        public String id() {<a name="line.621"></a>
-<span class="sourceLineNo">622</span>            return transport.params.get("id");<a name="line.622"></a>
-<span class="sourceLineNo">623</span>        }<a name="line.623"></a>
-<span class="sourceLineNo">624</span><a name="line.624"></a>
-<span class="sourceLineNo">625</span>        @Override<a name="line.625"></a>
-<span class="sourceLineNo">626</span>        public String uri() {<a name="line.626"></a>
-<span class="sourceLineNo">627</span>            return transport.uri();<a name="line.627"></a>
-<span class="sourceLineNo">628</span>        }<a name="line.628"></a>
-<span class="sourceLineNo">629</span><a name="line.629"></a>
-<span class="sourceLineNo">630</span>        @Override<a name="line.630"></a>
-<span class="sourceLineNo">631</span>        public Set&lt;String&gt; tags() {<a name="line.631"></a>
-<span class="sourceLineNo">632</span>            return tags;<a name="line.632"></a>
-<span class="sourceLineNo">633</span>        }<a name="line.633"></a>
-<span class="sourceLineNo">634</span><a name="line.634"></a>
-<span class="sourceLineNo">635</span>        @SuppressWarnings("unchecked")<a name="line.635"></a>
-<span class="sourceLineNo">636</span>        @Override<a name="line.636"></a>
-<span class="sourceLineNo">637</span>        public &lt;T&gt; Socket on(String event, Action&lt;T&gt; action) {<a name="line.637"></a>
-<span class="sourceLineNo">638</span>            Actions&lt;Object&gt; actions = actionsMap.get(event);<a name="line.638"></a>
-<span class="sourceLineNo">639</span>            if (actions == null) {<a name="line.639"></a>
-<span class="sourceLineNo">640</span>                Actions&lt;Object&gt; value = new ConcurrentActions&lt;&gt;();<a name="line.640"></a>
-<span class="sourceLineNo">641</span>                actions = actionsMap.putIfAbsent(event, value);<a name="line.641"></a>
-<span class="sourceLineNo">642</span>                if (actions == null) {<a name="line.642"></a>
-<span class="sourceLineNo">643</span>                    actions = value;<a name="line.643"></a>
-<span class="sourceLineNo">644</span>                }<a name="line.644"></a>
-<span class="sourceLineNo">645</span>            }<a name="line.645"></a>
-<span class="sourceLineNo">646</span>            actions.add((Action&lt;Object&gt;) action);<a name="line.646"></a>
-<span class="sourceLineNo">647</span>            return this;<a name="line.647"></a>
+<span class="sourceLineNo">542</span>        DefaultSocket(final Transport transport) {<a name="line.542"></a>
+<span class="sourceLineNo">543</span>            this.transport = transport;<a name="line.543"></a>
+<span class="sourceLineNo">544</span>            transport.closeActions.add(new VoidAction() {<a name="line.544"></a>
+<span class="sourceLineNo">545</span>                @Override<a name="line.545"></a>
+<span class="sourceLineNo">546</span>                public void on() {<a name="line.546"></a>
+<span class="sourceLineNo">547</span>                    sockets.remove(transport.params.get("id"));<a name="line.547"></a>
+<span class="sourceLineNo">548</span>                    Actions&lt;Object&gt; closeActions = actionsMap.get("close");<a name="line.548"></a>
+<span class="sourceLineNo">549</span>                    if (closeActions != null) {<a name="line.549"></a>
+<span class="sourceLineNo">550</span>                        closeActions.fire();<a name="line.550"></a>
+<span class="sourceLineNo">551</span>                    }<a name="line.551"></a>
+<span class="sourceLineNo">552</span>                }<a name="line.552"></a>
+<span class="sourceLineNo">553</span>            });<a name="line.553"></a>
+<span class="sourceLineNo">554</span>            transport.messageActions.add(new Action&lt;String&gt;() {<a name="line.554"></a>
+<span class="sourceLineNo">555</span>                @Override<a name="line.555"></a>
+<span class="sourceLineNo">556</span>                public void on(String text) {<a name="line.556"></a>
+<span class="sourceLineNo">557</span>                    final Map&lt;String, Object&gt; event = parseEvent(text);<a name="line.557"></a>
+<span class="sourceLineNo">558</span>                    Actions&lt;Object&gt; actions = actionsMap.get(event.get("type"));<a name="line.558"></a>
+<span class="sourceLineNo">559</span>                    if (actions != null) {<a name="line.559"></a>
+<span class="sourceLineNo">560</span>                        if ((Boolean) event.get("reply")) {<a name="line.560"></a>
+<span class="sourceLineNo">561</span>                            actions.fire(new Reply&lt;Object&gt;() {<a name="line.561"></a>
+<span class="sourceLineNo">562</span>                                @Override<a name="line.562"></a>
+<span class="sourceLineNo">563</span>                                public Object data() {<a name="line.563"></a>
+<span class="sourceLineNo">564</span>                                    return event.get("data");<a name="line.564"></a>
+<span class="sourceLineNo">565</span>                                }<a name="line.565"></a>
+<span class="sourceLineNo">566</span><a name="line.566"></a>
+<span class="sourceLineNo">567</span>                                @Override<a name="line.567"></a>
+<span class="sourceLineNo">568</span>                                public void done() {<a name="line.568"></a>
+<span class="sourceLineNo">569</span>                                    done(null);<a name="line.569"></a>
+<span class="sourceLineNo">570</span>                                }<a name="line.570"></a>
+<span class="sourceLineNo">571</span><a name="line.571"></a>
+<span class="sourceLineNo">572</span>                                @Override<a name="line.572"></a>
+<span class="sourceLineNo">573</span>                                public void done(Object value) {<a name="line.573"></a>
+<span class="sourceLineNo">574</span>                                    sendReply(value, false);<a name="line.574"></a>
+<span class="sourceLineNo">575</span>                                }<a name="line.575"></a>
+<span class="sourceLineNo">576</span><a name="line.576"></a>
+<span class="sourceLineNo">577</span>                                @Override<a name="line.577"></a>
+<span class="sourceLineNo">578</span>                                public void fail() {<a name="line.578"></a>
+<span class="sourceLineNo">579</span>                                    fail(null);<a name="line.579"></a>
+<span class="sourceLineNo">580</span>                                }<a name="line.580"></a>
+<span class="sourceLineNo">581</span><a name="line.581"></a>
+<span class="sourceLineNo">582</span>                                @Override<a name="line.582"></a>
+<span class="sourceLineNo">583</span>                                public void fail(Object value) {<a name="line.583"></a>
+<span class="sourceLineNo">584</span>                                    sendReply(value, true);<a name="line.584"></a>
+<span class="sourceLineNo">585</span>                                }<a name="line.585"></a>
+<span class="sourceLineNo">586</span><a name="line.586"></a>
+<span class="sourceLineNo">587</span>                                AtomicBoolean sent = new AtomicBoolean();<a name="line.587"></a>
+<span class="sourceLineNo">588</span>                                private void sendReply(Object value, boolean exception) {<a name="line.588"></a>
+<span class="sourceLineNo">589</span>                                    if (sent.compareAndSet(false, true)) {<a name="line.589"></a>
+<span class="sourceLineNo">590</span>                                        Map&lt;String, Object&gt; result = new LinkedHashMap&lt;String, Object&gt;();<a name="line.590"></a>
+<span class="sourceLineNo">591</span>                                        result.put("id", event.get("id"));<a name="line.591"></a>
+<span class="sourceLineNo">592</span>                                        result.put("data", value);<a name="line.592"></a>
+<span class="sourceLineNo">593</span>                                        result.put("exception", exception);<a name="line.593"></a>
+<span class="sourceLineNo">594</span>                                        send("reply", result);<a name="line.594"></a>
+<span class="sourceLineNo">595</span>                                    }<a name="line.595"></a>
+<span class="sourceLineNo">596</span>                                }<a name="line.596"></a>
+<span class="sourceLineNo">597</span>                            });<a name="line.597"></a>
+<span class="sourceLineNo">598</span>                        } else {<a name="line.598"></a>
+<span class="sourceLineNo">599</span>                            actions.fire(event.get("data"));<a name="line.599"></a>
+<span class="sourceLineNo">600</span>                        }<a name="line.600"></a>
+<span class="sourceLineNo">601</span>                    }<a name="line.601"></a>
+<span class="sourceLineNo">602</span>                }<a name="line.602"></a>
+<span class="sourceLineNo">603</span>            });<a name="line.603"></a>
+<span class="sourceLineNo">604</span>            on("reply", new Action&lt;Map&lt;String, Object&gt;&gt;() {<a name="line.604"></a>
+<span class="sourceLineNo">605</span>                @Override<a name="line.605"></a>
+<span class="sourceLineNo">606</span>                public void on(Map&lt;String, Object&gt; info) {<a name="line.606"></a>
+<span class="sourceLineNo">607</span>                    Action&lt;Object&gt; reply = replyMap.remove(info.get("id"));<a name="line.607"></a>
+<span class="sourceLineNo">608</span>                    if (reply != null) {<a name="line.608"></a>
+<span class="sourceLineNo">609</span>                        reply.on(info.get("data"));<a name="line.609"></a>
+<span class="sourceLineNo">610</span>                    } else {<a name="line.610"></a>
+<span class="sourceLineNo">611</span>                        log.error("Reply callback not found in socket#{} with info, {}", id(), info);<a name="line.611"></a>
+<span class="sourceLineNo">612</span>                    }<a name="line.612"></a>
+<span class="sourceLineNo">613</span>                }<a name="line.613"></a>
+<span class="sourceLineNo">614</span>            });<a name="line.614"></a>
+<span class="sourceLineNo">615</span>            try {<a name="line.615"></a>
+<span class="sourceLineNo">616</span>                new HeartbeatHelper(Long.valueOf(transport.params.get("heartbeat")));<a name="line.616"></a>
+<span class="sourceLineNo">617</span>            } catch (NumberFormatException e) {}<a name="line.617"></a>
+<span class="sourceLineNo">618</span>            <a name="line.618"></a>
+<span class="sourceLineNo">619</span>            sockets.put(id(), this);<a name="line.619"></a>
+<span class="sourceLineNo">620</span>        }<a name="line.620"></a>
+<span class="sourceLineNo">621</span>        <a name="line.621"></a>
+<span class="sourceLineNo">622</span>        class HeartbeatHelper {<a name="line.622"></a>
+<span class="sourceLineNo">623</span>            final long delay;<a name="line.623"></a>
+<span class="sourceLineNo">624</span>            AtomicReference&lt;Timer&gt; timer = new AtomicReference&lt;&gt;();<a name="line.624"></a>
+<span class="sourceLineNo">625</span>            <a name="line.625"></a>
+<span class="sourceLineNo">626</span>            HeartbeatHelper(long delay) {<a name="line.626"></a>
+<span class="sourceLineNo">627</span>                this.delay = delay;<a name="line.627"></a>
+<span class="sourceLineNo">628</span>                timer.set(createTimer());<a name="line.628"></a>
+<span class="sourceLineNo">629</span>                on("heartbeat", new VoidAction() {<a name="line.629"></a>
+<span class="sourceLineNo">630</span>                    @Override<a name="line.630"></a>
+<span class="sourceLineNo">631</span>                    public void on() {<a name="line.631"></a>
+<span class="sourceLineNo">632</span>                        timer.getAndSet(createTimer()).cancel();<a name="line.632"></a>
+<span class="sourceLineNo">633</span>                        send("heartbeat");<a name="line.633"></a>
+<span class="sourceLineNo">634</span>                    }<a name="line.634"></a>
+<span class="sourceLineNo">635</span>                });<a name="line.635"></a>
+<span class="sourceLineNo">636</span>            }<a name="line.636"></a>
+<span class="sourceLineNo">637</span>            <a name="line.637"></a>
+<span class="sourceLineNo">638</span>            Timer createTimer() {<a name="line.638"></a>
+<span class="sourceLineNo">639</span>                Timer timer = new Timer(true);<a name="line.639"></a>
+<span class="sourceLineNo">640</span>                timer.schedule(new TimerTask() {<a name="line.640"></a>
+<span class="sourceLineNo">641</span>                    @Override<a name="line.641"></a>
+<span class="sourceLineNo">642</span>                    public void run() {<a name="line.642"></a>
+<span class="sourceLineNo">643</span>                        close();<a name="line.643"></a>
+<span class="sourceLineNo">644</span>                    }<a name="line.644"></a>
+<span class="sourceLineNo">645</span>                }, delay);<a name="line.645"></a>
+<span class="sourceLineNo">646</span>                return timer;<a name="line.646"></a>
+<span class="sourceLineNo">647</span>            }<a name="line.647"></a>
 <span class="sourceLineNo">648</span>        }<a name="line.648"></a>
 <span class="sourceLineNo">649</span><a name="line.649"></a>
-<span class="sourceLineNo">650</span>        @SuppressWarnings("unchecked")<a name="line.650"></a>
-<span class="sourceLineNo">651</span>        @Override<a name="line.651"></a>
-<span class="sourceLineNo">652</span>        public &lt;T&gt; Socket off(String event, Action&lt;T&gt; action) {<a name="line.652"></a>
-<span class="sourceLineNo">653</span>            Actions&lt;Object&gt; actions = actionsMap.get(event);<a name="line.653"></a>
-<span class="sourceLineNo">654</span>            if (actions != null) {<a name="line.654"></a>
-<span class="sourceLineNo">655</span>                actions.remove((Action&lt;Object&gt;) action);<a name="line.655"></a>
-<span class="sourceLineNo">656</span>            }<a name="line.656"></a>
-<span class="sourceLineNo">657</span>            return this;<a name="line.657"></a>
+<span class="sourceLineNo">650</span>        @Override<a name="line.650"></a>
+<span class="sourceLineNo">651</span>        public String id() {<a name="line.651"></a>
+<span class="sourceLineNo">652</span>            return transport.params.get("id");<a name="line.652"></a>
+<span class="sourceLineNo">653</span>        }<a name="line.653"></a>
+<span class="sourceLineNo">654</span><a name="line.654"></a>
+<span class="sourceLineNo">655</span>        @Override<a name="line.655"></a>
+<span class="sourceLineNo">656</span>        public String uri() {<a name="line.656"></a>
+<span class="sourceLineNo">657</span>            return transport.uri();<a name="line.657"></a>
 <span class="sourceLineNo">658</span>        }<a name="line.658"></a>
 <span class="sourceLineNo">659</span><a name="line.659"></a>
 <span class="sourceLineNo">660</span>        @Override<a name="line.660"></a>
-<span class="sourceLineNo">661</span>        public Socket send(String event) {<a name="line.661"></a>
-<span class="sourceLineNo">662</span>            return send(event, null);<a name="line.662"></a>
+<span class="sourceLineNo">661</span>        public Set&lt;String&gt; tags() {<a name="line.661"></a>
+<span class="sourceLineNo">662</span>            return tags;<a name="line.662"></a>
 <span class="sourceLineNo">663</span>        }<a name="line.663"></a>
 <span class="sourceLineNo">664</span><a name="line.664"></a>
-<span class="sourceLineNo">665</span>        @Override<a name="line.665"></a>
-<span class="sourceLineNo">666</span>        public Socket send(String event, Object data) {<a name="line.666"></a>
-<span class="sourceLineNo">667</span>            return send(event, data, null);<a name="line.667"></a>
-<span class="sourceLineNo">668</span>        }<a name="line.668"></a>
-<span class="sourceLineNo">669</span><a name="line.669"></a>
-<span class="sourceLineNo">670</span>        @SuppressWarnings("unchecked")<a name="line.670"></a>
-<span class="sourceLineNo">671</span>        @Override<a name="line.671"></a>
-<span class="sourceLineNo">672</span>        public &lt;T&gt; Socket send(String type, Object data, Action&lt;T&gt; reply) {<a name="line.672"></a>
-<span class="sourceLineNo">673</span>            String eventId = UUID.randomUUID().toString();<a name="line.673"></a>
-<span class="sourceLineNo">674</span>            Map&lt;String, Object&gt; event = new LinkedHashMap&lt;String, Object&gt;();<a name="line.674"></a>
-<span class="sourceLineNo">675</span><a name="line.675"></a>
-<span class="sourceLineNo">676</span>            event.put("id", eventId);<a name="line.676"></a>
-<span class="sourceLineNo">677</span>            event.put("type", type);<a name="line.677"></a>
-<span class="sourceLineNo">678</span>            event.put("data", data);<a name="line.678"></a>
-<span class="sourceLineNo">679</span>            event.put("reply", reply != null);<a name="line.679"></a>
-<span class="sourceLineNo">680</span>            <a name="line.680"></a>
-<span class="sourceLineNo">681</span>            String text = stringifyEvent(event);<a name="line.681"></a>
-<span class="sourceLineNo">682</span>            transport.send(text);<a name="line.682"></a>
-<span class="sourceLineNo">683</span>            if (reply != null) {<a name="line.683"></a>
-<span class="sourceLineNo">684</span>                replyMap.put(eventId, (Action&lt;Object&gt;) reply);<a name="line.684"></a>
-<span class="sourceLineNo">685</span>            }<a name="line.685"></a>
-<span class="sourceLineNo">686</span>            return this;<a name="line.686"></a>
-<span class="sourceLineNo">687</span>        }<a name="line.687"></a>
-<span class="sourceLineNo">688</span><a name="line.688"></a>
-<span class="sourceLineNo">689</span>        @Override<a name="line.689"></a>
-<span class="sourceLineNo">690</span>        public Socket close() {<a name="line.690"></a>
-<span class="sourceLineNo">691</span>            transport.close();<a name="line.691"></a>
-<span class="sourceLineNo">692</span>            return this;<a name="line.692"></a>
+<span class="sourceLineNo">665</span>        @SuppressWarnings("unchecked")<a name="line.665"></a>
+<span class="sourceLineNo">666</span>        @Override<a name="line.666"></a>
+<span class="sourceLineNo">667</span>        public &lt;T&gt; Socket on(String event, Action&lt;T&gt; action) {<a name="line.667"></a>
+<span class="sourceLineNo">668</span>            Actions&lt;Object&gt; actions = actionsMap.get(event);<a name="line.668"></a>
+<span class="sourceLineNo">669</span>            if (actions == null) {<a name="line.669"></a>
+<span class="sourceLineNo">670</span>                Actions&lt;Object&gt; value = new ConcurrentActions&lt;&gt;();<a name="line.670"></a>
+<span class="sourceLineNo">671</span>                actions = actionsMap.putIfAbsent(event, value);<a name="line.671"></a>
+<span class="sourceLineNo">672</span>                if (actions == null) {<a name="line.672"></a>
+<span class="sourceLineNo">673</span>                    actions = value;<a name="line.673"></a>
+<span class="sourceLineNo">674</span>                }<a name="line.674"></a>
+<span class="sourceLineNo">675</span>            }<a name="line.675"></a>
+<span class="sourceLineNo">676</span>            actions.add((Action&lt;Object&gt;) action);<a name="line.676"></a>
+<span class="sourceLineNo">677</span>            return this;<a name="line.677"></a>
+<span class="sourceLineNo">678</span>        }<a name="line.678"></a>
+<span class="sourceLineNo">679</span><a name="line.679"></a>
+<span class="sourceLineNo">680</span>        @SuppressWarnings("unchecked")<a name="line.680"></a>
+<span class="sourceLineNo">681</span>        @Override<a name="line.681"></a>
+<span class="sourceLineNo">682</span>        public &lt;T&gt; Socket off(String event, Action&lt;T&gt; action) {<a name="line.682"></a>
+<span class="sourceLineNo">683</span>            Actions&lt;Object&gt; actions = actionsMap.get(event);<a name="line.683"></a>
+<span class="sourceLineNo">684</span>            if (actions != null) {<a name="line.684"></a>
+<span class="sourceLineNo">685</span>                actions.remove((Action&lt;Object&gt;) action);<a name="line.685"></a>
+<span class="sourceLineNo">686</span>            }<a name="line.686"></a>
+<span class="sourceLineNo">687</span>            return this;<a name="line.687"></a>
+<span class="sourceLineNo">688</span>        }<a name="line.688"></a>
+<span class="sourceLineNo">689</span><a name="line.689"></a>
+<span class="sourceLineNo">690</span>        @Override<a name="line.690"></a>
+<span class="sourceLineNo">691</span>        public Socket send(String event) {<a name="line.691"></a>
+<span class="sourceLineNo">692</span>            return send(event, null);<a name="line.692"></a>
 <span class="sourceLineNo">693</span>        }<a name="line.693"></a>
 <span class="sourceLineNo">694</span><a name="line.694"></a>
 <span class="sourceLineNo">695</span>        @Override<a name="line.695"></a>
-<span class="sourceLineNo">696</span>        public int hashCode() {<a name="line.696"></a>
-<span class="sourceLineNo">697</span>            final int prime = 31;<a name="line.697"></a>
-<span class="sourceLineNo">698</span>            int result = 1;<a name="line.698"></a>
-<span class="sourceLineNo">699</span>            result = prime * result + ((id() == null) ? 0 : id().hashCode());<a name="line.699"></a>
-<span class="sourceLineNo">700</span>            return result;<a name="line.700"></a>
-<span class="sourceLineNo">701</span>        }<a name="line.701"></a>
-<span class="sourceLineNo">702</span><a name="line.702"></a>
-<span class="sourceLineNo">703</span>        @Override<a name="line.703"></a>
-<span class="sourceLineNo">704</span>        public boolean equals(Object obj) {<a name="line.704"></a>
-<span class="sourceLineNo">705</span>            if (this == obj)<a name="line.705"></a>
-<span class="sourceLineNo">706</span>                return true;<a name="line.706"></a>
-<span class="sourceLineNo">707</span>            if (obj == null)<a name="line.707"></a>
-<span class="sourceLineNo">708</span>                return false;<a name="line.708"></a>
-<span class="sourceLineNo">709</span>            if (getClass() != obj.getClass())<a name="line.709"></a>
-<span class="sourceLineNo">710</span>                return false;<a name="line.710"></a>
-<span class="sourceLineNo">711</span>            DefaultSocket other = (DefaultSocket) obj;<a name="line.711"></a>
-<span class="sourceLineNo">712</span>            if (id() == null) {<a name="line.712"></a>
-<span class="sourceLineNo">713</span>                if (other.id() != null)<a name="line.713"></a>
-<span class="sourceLineNo">714</span>                    return false;<a name="line.714"></a>
-<span class="sourceLineNo">715</span>            } else if (!id().equals(other.id()))<a name="line.715"></a>
-<span class="sourceLineNo">716</span>                return false;<a name="line.716"></a>
-<span class="sourceLineNo">717</span>            return true;<a name="line.717"></a>
-<span class="sourceLineNo">718</span>        }<a name="line.718"></a>
-<span class="sourceLineNo">719</span>    }<a name="line.719"></a>
-<span class="sourceLineNo">720</span><a name="line.720"></a>
-<span class="sourceLineNo">721</span>}<a name="line.721"></a>
+<span class="sourceLineNo">696</span>        public Socket send(String event, Object data) {<a name="line.696"></a>
+<span class="sourceLineNo">697</span>            return send(event, data, null);<a name="line.697"></a>
+<span class="sourceLineNo">698</span>        }<a name="line.698"></a>
+<span class="sourceLineNo">699</span><a name="line.699"></a>
+<span class="sourceLineNo">700</span>        @SuppressWarnings("unchecked")<a name="line.700"></a>
+<span class="sourceLineNo">701</span>        @Override<a name="line.701"></a>
+<span class="sourceLineNo">702</span>        public &lt;T&gt; Socket send(String type, Object data, Action&lt;T&gt; reply) {<a name="line.702"></a>
+<span class="sourceLineNo">703</span>            String eventId = UUID.randomUUID().toString();<a name="line.703"></a>
+<span class="sourceLineNo">704</span>            Map&lt;String, Object&gt; event = new LinkedHashMap&lt;String, Object&gt;();<a name="line.704"></a>
+<span class="sourceLineNo">705</span><a name="line.705"></a>
+<span class="sourceLineNo">706</span>            event.put("id", eventId);<a name="line.706"></a>
+<span class="sourceLineNo">707</span>            event.put("type", type);<a name="line.707"></a>
+<span class="sourceLineNo">708</span>            event.put("data", data);<a name="line.708"></a>
+<span class="sourceLineNo">709</span>            event.put("reply", reply != null);<a name="line.709"></a>
+<span class="sourceLineNo">710</span>            <a name="line.710"></a>
+<span class="sourceLineNo">711</span>            String text = stringifyEvent(event);<a name="line.711"></a>
+<span class="sourceLineNo">712</span>            transport.send(text);<a name="line.712"></a>
+<span class="sourceLineNo">713</span>            if (reply != null) {<a name="line.713"></a>
+<span class="sourceLineNo">714</span>                replyMap.put(eventId, (Action&lt;Object&gt;) reply);<a name="line.714"></a>
+<span class="sourceLineNo">715</span>            }<a name="line.715"></a>
+<span class="sourceLineNo">716</span>            return this;<a name="line.716"></a>
+<span class="sourceLineNo">717</span>        }<a name="line.717"></a>
+<span class="sourceLineNo">718</span><a name="line.718"></a>
+<span class="sourceLineNo">719</span>        @Override<a name="line.719"></a>
+<span class="sourceLineNo">720</span>        public Socket close() {<a name="line.720"></a>
+<span class="sourceLineNo">721</span>            transport.close();<a name="line.721"></a>
+<span class="sourceLineNo">722</span>            return this;<a name="line.722"></a>
+<span class="sourceLineNo">723</span>        }<a name="line.723"></a>
+<span class="sourceLineNo">724</span><a name="line.724"></a>
+<span class="sourceLineNo">725</span>        @Override<a name="line.725"></a>
+<span class="sourceLineNo">726</span>        public int hashCode() {<a name="line.726"></a>
+<span class="sourceLineNo">727</span>            final int prime = 31;<a name="line.727"></a>
+<span class="sourceLineNo">728</span>            int result = 1;<a name="line.728"></a>
+<span class="sourceLineNo">729</span>            result = prime * result + ((id() == null) ? 0 : id().hashCode());<a name="line.729"></a>
+<span class="sourceLineNo">730</span>            return result;<a name="line.730"></a>
+<span class="sourceLineNo">731</span>        }<a name="line.731"></a>
+<span class="sourceLineNo">732</span><a name="line.732"></a>
+<span class="sourceLineNo">733</span>        @Override<a name="line.733"></a>
+<span class="sourceLineNo">734</span>        public boolean equals(Object obj) {<a name="line.734"></a>
+<span class="sourceLineNo">735</span>            if (this == obj)<a name="line.735"></a>
+<span class="sourceLineNo">736</span>                return true;<a name="line.736"></a>
+<span class="sourceLineNo">737</span>            if (obj == null)<a name="line.737"></a>
+<span class="sourceLineNo">738</span>                return false;<a name="line.738"></a>
+<span class="sourceLineNo">739</span>            if (getClass() != obj.getClass())<a name="line.739"></a>
+<span class="sourceLineNo">740</span>                return false;<a name="line.740"></a>
+<span class="sourceLineNo">741</span>            DefaultSocket other = (DefaultSocket) obj;<a name="line.741"></a>
+<span class="sourceLineNo">742</span>            if (id() == null) {<a name="line.742"></a>
+<span class="sourceLineNo">743</span>                if (other.id() != null)<a name="line.743"></a>
+<span class="sourceLineNo">744</span>                    return false;<a name="line.744"></a>
+<span class="sourceLineNo">745</span>            } else if (!id().equals(other.id()))<a name="line.745"></a>
+<span class="sourceLineNo">746</span>                return false;<a name="line.746"></a>
+<span class="sourceLineNo">747</span>            return true;<a name="line.747"></a>
+<span class="sourceLineNo">748</span>        }<a name="line.748"></a>
+<span class="sourceLineNo">749</span>    }<a name="line.749"></a>
+<span class="sourceLineNo">750</span><a name="line.750"></a>
+<span class="sourceLineNo">751</span>}<a name="line.751"></a>
 
 
 
