@@ -13,7 +13,7 @@ title: Portal for Java
 {% capture panel %}
 ```java
 @WebListener
-public class ServerBootstrap implements ServletContextListener {
+public class Bootstrap implements ServletContextListener {
     
     @Override
     public void contextInitialized(ServletContextEvent event) {
@@ -24,7 +24,7 @@ public class ServerBootstrap implements ServletContextListener {
         server.socketAction(new Action<Socket>() {
             @Override
             public void on(final Socket socket) {
-                socket.send("greeting", "Hello").on("echo", new Action<Object>() {
+                socket.on("echo", new Action<Object>() {
                     @Override
                     public void on(Object data) {
                         socket.send("echo", data);
@@ -98,26 +98,14 @@ server.byTag("room#201", new Action<Socket>() {
 });
 ```
 {% endcapture %}{{ panel | markdownify }}
-        <h4>Customizing</h4>
-        <p>As options to customize protocol, there are the following methods defined in <a href="{{ site.baseurl }}/0.9.0-SNAPSHOT/api/io/github/flowersinthesand/portal/DefaultServer.html">DefaultServer</a>.</p>
+        <h4>Writing Sentence</h4>
+        <p><code>Sentence</code> is a series of predicates that a group of sockets have to follow. Finder methods return a sentence when being called without action. Use of sentence is preferred to that of action if the goal is same. Because, it enables to write one-liner action and uses an action implementing <code>Serializable</code> in execution, which is picky to use in anonymous class and typically needed in clustering.</p>
 {% capture panel %}
 ```java
-Server server = new DefaultServer() {
-    @Override
-    protected Map<String, String> parseURI(String uri) {
-        // Return a map of socket parameters from uri.
-    }
-
-    @Override
-    protected Map<String, Object> parseEvent(String text) {
-        // Return an event object from a stringified event.
-    }
-
-    @Override
-    protected String stringifyEvent(Map<String, Object> event) {
-        // Returns a stringified event from an event object.
-    }
-};
+server.all().send("foo", "bar");
+```
+```java
+server.byTag("room#201").send("message", "time to say goodbye").close();
 ```
 {% endcapture %}{{ panel | markdownify }}
         <h3><a href="{{ site.baseurl }}/0.9.0-SNAPSHOT/api/io/github/flowersinthesand/portal/Server.html">Socket</a></h3>
@@ -213,6 +201,9 @@ socket.send("event", "data", new Action<Object>() {
 			<li><a href="https://github.com/flowersinthesand/portal-java-examples/tree/master/server/platform/vertx2">Vert.x 2</a></li>
 			<li><a href="https://github.com/flowersinthesand/portal-java-examples/tree/master/server/platform/jee7">Servlet 3 and Java WebSocket API 1</a></li>
 		</ul>
+        <h3>Clustering</h3>
+        <p><code>ClusteredServer</code> follows the publish and subscribe model to support clustering. All of the message oriented middleware supporting that model can be used to cluster multiple Portal for Java applications.</p>
+        <p>TODO</p>
         <h3>Dependency Injection</h3>
         <p>With dependency injection support by framework or container, you can make <code>Server</code> as component and inject it wherever you need to handle sockets cleanly without static keyword.</p>
 		<ul class="inline-list">
