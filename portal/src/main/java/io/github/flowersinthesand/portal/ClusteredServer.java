@@ -50,9 +50,11 @@ import io.github.flowersinthesand.wes.ConcurrentActions;
  * serialized and you may have to have pass {@link Action} implementing
  * {@link Serializable} on method call. See the provided link, serialization of
  * inner classes including local and anonymous classes, is discouraged and
- * doesn't work in some cases.
+ * doesn't work in some cases. Therefore, always use {@link Sentence} instead of action
+ * if possible.
  * 
  * @author Donghwan Kim
+ * @see Sentence
  * @see <a
  *      href="http://docs.oracle.com/javase/7/docs/platform/serialization/spec/serial-arch.html#4539">Note
  *      of the Serializable Interface</a>

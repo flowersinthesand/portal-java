@@ -43,51 +43,59 @@ import io.github.flowersinthesand.wes.ServerWebSocket;
 public interface Server {
 
 	/**
-	 * Returns a sentence that all of the socket in this server have to follow.
+	 * Returns a sentence that all of the socket in this server or all of the
+	 * server if it's in a clustered environment have to follow.
 	 */
 	Sentence all();
 
 	/**
-	 * Executes the given action retrieving all of the socket in this server.
+	 * Executes the given action retrieving all of the socket in this server or
+	 * all of the server if it's in a clustered environment .
 	 */
 	Server all(Action<Socket> action);
 
 	/**
-	 * Returns a sentence that the socket of the given id have to follow.
+	 * Returns a sentence that the socket of the given id in this server or all
+	 * of the server if it's in a clustered environment have to follow.
 	 */
 	Sentence byId(String id);
 
 	/**
-	 * Executes the given action retrieving the socket of the given id. The
-	 * given action will be executed only once if socket is found and won't be
+	 * Executes the given action retrieving the socket of the given id in this
+	 * server or all of the server if it's in a clustered environment. The given
+	 * action will be executed only once if socket is found and won't be
 	 * executed if not found.
 	 */
 	Server byId(String id, Action<Socket> action);
 
 	/**
-	 * Returns a sentence that the socket tagged with all of the given names
-	 * have to follow.
+	 * Returns a sentence that the socket tagged with all of the given names in
+	 * this server or all of the server if it's in a clustered environment have
+	 * to follow.
 	 */
 	Sentence byTag(String... names);
 
 	/**
 	 * Executes the given action retrieving the socket tagged with the given
-	 * name. The given action will be executed multiple times if sockets are
-	 * found and won't be executed if not found.
+	 * name in this server or all of the server if it's in a clustered
+	 * environment. The given action will be executed multiple times if sockets
+	 * are found and won't be executed if not found.
 	 */
 	Server byTag(String name, Action<Socket> action);
 
 	/**
 	 * Executes the given action retrieving the socket tagged with all of the
-	 * given names. The given action will be executed multiple times if sockets
+	 * given names in this server or all of the server if it's in a clustered
+	 * environment. The given action will be executed multiple times if sockets
 	 * are found and won't be executed if not found.
 	 */
 	Server byTag(String[] names, Action<Socket> action);
 
 	/**
-	 * Registers an action to be called when the socket has been opened. It's
-	 * allowed to add several actions before and after installation, so you
-	 * don't need to centralize all your code to one class.
+	 * Registers an action to be called when the socket has been opened in this
+	 * server regardless of clustering. It's allowed to add several actions
+	 * before and after installation, so you don't need to centralize all your
+	 * code to one class.
 	 */
 	Server socketAction(Action<Socket> action);
 

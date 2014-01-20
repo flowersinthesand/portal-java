@@ -20,10 +20,11 @@ import io.github.flowersinthesand.wes.Action;
 import java.io.Serializable;
 
 /**
- * {@code Sentence} is a series of predicates and operations that a group of
- * socket have to follow. It makes easy to write and execute one-liner action
- * implementing {@link Serializable} that is typically needed in cluster
- * environments.
+ * {@code Sentence} is a series of predicates that a group of socket have to
+ * follow. It makes easy to write one-liner action and uses internally built
+ * actions implementing {@link Serializable} that is typically needed in cluster
+ * environments. Use of {@code Sentence} is preferred to that of action if the
+ * goal is the same.
  * 
  * @author Donghwan Kim
  */
