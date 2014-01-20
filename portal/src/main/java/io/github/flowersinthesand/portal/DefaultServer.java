@@ -255,11 +255,31 @@ public class DefaultServer implements Server {
 	}
 	
 	@Override
+	public Sentence all() {
+		return new Sentence(new Action<Action<Socket>>() {
+			@Override
+			public void on(Action<Socket> action) {
+				all(action);
+			}
+		});
+	}
+	
+	@Override
 	public Server all(Action<Socket> action) {
 		for (Socket socket : sockets.values()) {
 			action.on(socket);
 		}
 		return this;
+	}
+	
+	@Override
+	public Sentence byId(final String id) {
+		return new Sentence(new Action<Action<Socket>>() {
+			@Override
+			public void on(Action<Socket> action) {
+				byId(id, action);
+			}
+		});
 	}
 
 	@Override
@@ -269,6 +289,16 @@ public class DefaultServer implements Server {
 			action.on(socket);
 		}
 		return this;
+	}
+
+	@Override
+	public Sentence byTag(final String... names) {
+		return new Sentence(new Action<Action<Socket>>() {
+			@Override
+			public void on(Action<Socket> action) {
+				byTag(names, action);
+			}
+		});
 	}
 
 	@Override

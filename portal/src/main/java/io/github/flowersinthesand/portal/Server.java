@@ -43,9 +43,19 @@ import io.github.flowersinthesand.wes.ServerWebSocket;
 public interface Server {
 
 	/**
+	 * Returns a sentence that all of the socket in this server have to follow.
+	 */
+	Sentence all();
+
+	/**
 	 * Executes the given action retrieving all of the socket in this server.
 	 */
 	Server all(Action<Socket> action);
+
+	/**
+	 * Returns a sentence that the socket of the given id have to follow.
+	 */
+	Sentence byId(String id);
 
 	/**
 	 * Executes the given action retrieving the socket of the given id. The
@@ -53,6 +63,12 @@ public interface Server {
 	 * executed if not found.
 	 */
 	Server byId(String id, Action<Socket> action);
+
+	/**
+	 * Returns a sentence that the socket tagged with all of the given names
+	 * have to follow.
+	 */
+	Sentence byTag(String... names);
 
 	/**
 	 * Executes the given action retrieving the socket tagged with the given
