@@ -4,12 +4,12 @@ title: Portal for Java
 ---
 <div class="row">
     <div class="large-12 columns main">
-    	<h1>Getting Started <small>v0.9.0-SNAPSHOT</small></h1>
+    	<h1>Getting Started <small>v0.9.0</small></h1>
         <p>The <strong>Portal for Java</strong> is a server implementation of the <a href="http://flowersinthesand.github.io/portal">Portal</a> written in Java, JavaScript library for real-time web application development.</p>
         <hr />
         <h2></h2>
         <h2>Installing</h2>
-        <p>Portal for Java is distributed through <a href="http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22io.github.flowersinthesand%22%20AND%20a%3A%22portal%22">Maven Central</a>, only one artifact: <code>io.github.flowersinthesand:portal:0.9.0-SNAPSHOT</code> and is a server-side wes application so that it can run on any framework wes supports. See <a href="http://flowersinthesand.github.io/wes">wes</a> documentation for what frameworks are supported and how to install portal on them. The following example shows how to install a portal server in Java Servlet with the help of Atmosphere framework.</p>
+        <p>Portal for Java is distributed through <a href="http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22io.github.flowersinthesand%22%20AND%20a%3A%22portal%22">Maven Central</a>, only one artifact: <code>io.github.flowersinthesand:portal:0.9.0</code> and is a server-side wes application so that it can run on any framework wes supports. See <a href="http://flowersinthesand.github.io/wes">wes</a> documentation for what frameworks are supported and how to install portal on them. The following example shows how to install a portal server in Java Servlet with the help of Atmosphere framework.</p>
 {% capture panel %}
 ```java
 @WebListener
@@ -46,7 +46,7 @@ public class Bootstrap implements ServletContextListener {
         <hr />
         <h2>API</h2>
         <p>Let's take a brief look at API usage.</p>
-        <h3><a href="{{ site.baseurl }}/0.9.0-SNAPSHOT/api/io/github/flowersinthesand/portal/Server.html">Server</a></h3>
+        <h3><a href="{{ site.baseurl }}/0.9.0/api/io/github/flowersinthesand/portal/Server.html">Server</a></h3>
         <p>Server provides and manages socket processing HTTP message and WebSocket.</p>
         <h4>Handling Socket</h4>
         <p>When a socket is opened, actions added via <code>socketAction</code> are executed with it. It's allowed to add several actions before and after installation, so you don't need to centralize all your code to one class.</p>
@@ -108,7 +108,7 @@ server.all().send("foo", "bar");
 server.byTag("room#201").send("message", "time to say goodbye").close();
 ```
 {% endcapture %}{{ panel | markdownify }}
-        <h3><a href="{{ site.baseurl }}/0.9.0-SNAPSHOT/api/io/github/flowersinthesand/portal/Server.html">Socket</a></h3>
+        <h3><a href="{{ site.baseurl }}/0.9.0/api/io/github/flowersinthesand/portal/Server.html">Socket</a></h3>
         <p>Socket is a connectivity between the two portal endpoints where event occurs. Do not hold a reference on socket unless the reference shares the same life cycle of socket. It makes things complicated since it is stateful and also may result in a problem in clustered environment. Always create a socket action and pass it to server to access socket.</p>
         <h4>Properties</h4>
         <p>These are read only.</p>
@@ -143,7 +143,7 @@ tags.add("account#flowersinthesand");
             </div>
         </div>
         <h4>Receiving Events</h4>
-        <p><code>on</code> attaches an event handler. Allowed <a href="{{ site.baseurl }}/0.9.0-SNAPSHOT/api/io/github/flowersinthesand/portal/Socket.html#on(java.lang.String, io.github.flowersinthesand.wes.Action)">Java types</a> for data corresponding to JSON types. As reserved event, when a socket has been closed, <code>close</code> event is fired without data.</p>
+        <p><code>on</code> attaches an event handler. Allowed <a href="{{ site.baseurl }}/0.9.0/api/io/github/flowersinthesand/portal/Socket.html#on(java.lang.String, io.github.flowersinthesand.wes.Action)">Java types</a> for data corresponding to JSON types. As reserved event, when a socket has been closed, <code>close</code> event is fired without data.</p>
 {% capture panel %}
 ```java
 socket.on("event", new Action<Map<String, Object>>() {
@@ -190,7 +190,7 @@ socket.send("event", "data", new Action<Object>() {
         <hr />
         <h2>Test Suite</h2>
         <p>Portal for Java provides a server for Portal test suite. It's available on <a href="http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22io.github.flowersinthesand%22%20AND%20a%3A%22portal-testsuite%22">Maven Central</a>. This module's a goal is to provide a complete form of test suite in Java and it will be done as soon as wes starts to support client-side frameworks.</p>
-        <p>With that server, you can test your client implementation. It comes with <a href="https://github.com/flowersinthesand/portal/tree/master/test/webapp">test suite</a> from the portal repository so you can see how Portal for Java passes the test suite in your browser. For how to start the server, see <a href="{{ site.baseurl }}/0.9.0-SNAPSHOT/api/io/github/flowersinthesand/portal/testsuite/ServerBootstrap.html">ServerBootstrap</a>.</p>
+        <p>With that server, you can test your client implementation. It comes with <a href="https://github.com/flowersinthesand/portal/tree/master/test/webapp">test suite</a> from the portal repository so you can see how Portal for Java passes the test suite in your browser. For how to start the server, see <a href="{{ site.baseurl }}/0.9.0/api/io/github/flowersinthesand/portal/testsuite/ServerBootstrap.html">ServerBootstrap</a>.</p>
         <hr />
         <h2>Examples</h2>
         <p>The followings are brief introduction of <a href="https://github.com/flowersinthesand/portal-java-examples/">working example applications</a>.</p>
