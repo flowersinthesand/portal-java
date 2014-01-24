@@ -28,7 +28,7 @@ import java.io.Serializable;
  * 
  * @author Donghwan Kim
  */
-public class Sentence {
+public class Sentence implements AbstractSocket<Sentence>{
 	
 	private final Action<Action<Socket>> serverAction;
 
@@ -36,29 +36,23 @@ public class Sentence {
 		this.serverAction = serverAction;
 	}
 
-	/**
-	 * With respect to sockets, sends a given event without data.
-	 */
+	@Override
 	public Sentence send(String event) {
 		return send(event, null);
 	}
 
-	/**
-	 * With respect to sockets, sends a given event with data.
-	 */
+	@Override
 	public Sentence send(String event, Object data) {
 		execute(new SendAction(event, data));
 		return this;
 	}
 
-	/**
-	 * With respect to sockets, closes the session.
-	 */
+	@Override
 	public Sentence close() {
 		execute(new CloseAction());
 		return this;
 	}
-	
+
 	private void execute(Action<Socket> action) {
 		serverAction.on(action);
 	}
