@@ -34,8 +34,18 @@ public interface AbstractSocket<T> {
 	T send(String event, Object data);
 
 	/**
-	 * Closes the session.
+	 * Closes the socket.
 	 */
 	T close();
+
+	/**
+	 * Attaches given tags to the socket.
+	 */
+	T tag(String... names);
+
+	/**
+	 * Detaches given tags from the socket.
+	 */
+	T untag(String... names);
 
 }

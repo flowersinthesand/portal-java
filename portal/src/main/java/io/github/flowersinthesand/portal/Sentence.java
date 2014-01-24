@@ -28,8 +28,8 @@ import java.io.Serializable;
  * 
  * @author Donghwan Kim
  */
-public class Sentence implements AbstractSocket<Sentence>{
-	
+public class Sentence implements AbstractSocket<Sentence> {
+
 	private final Action<Action<Socket>> serverAction;
 
 	Sentence(Action<Action<Socket>> serverAction) {
@@ -50,6 +50,18 @@ public class Sentence implements AbstractSocket<Sentence>{
 	@Override
 	public Sentence close() {
 		execute(new CloseAction());
+		return this;
+	}
+	
+	@Override
+	public Sentence tag(String... names) {
+		execute(new TagAction(names));
+		return this;
+	}
+
+	@Override
+	public Sentence untag(String... names) {
+		execute(new UntagAction(names));
 		return this;
 	}
 
@@ -81,6 +93,34 @@ public class Sentence implements AbstractSocket<Sentence>{
 		@Override
 		public void on(Socket socket) {
 			socket.close();
+		}
+	}
+	
+	static class TagAction implements SerializableAction<Socket> {
+		private static final long serialVersionUID = -7789207688974771161L;
+		final String[] names;
+
+		public TagAction(String[] names) {
+			this.names = names;
+		}
+
+		@Override
+		public void on(Socket socket) {
+			socket.tag(names);
+		}
+	}
+	
+	static class UntagAction implements SerializableAction<Socket> {
+		private static final long serialVersionUID = -4173842573981245930L;
+		final String[] names;
+
+		public UntagAction(String[] names) {
+			this.names = names;
+		}
+
+		@Override
+		public void on(Socket socket) {
+			socket.untag(names);
 		}
 	}
 

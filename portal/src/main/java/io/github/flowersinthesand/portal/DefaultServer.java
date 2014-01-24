@@ -723,6 +723,18 @@ public class DefaultServer implements Server {
 		}
 
 		@Override
+		public Socket tag(String... names) {
+			tags.addAll(Arrays.asList(names));
+			return this;
+		}
+
+		@Override
+		public Socket untag(String... names) {
+			tags.removeAll(Arrays.asList(names));
+			return this;
+		}
+
+		@Override
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
